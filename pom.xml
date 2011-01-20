@@ -53,6 +53,8 @@
                             <arguments>
                                 <argument>-classpath</argument>
                                 <classpath/>
+				<argument>-Xmx512m</argument>
+				<argument>-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.ssl=false</argument>
                                 <argument>fr.xebia.usiquizz.server.http.HttpServer</argument>
                             </arguments>
                         </configuration>
