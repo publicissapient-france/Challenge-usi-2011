@@ -1,4 +1,4 @@
-package fr.xebia.usiquizz.test.netty;
+package fr.xebia.usiquizz.test.mongodb;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;

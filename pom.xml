@@ -154,14 +154,6 @@
             <version>1.6.4</version>
         </dependency>
 
-        <!-- MUST BE MANUALLY ADDED IN LOCAL REPOS -->
-        <!-- mvn install:install-file -DgroupId=org.factor45 -DartifactId=hotpotato -Dversion=0.8.0 -Dpackaging=jar -Dfile=lib/hotpotato-0.8.0.jar -->
-        <dependency>
-            <groupId>org.factor45</groupId>
-            <artifactId>hotpotato</artifactId>
-            <version>0.8.0</version>
-        </dependency>
-
         <dependency>
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>

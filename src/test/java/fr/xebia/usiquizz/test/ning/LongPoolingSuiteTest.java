@@ -6,7 +6,6 @@ import com.usi.Question;
 import com.usi.Questiontype;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
-import fr.xebia.usiquizz.test.netty.HttpCreateUser;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 

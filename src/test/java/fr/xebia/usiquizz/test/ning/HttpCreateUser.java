@@ -1,9 +1,10 @@
-package fr.xebia.usiquizz.test.netty;
+package fr.xebia.usiquizz.test.ning;
 
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.Response;
+import fr.xebia.usiquizz.test.mongodb.ReinitDatabase;
 
 import java.io.*;
 
