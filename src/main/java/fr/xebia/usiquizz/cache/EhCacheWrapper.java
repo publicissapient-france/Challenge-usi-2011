@@ -4,8 +4,7 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 
-public class EhCacheWrapper<K, V>
-{
+public class EhCacheWrapper<K, V> implements CacheWrapper<K,V> {
     private final String cacheName;
     private final CacheManager cacheManager;
 
@@ -15,11 +14,13 @@ public class EhCacheWrapper<K, V>
         this.cacheManager = cacheManager;
     }
 
+    @Override
     public void put(final K key, final V value)
     {
         getCache().put(new Element(key, value));
     }
 
+    @Override
     public V get(final K key)
     {
         Element element = getCache().get(key);

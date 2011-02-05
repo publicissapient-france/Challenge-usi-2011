@@ -53,8 +53,8 @@
                             <arguments>
                                 <argument>-classpath</argument>
                                 <classpath/>
-				<argument>-Xmx512m</argument>
-				<argument>-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.ssl=false</argument>
+				                    <argument>-Xmx512m</argument>
+				                    <argument>-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.ssl=false</argument>
                                 <argument>fr.xebia.usiquizz.server.http.HttpServer</argument>
                             </arguments>
                         </configuration>
@@ -158,6 +158,13 @@
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>
             <version>1.4.1</version>
+        </dependency>
+
+        <!-- In memory datagrid -->
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-client</artifactId>
+            <version>1.9.1</version>
         </dependency>
 
     </dependencies>

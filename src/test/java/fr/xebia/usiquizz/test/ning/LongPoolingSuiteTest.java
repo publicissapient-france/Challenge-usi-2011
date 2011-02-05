@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class LongPoolingSuiteTest {
 
-    private static int nbClient = 1000;
+    private static int nbClient = 5000;
 
     private static String host;
     private static final String DEFAULT_HOST = "127.0.0.1:8080";

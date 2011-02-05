@@ -4,8 +4,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
-import fr.xebia.usiquizz.cache.EhCacheWrapper;
-import net.sf.ehcache.CacheManager;
+import fr.xebia.usiquizz.cache.CacheWrapper;
+import fr.xebia.usiquizz.cache.HazelcastWrapper;
 
 public class UserRepository extends AbstractRepository {
 
@@ -16,7 +16,8 @@ public class UserRepository extends AbstractRepository {
     public static final String FIRSTNAME_FIELD = "firstname";
     public static final String LASTNAME_FIELD = "lastname";
 
-    private EhCacheWrapper<String, String> inProcessCache = new EhCacheWrapper<String, String>("User-cache", CacheManager.getInstance());
+    //private CacheWrapper<String, String> cache = new EhCacheWrapper<String, String>("User-cache", CacheManager.getInstance());
+    private CacheWrapper<String, String> cache = new HazelcastWrapper<String, String>();
 
     public void insertUser(String email, String password, String firstname, String lastname) {
         BasicDBObject user = new BasicDBObject();
@@ -25,20 +26,21 @@ public class UserRepository extends AbstractRepository {
         user.put(FIRSTNAME_FIELD, firstname);
         user.put(LASTNAME_FIELD, lastname);
         getDb().getCollection(USER_COLLECTION_NAME).insert(user);
-        inProcessCache.put(email, JSON.serialize(user));
+        cache.put(email, JSON.serialize(user));
     }
 
     public User getUser(String mail) {
         String stringObject = null;
         DBObject object = null;
-        if ((stringObject = inProcessCache.get(mail)) == null) {
+        if ((stringObject = cache.get(mail)) == null) {
             BasicDBObject searchedUser = new BasicDBObject();
             searchedUser.put(EMAIL_FIELD, mail);
             DBCursor cursor = getDb().getCollection(USER_COLLECTION_NAME).find(searchedUser);
             if (cursor.hasNext()) {
                 object = cursor.next();
-                inProcessCache.put(mail, JSON.serialize(object));
-            }else{
+                cache.put(mail, JSON.serialize(object));
+            }
+            else {
                 // No account
                 return null;
             }
