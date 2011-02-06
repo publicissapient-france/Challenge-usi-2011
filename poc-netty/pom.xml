@@ -161,10 +161,19 @@
         </dependency>
 
         <!-- In memory datagrid -->
+        <!-- Must manually be added in repo -->
+        <!-- mvn install:install-file -DgroupId=com.hazelcast -DartifactId=hazelcast-client -Dversion=1.9.2 -Dpackaging=jar -Dfile=lib/hazelcast-client-1.9.2.jar -->
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-client</artifactId>
-            <version>1.9.1</version>
+            <version>1.9.2</version>
+        </dependency>
+
+        <!-- mvn install:install-file -DgroupId=com.hazelcast -DartifactId=hazelcast -Dversion=1.9.2 -Dpackaging=jar -Dfile=lib/hazelcast-1.9.2.jar -->
+         <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>1.9.2</version>
         </dependency>
 
     </dependencies>

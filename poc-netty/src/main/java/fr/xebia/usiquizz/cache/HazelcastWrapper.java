@@ -10,7 +10,7 @@ public class HazelcastWrapper<K, V> implements CacheWrapper<K, V> {
     private Map<K, V> mapCache;
 
     public HazelcastWrapper() {
-        client = HazelcastClient.newHazelcastClient("usi", "usi-pass", "127.0.0.1");
+        client = HazelcastClient.newHazelcastClient("quizz-dg", "quizz", "192.168.166.10");
         mapCache = client.getMap("cache");
     }
 
