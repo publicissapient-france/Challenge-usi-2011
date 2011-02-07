@@ -6,8 +6,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
-import fr.xebia.usi.quizz.netty.rest.RestService;
-import fr.xebia.usi.quizz.netty.rest.UserRestService;
+import fr.xebia.usi.quizz.web.netty.rest.RestService;
+import fr.xebia.usi.quizz.web.netty.rest.UserRestService;
 import fr.xebia.usi.quizz.service.JsonMapper;
 import fr.xebia.usi.quizz.service.JsonMapperImpl;
 import fr.xebia.usi.quizz.service.UserManager;

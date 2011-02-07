@@ -1,4 +1,4 @@
-var http = require('request');
+var http = require('http');
 
 
 var user ={ 
@@ -11,45 +11,51 @@ var user ={
 
 
 var loop =1;
-var loopInt = 1000;
+var loopInt = 10000;
 var total = 0;
 var sum =0;
 
 function hit ( ){
 		var i = 0;
-	while (i <= loopInt){
-		user.mail="user-"+(total);
 		
-	//console.log('OBJECT: ' + JSON.stringify(user));
-	var google = http({uri:'http://127.0.0.1:8080/api/user',
-							   method: 'POST',
-							   body:JSON.stringify(user)}, 
-							   function (err, response, body) {
-								   
-								   if (err){
-									console.log("error : "+ JSON.stringify(err));   
-								   } else {
-								   console.log('STATUS: ' + response.statusCode);
-							//	   console.log('HEADERS: ' + JSON.stringify(response.headers));
-								   console.log('BODY: ' + body);
-								   }
-								   sum --;
-							   });
-	i++;
-	total++;
-	sum++;
-
+		if (loop > 0)
+	while (i < loopInt){
+	//	console.log('# LOOP - '+ i +' of '+ loopInt);
+		user.mail="user-"+(total);
+		sum++;
+		var ct = JSON.stringify(user);
+		var google = http.createClient(8080, '127.0.0.1');
+		var request = google.request('POST', '/api/user',
+				{'host': '127.0.0.1',
+				 'Content-Length': ''+(ct.length),
+				 'Content-Type': 'application/json'});
+		request.write(ct);
+		request.end();
+		request.on('response', function (response) {
+			console.log('STATUS: ' + response.statusCode);
+			console.log('HEADERS: ' + JSON.stringify(response.headers));
+			response.setEncoding('utf8');
+			response.on('data', function (chunk) {
+				console.log('BODY: ' + chunk);
+			});
+			sum --;
+		});
+		
+		//console.log('OBJECT: ' + JSON.stringify(user));
+		i++;
+		total++;
 	}
+	console.log(sum + ' Running requests :p');
 	
 	loop--;
 	if (loop > 0){
-		setTimeout(hit, 4);
+		setTimeout(hit, 20);
 	}else {
 		loopInt = -1;
-		
+		console.log('Waiting for requests done ...');
 		
 		if (sum > 0){
-			setTimeout(hit, 4);
+			setTimeout(hit, 20);
 		}else {
 			console.log('Total users injected : '+ total);	
 		}

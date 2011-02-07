@@ -98,10 +98,10 @@
 		</dependency>
 		<dependency>
 			<groupId>org.deft</groupId>
-			<artifactId>server</artifactId>
-			<version>0.2.0</version>
-			<scope>system</scope>
-			<systemPath>/Users/slm/Downloads/deft-0.2.0/lib/deft-0.2.0.jar</systemPath>
+			<artifactId>deft</artifactId>
+			<version>0.3.0-SNAPSHOT</version>
+<!--			<scope>system</scope>-->
+<!--			<systemPath>/Users/slm/Downloads/deft-0.2.0/lib/deft-0.2.0.jar</systemPath>-->
 		</dependency>
 		<dependency>
 			<groupId>javax.activation</groupId>
@@ -151,7 +151,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.0.2</version>
+				<version>2.3.2</version>
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
@@ -159,4 +159,31 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+        <profile>
+            <id>run-server-deft</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+				                    <argument>-Xmx512m</argument>
+				                    <argument>-server</argument>
+				                    <argument>-Dcom.sun.management.jmxremote</argument>
+				                    <argument> -Dcom.sun.management.jmxremote.ssl=false</argument>
+                                <argument>fr.xebia.usi.quizz.web.deft.DeftUserService</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        </profiles>
+	
 </project>
