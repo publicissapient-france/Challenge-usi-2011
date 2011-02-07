@@ -1,5 +1,7 @@
 target
 .idea
 *.iml
+*.ipr
+*.iws
 generated-java
 .DS_Store

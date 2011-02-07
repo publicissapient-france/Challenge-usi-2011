@@ -53,8 +53,11 @@
                             <arguments>
                                 <argument>-classpath</argument>
                                 <classpath/>
-				                    <argument>-Xmx512m</argument>
-				                    <argument>-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.ssl=false</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>-Dcom.sun.management.jmxremote</argument>
+                                <argument>-Dcom.sun.management.jmxremote.port=1099</argument>
+                                <argument>-Dcom.sun.management.jmxremote.authenticate=false</argument>
+                                <argument>-Dcom.sun.management.jmxremote.ssl=false</argument>
                                 <argument>fr.xebia.usiquizz.server.http.HttpServer</argument>
                             </arguments>
                         </configuration>
@@ -70,7 +73,7 @@
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
                         <configuration>
-                             <classpathScope>test</classpathScope>
+                            <classpathScope>test</classpathScope>
                             <executable>java</executable>
                             <arguments>
                                 <argument>-classpath</argument>
@@ -170,11 +173,66 @@
         </dependency>
 
         <!-- mvn install:install-file -DgroupId=com.hazelcast -DartifactId=hazelcast -Dversion=1.9.2 -Dpackaging=jar -Dfile=lib/hazelcast-1.9.2.jar -->
-         <dependency>
+        <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
             <version>1.9.2</version>
         </dependency>
+
+        <!-- Mem cache client -->
+        <dependency>
+            <groupId>spy</groupId>
+            <artifactId>memcached</artifactId>
+            <version>2.5</version>
+        </dependency>
+
+        <!-- KRYO (java performant serializer) -->
+        <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>3.2</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+        mvn install:install-file -Dfile=lib/minlog-1.2.jar -DgroupId=com.esotericsoftware -DartifactId=minlog -Dversion=1.2 -Dpackaging=jar -DgeneratePom=true -DcreateChecksum=true
+        mvn install:install-file -Dfile=lib/reflectasm-1.0.jar -DgroupId=com.esotericsoftware -DartifactId=reflectasm -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true -DcreateChecksum=true
+        mvn install:install-file -Dfile=lib/kryo-1.03.jar -DgroupId=com.esotericsoftware -DartifactId=kryo -Dversion=1.03 -Dpackaging=jar -DgeneratePom=true -DcreateChecksum=true
+        -->
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>1.03</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>reflectasm</artifactId>
+            <version>1.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>minlog</artifactId>
+            <version>1.2</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- DEFT -->
+        <!-- mvn install:install-file -DgroupId=deft -DartifactId=deft -Dversion=0.2 -Dpackaging=jar -Dfile=lib/deft-0.2.0.jar -->
+        <dependency>
+            <groupId>deft</groupId>
+            <artifactId>deft</artifactId>
+            <version>0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        
+
 
     </dependencies>
 
