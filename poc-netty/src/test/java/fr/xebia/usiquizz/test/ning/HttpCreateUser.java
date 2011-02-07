@@ -13,11 +13,12 @@ public class HttpCreateUser {
     private static AsyncHttpClient client;
     private static long i = 0;
     private static long userCreated = 0;
+    private static long errRequest = 0;
     private static String host;
     private static final String DEFAULT_HOST = "127.0.0.1:8080";
 
     public static void main(String[] args) throws IOException, FileNotFoundException {
-        ReinitDatabase.main(args);
+   //     ReinitDatabase.main(args);
         if (args.length > 0) {
             host = args[0];
         }
@@ -42,7 +43,7 @@ public class HttpCreateUser {
         System.out.println("Time : " + takeTime / 1000000 + " ms");
         System.out.println("Throughput : " + (double) i / (takeTime / 1000000000) + " inv/s");
 
-        while (userCreated + 500 < i) {
+        while (userCreated + errRequest < i) {
             System.out.println(userCreated + " : user created on " + i + " users");
             try {
                 Thread.sleep(1000);
@@ -68,6 +69,13 @@ public class HttpCreateUser {
         AsyncHttpClient.BoundRequestBuilder request = client.preparePost("http://" + host + "/api/user");
         request.setBody(jsonCreateUser);
         request.execute(new AsyncCompletionHandler<Void>() {
+        	
+        	@Override
+        	public void onThrowable(Throwable t) {
+        		t.printStackTrace();
+        		errRequest++;
+        	}
+        	
             @Override
             public Void onCompleted(Response response) throws Exception {
                 userCreated++;

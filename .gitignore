@@ -5,3 +5,14 @@ target
 *.iws
 generated-java
 .DS_Store
+poc-java/.classpath
+poc-java/.project
+poc-java/.settings/org.eclipse.core.resources.prefs
+poc-java/.settings/org.eclipse.jdt.core.prefs
+poc-java/.settings/org.maven.ide.eclipse.prefs
+poc-java/hs_err_pid14667.log
+poc-java/hs_err_pid15903.log
+poc-netty/.classpath
+poc-netty/.project
+poc-netty/.settings/org.eclipse.jdt.core.prefs
+poc-netty/.settings/org.maven.ide.eclipse.prefs
