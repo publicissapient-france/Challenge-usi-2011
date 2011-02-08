@@ -1,13 +1,14 @@
 package fr.xebia.usiquizz.server.http.deft;
 
 
+import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.GameLocalInstance;
+import fr.xebia.usiquizz.core.persistence.UserRepository;
+import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.deftserver.io.IOLoop;
 import org.deftserver.web.Application;
-import org.deftserver.web.Asynchronous;
 import org.deftserver.web.HttpServer;
 import org.deftserver.web.handler.RequestHandler;
-import org.deftserver.web.http.HttpRequest;
-import org.deftserver.web.http.HttpResponse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,22 +17,19 @@ public class DeftHttpServer {
 
 
     public static void main(String[] args) {
+        UserRepository userRepository = new UserRepository();
+        Game game = new GameLocalInstance();
+        GameParameterParser gameParameterParser = new GameParameterParser();
+
         Map<String, RequestHandler> handlers = new HashMap<String, RequestHandler>();
-        handlers.put("/", new AsynchronousRequestHandler());
+
+        handlers.put("/api/user", new UserResourceRequestHandler());
+        handlers.put("/api/login", new LoginResourceRequestHandler(userRepository, game));
+        handlers.put("/api/game", new GameResourceRequestHandler(gameParameterParser, game));
+        handlers.put("/api/question/([0-9]+)", new QuestionResourceRequestHandler(game));
+        handlers.put("/", new StaticResourceRequestHandler());
         HttpServer server = new HttpServer(new Application(handlers));
         server.listen(8080);
         IOLoop.INSTANCE.start();
-    }
-}
-
-class AsynchronousRequestHandler extends RequestHandler {
-
-    @Override
-    @Asynchronous
-    public void get(HttpRequest request, final HttpResponse response) {
-        response.write("hello ");
-        db.asyncIdentityGet("world", new AsyncCallback<String>() {
-            public void onSuccess(String result) { response.write(result).finish(); }
-        });
     }
 }

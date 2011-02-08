@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class HttpTestLogin {
 
-    private static final int NB_CLIENT = 100;
+    private static final int NB_CLIENT = 1000;
 
     private static final AtomicLong nbRequestSend = new AtomicLong(0);
     private static final AtomicLong nbLogin = new AtomicLong(0);
