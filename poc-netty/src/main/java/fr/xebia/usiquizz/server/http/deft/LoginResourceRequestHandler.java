@@ -77,6 +77,7 @@ public class LoginResourceRequestHandler extends RestHandler {
                         }
                         else {
                             response.setStatusCode(400);
+                            logger.info("logging failed");
                             response.finish();
                         }
                     }
@@ -89,6 +90,7 @@ public class LoginResourceRequestHandler extends RestHandler {
         }
         // ERROR
         response.setStatusCode(400);
+        logger.info("logging failed");
         response.finish();
     }
 
