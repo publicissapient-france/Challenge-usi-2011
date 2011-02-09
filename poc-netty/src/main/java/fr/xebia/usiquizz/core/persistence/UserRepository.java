@@ -6,6 +6,7 @@ import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 import fr.xebia.usiquizz.cache.CacheWrapper;
 import fr.xebia.usiquizz.cache.HazelcastWrapper;
+import fr.xebia.usiquizz.cache.NoCacheWrapper;
 
 public class UserRepository extends AbstractRepository {
 
@@ -17,7 +18,7 @@ public class UserRepository extends AbstractRepository {
     public static final String LASTNAME_FIELD = "lastname";
 
     //private CacheWrapper<String, String> cache = new EhCacheWrapper<String, String>("User-cache", CacheManager.getInstance());
-    private CacheWrapper<String, String> cache = new HazelcastWrapper<String, String>();
+    private CacheWrapper<String, String> cache = new NoCacheWrapper<String, String>();
 
     public void insertUser(String email, String password, String firstname, String lastname) {
         BasicDBObject user = new BasicDBObject();
