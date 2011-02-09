@@ -62,6 +62,10 @@ public class JsonQuestionRestService extends RestService {
             System.out.println(game.getUserConnected() + " player connected");
             game.startGame();
             startQuizz();
+        }else{
+            if(game.getUserConnected() % 100 == 0){
+                System.out.println(game.getUserConnected() + " player connected");
+            }
         }
         return;
     }
