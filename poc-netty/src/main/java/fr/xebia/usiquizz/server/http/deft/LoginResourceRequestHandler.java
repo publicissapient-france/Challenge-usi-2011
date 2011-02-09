@@ -24,7 +24,7 @@ public class LoginResourceRequestHandler extends RestHandler {
 
     private Game game;
 
-    private ExecutorService threadExecutor = Executors.newFixedThreadPool(2);
+    private ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
 
     public LoginResourceRequestHandler(UserRepository userRepository, Game game) {
         this.userRepository = userRepository;
