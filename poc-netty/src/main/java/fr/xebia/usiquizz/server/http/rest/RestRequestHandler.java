@@ -1,6 +1,5 @@
 package fr.xebia.usiquizz.server.http.rest;
 
-import com.usi.MockSessionType;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.GameLocalInstance;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
@@ -15,6 +14,13 @@ import java.util.Map;
 
 public class RestRequestHandler {
 
+    private static final String USER_REST_SERVICE = "user";
+    private static final String LOGIN_REST_SERVICE = "login";
+    private static final String GAME_REST_SERVICE = "game";
+    private static final String QUESTION_REST_SERVICE = "question";
+
+    private static final String PATH_SEPARATOR = "/";
+
     private Map<String, RestService> restMapping = new HashMap<String, RestService>();
     private UserRepository userRepository;
     private Game game = new GameLocalInstance();
@@ -23,18 +29,18 @@ public class RestRequestHandler {
     public RestRequestHandler(UserRepository userRepository) {
         this.userRepository = userRepository;
         // Create all reste resources
-        restMapping.put("user", new JsonUserRestService(this.userRepository));
-        restMapping.put("login", new JsonLoginRestService(this.userRepository, game));
-        restMapping.put("game", new JsonGameRestService(gameParameterParser, game));
-        restMapping.put("question", new JsonQuestionRestService(this.userRepository, game));
+        restMapping.put(USER_REST_SERVICE, new JsonUserRestService(this.userRepository));
+        restMapping.put(LOGIN_REST_SERVICE, new JsonLoginRestService(this.userRepository, game));
+        restMapping.put(GAME_REST_SERVICE, new JsonGameRestService(gameParameterParser, game));
+        restMapping.put(QUESTION_REST_SERVICE, new JsonQuestionRestService(this.userRepository, game));
     }
 
     public void messageReceived(String path, ChannelHandlerContext ctx, MessageEvent e) {
         HttpRequest request = (HttpRequest) e.getMessage();
         // Define rest service to use
         String serviceToUse = path;
-        if (path.indexOf("/") > 0) {
-            serviceToUse = path.substring(0, path.indexOf("/"));
+        if (path.indexOf(PATH_SEPARATOR) > 0) {
+            serviceToUse = path.substring(0, path.indexOf(PATH_SEPARATOR));
         }
         if (request.getMethod().equals(HttpMethod.GET)) {
             restMapping.get(serviceToUse).get(path, ctx, e);

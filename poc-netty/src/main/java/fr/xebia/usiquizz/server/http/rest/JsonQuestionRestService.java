@@ -21,6 +21,17 @@ public class JsonQuestionRestService extends RestService {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonQuestionRestService.class);
 
+    private static final String SESSION_KEY = "session_key";
+
+    private static final String question = "{\n" +
+            "\"question\":\"La question 1\",\n" +
+            "\"answer_1\":\"La 1ere reponse à la question1\",\n" +
+            "\"answer_2\":\"La 2nd reponse à la question1\",\n" +
+            "\"answer_3\":\"La 3eme reponse à la question1\",\n" +
+            "\"answer_4\":\"La 4eme reponse à la question1\",\n" +
+            "\"score\":0\n" +
+            "} ";
+
     private Game game;
 
     private Map<String, ChannelHandlerContext> longPollingResponse = new ConcurrentHashMap<String, ChannelHandlerContext>();
@@ -43,7 +54,7 @@ public class JsonQuestionRestService extends RestService {
             Set<Cookie> cookies = cookieDecoder.decode(cookieString);
             if (!cookies.isEmpty()) {
                 for (Cookie c : cookies) {
-                    if (c.getName().equals("session_key")) {
+                    if (c.getName().equals(SESSION_KEY)) {
                         sessionKey = c.getValue();
                     }
                 }
@@ -62,8 +73,9 @@ public class JsonQuestionRestService extends RestService {
             System.out.println(game.getUserConnected() + " player connected");
             game.startGame();
             startQuizz();
-        }else{
-            if(game.getUserConnected() % 100 == 0){
+        }
+        else {
+            if (game.getUserConnected() % 100 == 0) {
                 System.out.println(game.getUserConnected() + " player connected");
             }
         }
@@ -72,14 +84,7 @@ public class JsonQuestionRestService extends RestService {
 
     private void startQuizz() {
         for (String sessionKey : longPollingResponse.keySet()) {
-            endWritingResponseWithoutClose("{\n" +
-                    "\"question\":\"La question 1\",\n" +
-                    "\"answer_1\":\"La 1ere reponse à la question1\",\n" +
-                    "\"answer_2\":\"La 2nd reponse à la question1\",\n" +
-                    "\"answer_3\":\"La 3eme reponse à la question1\",\n" +
-                    "\"answer_4\":\"La 4eme reponse à la question1\",\n" +
-                    "\"score\":0\n" +
-                    "} ", longPollingResponse.get(sessionKey));
+            endWritingResponseWithoutClose(question, longPollingResponse.get(sessionKey));
         }
     }
 }
