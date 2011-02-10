@@ -258,10 +258,23 @@
         </dependency>
 
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>javax.activation</groupId>
             <artifactId>activation</artifactId>
             <version>1.1.1</version>
         </dependency>
+
+<dependency>
+    <groupId>org.coconut.forkjoin</groupId>
+    <artifactId>jsr166y</artifactId>
+    <version>281207</version>
+</dependency>
 
 
     </dependencies>
