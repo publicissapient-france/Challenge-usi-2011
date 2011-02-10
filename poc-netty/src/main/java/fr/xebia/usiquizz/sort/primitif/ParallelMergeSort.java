@@ -1,4 +1,4 @@
-package fr.xebia.usiquizz.sort;
+package fr.xebia.usiquizz.sort.primitif;
 
 import jsr166y.forkjoin.ForkJoinPool;
 import jsr166y.forkjoin.RecursiveAction;
