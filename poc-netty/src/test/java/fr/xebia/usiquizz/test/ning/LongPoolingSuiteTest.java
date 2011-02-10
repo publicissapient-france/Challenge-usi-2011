@@ -42,7 +42,7 @@ public class LongPoolingSuiteTest {
         if (args.length > 1) {
             nbClient = Integer.parseInt(args[1]);
         }
-        HttpCreateUser.main(args);
+        //HttpCreateUser.main(args);
 
 
         AsyncHttpClientConfig.Builder configBuilder = new AsyncHttpClientConfig.Builder();
