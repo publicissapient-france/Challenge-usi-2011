@@ -19,6 +19,10 @@ import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public abstract class RestService {
 
+    private static final String CONTENT_TYPE_VALUE = "text/plain; charset=UTF-8";
+    private static final String SESSION_KEY = "session_key";
+
+
     public void get(String path, ChannelHandlerContext ctx, MessageEvent e) {
         throw new NotImplementedException(path);
     }
@@ -37,13 +41,13 @@ public abstract class RestService {
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, httpResponseStatus);
         if (content != null) {
             response.setContent(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
-            response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
+            response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
         }
 
         if (resetCookie) {
             // Encode the cookie.
             CookieEncoder cookieEncoder = new CookieEncoder(true);
-            cookieEncoder.addCookie("session_key", UUID.randomUUID().toString());
+            cookieEncoder.addCookie(SESSION_KEY, UUID.randomUUID().toString());
             response.addHeader(SET_COOKIE, cookieEncoder.encode());
         }
         else {
@@ -76,7 +80,7 @@ public abstract class RestService {
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
         response.setContent(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
-        response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
+        response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
         // Encode the cookie.
         String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
         if (cookieString != null) {
@@ -100,7 +104,7 @@ public abstract class RestService {
     protected HttpResponse writeResponseWithoutClose(HttpResponseStatus status, ChannelHandlerContext ctx, MessageEvent e) {
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
-        response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
+        response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
         // Encode the cookie.
         String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
         if (cookieString != null) {

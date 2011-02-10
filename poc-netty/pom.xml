@@ -8,7 +8,7 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <build>
-        <plugins>
+<plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -246,9 +246,9 @@
         <!-- DEFT -->
         <!-- mvn install:install-file -DgroupId=deft -DartifactId=deft -Dversion=0.2 -Dpackaging=jar -Dfile=lib/deft-0.2.0.jar -->
         <dependency>
-            <groupId>deft</groupId>
+            <groupId>org.deft</groupId>
             <artifactId>deft</artifactId>
-            <version>0.2</version>
+            <version>0.3.0-SNAPSHOT</version>            
         </dependency>
 
         <dependency>
