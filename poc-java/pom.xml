@@ -136,6 +136,20 @@
             <artifactId>hotpotato</artifactId>
             <version>0.8.0</version>
         </dependency>
+        <dependency>
+        	<groupId>org.apache.httpcomponents</groupId>
+        	<artifactId>httpcore-nio</artifactId>
+        	<version>4.1</version>
+        	<type>jar</type>
+        	<scope>compile</scope>
+        </dependency>
+        <dependency>
+        	<groupId>org.apache.httpcomponents</groupId>
+        	<artifactId>httpcore</artifactId>
+        	<version>4.1</version>
+        	<type>jar</type>
+        	<scope>compile</scope>
+        </dependency>
 	</dependencies>
 	<build>
 		<finalName>quizz</finalName>
@@ -176,7 +190,7 @@
 				                    <argument>-Xmx512m</argument>
 				                    <argument>-server</argument>
 				                    <argument>-Dcom.sun.management.jmxremote</argument>
-				                    <argument> -Dcom.sun.management.jmxremote.ssl=false</argument>
+				                    <argument>-Dcom.sun.management.jmxremote.ssl=false</argument>
                                 <argument>fr.xebia.usi.quizz.web.deft.DeftUserService</argument>
                             </arguments>
                         </configuration>
