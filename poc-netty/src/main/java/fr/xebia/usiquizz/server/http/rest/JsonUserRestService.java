@@ -12,6 +12,11 @@ import java.io.IOException;
 
 public class JsonUserRestService extends RestService {
 
+    private static final String JSON_MAIL = "mail";
+    private static final String JSON_PASSWORD = "password";
+    private static final String JSON_FIRSTNAME = "firstname";
+    private static final String JSON_LASTNAME = "lastname";
+
     private UserRepository userRepository;
 
     public JsonUserRestService(UserRepository userRepository) {
@@ -34,16 +39,16 @@ public class JsonUserRestService extends RestService {
             while (jp.nextToken() != JsonToken.END_OBJECT) {
                 String fieldname = jp.getCurrentName();
                 jp.nextToken();
-                if ("mail".equals(fieldname)) {
+                if (JSON_MAIL.equals(fieldname)) {
                     email = jp.getText();
                 }
-                else if ("password".equals(fieldname)) {
+                else if (JSON_PASSWORD.equals(fieldname)) {
                     password = jp.getText();
                 }
-                else if ("firstname".equals(fieldname)) {
+                else if (JSON_FIRSTNAME.equals(fieldname)) {
                     firstname = jp.getText();
                 }
-                else if ("lastname".equals(fieldname)) {
+                else if (JSON_LASTNAME.equals(fieldname)) {
                     lastname = jp.getText();
                 }
                 else {

@@ -16,6 +16,9 @@ import java.io.IOException;
 
 public class JsonLoginRestService extends RestService {
 
+    private static final String JSON_MAIL = "mail";
+    private static final String JSON_PASSWORD = "password";
+
     private static Logger logger = LoggerFactory.getLogger(JsonLoginRestService.class);
 
     private UserRepository userRepository;
@@ -29,8 +32,8 @@ public class JsonLoginRestService extends RestService {
 
     @Override
     public void post(String path, ChannelHandlerContext ctx, MessageEvent e) {
-        logger.debug("REST call for path " + path);
-        logger.trace("Message : " + e.getMessage().toString());
+        logger.debug("REST call for path {}", path);
+        logger.trace("Message : {}", e.getMessage().toString());
         HttpRequest request = (HttpRequest) e.getMessage();
         if (game.isGameStarted()) {
             writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
@@ -44,10 +47,10 @@ public class JsonLoginRestService extends RestService {
             while (jp.nextToken() != JsonToken.END_OBJECT) {
                 String fieldname = jp.getCurrentName();
                 jp.nextToken(); // move to value, or START_OBJECT/START_ARRAY
-                if ("mail".equals(fieldname)) { // contains an object
+                if (JSON_MAIL.equals(fieldname)) { // contains an object
                     mail = jp.getText();
                 }
-                else if ("password".equals(fieldname)) {
+                else if (JSON_PASSWORD.equals(fieldname)) {
                     password = jp.getText();
                 }
                 else {
@@ -57,7 +60,7 @@ public class JsonLoginRestService extends RestService {
             if (mail != null && password != null) {
                 User dbuser;
                 if ((dbuser = userRepository.logUser(mail, password)) != null) {
-                    writeResponse("Logged", HttpResponseStatus.OK, ctx, e, true);
+                    writeResponse(null, HttpResponseStatus.OK, ctx, e, true);
                     return;
                 }
             }

@@ -9,11 +9,15 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 
+    private static final String API_PATH = "/api/";
+    private static final String STATIC_PATH = "/static/";
+    private static final String INDEX_PATH = "/";
+
     private RestRequestHandler restRequestHandler;
 
     private CachedResourcesRequestHandler staticRequestHandler;
 
-    public HttpRequestHandler(RestRequestHandler restRequestHandler, CachedResourcesRequestHandler staticRequestHandler){
+    public HttpRequestHandler(RestRequestHandler restRequestHandler, CachedResourcesRequestHandler staticRequestHandler) {
         this.restRequestHandler = restRequestHandler;
         this.staticRequestHandler = staticRequestHandler;
     }
@@ -28,14 +32,14 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
          *  if pattern / redirect to /static/html/index.html
          */
         String uri = request.getUri();
-        if(uri != null){
-            if(uri.startsWith("/api/")){
+        if (uri != null) {
+            if (uri.startsWith(API_PATH)) {
                 restRequestHandler.messageReceived(uri.substring(5), ctx, e);
             }
-            else if(uri.startsWith("/static/")){
+            else if (uri.startsWith(STATIC_PATH)) {
                 staticRequestHandler.messageReceived(ctx, e);
             }
-            else if(uri.equals("/")){
+            else if (uri.equals(INDEX_PATH)) {
 
             }
         }

@@ -30,10 +30,10 @@ public class JsonGameRestService extends RestService {
 
     @Override
     public void post(String path, ChannelHandlerContext ctx, MessageEvent e) {
-        logger.debug("REST call for path " + path);
-        logger.trace("Message : " + e.getMessage().toString());
+        logger.debug("REST call for path {} ", path);
+        logger.trace("Message : {}", e.getMessage().toString());
         HttpRequest request = (HttpRequest) e.getMessage();
-        logger.info("Parameters : " + new String(request.getContent().array()));
+        logger.info("Parameters : {}", new String(request.getContent().array()));
         try {
             String authenticationKey = null;
             String parameters = null;

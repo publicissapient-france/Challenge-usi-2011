@@ -62,6 +62,9 @@ public class LongPoolingSuiteTest {
         for (int i = 0; i < nbClient; i++) {
             sendRequest(c, "http://" + host + "/api/login", loginReader.readLine());
             nbRequestSend.incrementAndGet();
+            if(i % 100 == 0){
+                System.out.println(i+" users send logging request");
+            }
         }
         final long loggedTime = System.nanoTime();
         System.out.println("Take : " + ((double) (loggedTime - start)) / 1000000d + " ms for sending all request");

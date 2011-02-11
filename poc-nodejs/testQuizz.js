@@ -11,7 +11,7 @@ var user ={
 
 
 var loop =1;
-var loopInt = 10000;
+var loopInt = 1;
 var total = 0;
 var sum =0;
 
