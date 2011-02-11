@@ -28,9 +28,9 @@ public class QuestionResourceRequestHandler extends RestHandler {
     @Override
     @Asynchronous
     public void get(HttpRequest request, final HttpResponse response) {
-        if (game.isGameStarted()) {
-            response.setStatusCode(200);
-        }
+//        if (game.isGameStarted()) {
+//            response.setStatusCode(200);
+//        }
         // Get session_key
         String sessionKey = null;
         String cookieString = request.getHeader("Cookie");

@@ -23,7 +23,7 @@ public class DeftHttpServer {
 
         Map<String, RequestHandler> handlers = new HashMap<String, RequestHandler>();
 
-        handlers.put("/api/user", new UserResourceRequestHandler());
+        handlers.put("/api/user", new UserResourceRequestHandler(userRepository));
         handlers.put("/api/login", new LoginResourceRequestHandler(userRepository, game));
         handlers.put("/api/game", new GameResourceRequestHandler(gameParameterParser, game));
         handlers.put("/api/question/([0-9]+)", new QuestionResourceRequestHandler(game));

@@ -69,5 +69,6 @@ public class LoginResourceRequestHandler extends RestHandler {
         }
         // ERROR
         response.setStatusCode(400);
+       
     }
 }

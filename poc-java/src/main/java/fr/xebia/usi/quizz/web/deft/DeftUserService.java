@@ -36,10 +36,13 @@ public class DeftUserService extends RequestHandler {
 	private final JsonMapper mapper;
 	private final Executor executor;
 	
+	private final AsyncResponseQueue queue;
+	
 	public DeftUserService() {
 		this.manager = new UserManagerMongoImpl();
 		this.mapper = new JsonMapperImpl();
 		this.executor = Executors.newFixedThreadPool(10);
+		this.queue = new AsyncResponseQueue();
 	}
 	
 	
@@ -99,8 +102,7 @@ public class DeftUserService extends RequestHandler {
 
         		response.setStatusCode(400);
         		response.write("Bad user");
-        		//response.flush();
-        		response.finish();
+        		queue.pushResponseToSend(response);
         	}
         	
         	@Override
@@ -109,7 +111,7 @@ public class DeftUserService extends RequestHandler {
         		response.setStatusCode(201);
         		response.write("OK User saved :)");
    
-        		response.finish();
+        		queue.pushResponseToSend(response);
         	}
         }
 

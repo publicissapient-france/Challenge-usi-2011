@@ -90,7 +90,7 @@ public class HttpServer {
             .setBooleanParameter(CoreConnectionPNames.TCP_NODELAY, true)
             .setParameter(CoreProtocolPNames.ORIGIN_SERVER, "HttpComponents/1.1")
             .setBooleanParameter(NIOReactorPNames.INTEREST_OPS_QUEUEING, true)
-            .setLongParameter(NIOReactorPNames.SELECT_INTERVAL, 500);
+            .setLongParameter(NIOReactorPNames.SELECT_INTERVAL, 50);
 
         HttpProcessor httpproc = new ImmutableHttpProcessor(new HttpResponseInterceptor[] {
                 new ResponseDate(),
@@ -136,7 +136,7 @@ public class HttpServer {
     	public UserRequestHandler() {
     		this.manager = new UserManagerMongoImpl();
     		this.mapper = new JsonMapperImpl();
-    		this.executor = Executors.newFixedThreadPool(10);
+    		this.executor = Executors.newFixedThreadPool(3);
 		}
 
     	
