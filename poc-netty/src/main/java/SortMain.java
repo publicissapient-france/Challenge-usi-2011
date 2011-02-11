@@ -10,6 +10,7 @@ import fr.xebia.usiquizz.sort.primitif.SelectionSort;
 import fr.xebia.usiquizz.sort.wrapper.MergeCompSort;
 import fr.xebia.usiquizz.sort.wrapper.ParallelMergeCompSort;
 
+// http://leepoint.net/notes-java/algorithms/big-oh/bigoh.html
 @SuppressWarnings("unchecked")
 public class SortMain {
 
