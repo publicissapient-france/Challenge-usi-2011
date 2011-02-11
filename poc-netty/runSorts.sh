@@ -2,9 +2,13 @@
 RUNS="1 10 100 1000 10000 100000 1000000 10000000 100000000 1000000000"
 #RUNS="1 10 100 "
 
+
+# quickSort bloque a 10!
+# selectionSort : ne tri pas!
+
 ALGOS="heapSort quickSort selectionSort bubbleSort parallelMerge java merge parallelMergeComp javaComp mergeComp"
 #ALGOS="parallelMergeComp javaComp mergeComp"
-ALGOS="heapSort quickSort selectionSort bubbleSort"
+ALGOS="bubbleSort selectionSort quickSort"
 
 CLASSPATH=".:/Users/ealliaume/.m2/repository/org/coconut/forkjoin/jsr166y/281207/jsr166y-281207.jar"
 
