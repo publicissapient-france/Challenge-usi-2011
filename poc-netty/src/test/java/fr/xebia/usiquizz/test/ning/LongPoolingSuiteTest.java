@@ -50,6 +50,7 @@ public class LongPoolingSuiteTest {
         configBuilder.setMaximumConnectionsTotal(1000000);
         // Timeout 10 minutes
         configBuilder.setRequestTimeoutInMs(600000);
+        configBuilder.setAllowPoolingConnection(false);
         AsyncHttpClient c = new AsyncHttpClient(configBuilder.build());
 
         // Init a game with NB_USER
@@ -185,7 +186,7 @@ public class LongPoolingSuiteTest {
 
             @Override
             public void onThrowable(Throwable t) {
-                // Something wrong happened.
+                t.printStackTrace();
             }
         });
         return null;
