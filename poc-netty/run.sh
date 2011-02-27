@@ -1,1 +1,1 @@
-mvn clean compile exec:java -Dexec.mainClass="fr.xebia.usiquizz.server.http.HttpServer"
+mvn clean compile exec:java -Dexec.mainClass="fr.xebia.usiquizz.server.http.netty.HttpServer"

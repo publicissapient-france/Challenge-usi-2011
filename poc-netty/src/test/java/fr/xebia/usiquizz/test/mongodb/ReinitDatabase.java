@@ -11,6 +11,7 @@ public class ReinitDatabase {
 
     public static void main(String[] args) throws UnknownHostException {
         UserRepository ur = new UserRepository();
+        ur.getDb().getCollection(UserRepository.USER_COLLECTION_NAME).drop();
         // Create index on user email
         ur.getDb().getCollection(UserRepository.USER_COLLECTION_NAME).ensureIndex(new BasicDBObject(UserRepository.EMAIL_FIELD, 1));
 

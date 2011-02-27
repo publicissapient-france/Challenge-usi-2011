@@ -3,7 +3,6 @@ package fr.xebia.usiquizz.server.http.deft;
 import fr.xebia.usiquizz.core.game.Game;
 import org.deftserver.web.AsyncCallback;
 import org.deftserver.web.Asynchronous;
-import org.deftserver.web.handler.RequestHandler;
 import org.deftserver.web.http.HttpRequest;
 import org.deftserver.web.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -49,8 +48,7 @@ public class QuestionResourceRequestHandler extends RestHandler {
             logger.info("Player with no cookies... Rejected");
             response.setStatusCode(401);
             return;
-        }
-        else {
+        } else {
             //response.setStatusCode(200);
             //response.write("");
             //response.flush();
@@ -62,12 +60,13 @@ public class QuestionResourceRequestHandler extends RestHandler {
                 }
             });
         }
-        if (game.incrementPlayer()) {
+        game.addPlayer(sessionKey);
+        if (game.getUserConnected() >= game.getNbusersthresold()) {
             System.out.println(game.getUserConnected() + " player connected");
-            game.startGame();
+            //game.startGame();
             startQuizz();
-        }else{
-            if(game.getUserConnected() % 100 == 0){
+        } else {
+            if (game.getUserConnected() % 100 == 0) {
                 System.out.println(game.getUserConnected() + " player connected");
             }
         }

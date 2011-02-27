@@ -2,13 +2,11 @@ package fr.xebia.usiquizz.server.http.deft;
 
 
 import fr.xebia.usiquizz.core.game.Game;
-import fr.xebia.usiquizz.core.game.GameLocalInstance;
+import fr.xebia.usiquizz.core.game.local.GameLocalInstance;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.deftserver.io.IOLoop;
-import org.deftserver.io.timeout.Timeout;
 import org.deftserver.web.Application;
-import org.deftserver.web.AsyncCallback;
 import org.deftserver.web.HttpServer;
 import org.deftserver.web.handler.RequestHandler;
 import org.deftserver.web.http.HttpServerDescriptor;

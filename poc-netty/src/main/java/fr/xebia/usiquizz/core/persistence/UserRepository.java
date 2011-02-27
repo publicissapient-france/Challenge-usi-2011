@@ -6,6 +6,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import fr.xebia.usiquizz.cache.CacheWrapper;
 import fr.xebia.usiquizz.cache.EhCacheWrapper;
+import fr.xebia.usiquizz.cache.NoCacheWrapper;
 import net.sf.ehcache.CacheManager;
 
 import java.nio.ByteBuffer;
@@ -22,40 +23,47 @@ public class UserRepository extends AbstractRepository {
     private Kryo kryo = new Kryo();
 
 
-    private CacheWrapper<String, byte[]> cache = new EhCacheWrapper<String, byte[]>("User-cache", CacheManager.getInstance());
-    //private CacheWrapper<String, String> cache = new NoCacheWrapper<String, String>();
+    //private CacheWrapper<String, byte[]> cache = new EhCacheWrapper<String, byte[]>("User-cache", CacheManager.getInstance());
+    private CacheWrapper<String, byte[]> cache = new NoCacheWrapper<String, byte[]>();
 
 
     public UserRepository() {
         kryo.register(User.class);
-        DBCursor cursor = getDb().getCollection(USER_COLLECTION_NAME).find();
-        DBObject object = null;
-        System.out.println("Begin init cache");
-        while (cursor.hasNext()) {
-            ByteBuffer buffer = ByteBuffer.allocateDirect(256);
-            object = cursor.next();
-            kryo.writeObject(buffer, new User((String) object.get(EMAIL_FIELD), (String) object.get(PASSWORD_FIELD), (String) object.get(FIRSTNAME_FIELD), (String) object.get(LASTNAME_FIELD)));
-            buffer.clear();
-            byte[] bytes = new byte[buffer.capacity()];
-            buffer.get(bytes, 0, bytes.length);
-            cache.put((String) object.get(EMAIL_FIELD), bytes);
+        //DBCursor cursor = getDb().getCollection(USER_COLLECTION_NAME).find();
+        //DBObject object = null;
+        //System.out.println("Begin init cache");
+        //while (cursor.hasNext()) {
+        //    ByteBuffer buffer = ByteBuffer.allocateDirect(128);
+        //    object = cursor.next();
+        //    User user = new User((String) object.get(EMAIL_FIELD), (String) object.get(PASSWORD_FIELD), (String) object.get(FIRSTNAME_FIELD), (String) object.get(LASTNAME_FIELD));
+        //    cache.put((String) object.get(EMAIL_FIELD), serializeUser(user));
 
-        }
-        System.out.println("Cache initialized");
+        //}
+        //System.out.println("Cache initialized");
     }
 
-    public void insertUser(String email, String password, String firstname, String lastname) {
+    public void insertUser(String email, String password, String firstname, String lastname) throws UserAlreadyExists {
+        // Check user doesn't exist
+        if(checkUserWithEmailExist(email)){
+            throw new UserAlreadyExists(email);
+        }
         BasicDBObject user = new BasicDBObject();
         user.put(EMAIL_FIELD, email);
         user.put(PASSWORD_FIELD, password);
         user.put(FIRSTNAME_FIELD, firstname);
         user.put(LASTNAME_FIELD, lastname);
         getDb().getCollection(USER_COLLECTION_NAME).insert(user);
-        ByteBuffer buffer = ByteBuffer.allocateDirect(256);
-        kryo.writeObject(buffer, new User(email, password, firstname, lastname));
-        byte[] bytes = new byte[buffer.capacity()];
+        //byte[] bytes = serializeUser(new User(email, password, firstname, lastname));
+        //cache.put(email, bytes);
+    }
+
+    private byte[] serializeUser(User user) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(128);
+        kryo.writeObjectData(buffer, user);
+        buffer.flip();
+        byte[] bytes = new byte[buffer.limit()];
         buffer.get(bytes, 0, bytes.length);
-        cache.put(email, bytes);
+        return bytes;
     }
 
     public User getUser(String mail) {
@@ -67,22 +75,28 @@ public class UserRepository extends AbstractRepository {
             DBCursor cursor = getDb().getCollection(USER_COLLECTION_NAME).find(searchedUser);
             if (cursor.hasNext()) {
                 object = cursor.next();
-                ByteBuffer buffer = ByteBuffer.allocateDirect(256);
-                kryo.writeObject(buffer, new User((String) object.get(EMAIL_FIELD), (String) object.get(PASSWORD_FIELD), (String) object.get(FIRSTNAME_FIELD), (String) object.get(LASTNAME_FIELD)));
-                byte[] bytes = new byte[buffer.capacity()];
-                buffer.get(bytes, 0, bytes.length);
-                cache.put((String) object.get(EMAIL_FIELD), bytes);
-                return new User((String) object.get(EMAIL_FIELD), (String) object.get(PASSWORD_FIELD), (String) object.get(FIRSTNAME_FIELD), (String) object.get(LASTNAME_FIELD));
-
-            }
-            else {
+                ByteBuffer buffer = ByteBuffer.allocateDirect(128);
+                User user = new User((String) object.get(EMAIL_FIELD), (String) object.get(PASSWORD_FIELD), (String) object.get(FIRSTNAME_FIELD), (String) object.get(LASTNAME_FIELD));
+                cache.put((String) object.get(EMAIL_FIELD), serializeUser(user));
+                return user;
+            } else {
                 // No account
                 return null;
             }
+        } else {
+            return kryo.readObjectData(ByteBuffer.wrap(serializedUser), User.class);
         }
-        else {
-            return kryo.readObject(ByteBuffer.wrap(serializedUser), User.class);
+    }
+
+    public boolean checkUserWithEmailExist(String email) {
+        // Don't use cache ... (mandatory if local cache)
+        BasicDBObject searchedUser = new BasicDBObject();
+        searchedUser.put(EMAIL_FIELD, email);
+        DBCursor cursor = getDb().getCollection(USER_COLLECTION_NAME).find(searchedUser);
+        if (cursor.hasNext()) {
+            return true;
         }
+        return false;
     }
 
     public User logUser(String mail, String password) {

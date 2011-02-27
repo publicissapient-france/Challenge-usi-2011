@@ -25,7 +25,7 @@ public class LoginResourceRequestHandler extends RestHandler {
     private Game game;
 
     private final AsyncResponseQueue queue;
-    
+
 //    private ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
 
     public LoginResourceRequestHandler(UserRepository userRepository, Game game) {
@@ -38,10 +38,11 @@ public class LoginResourceRequestHandler extends RestHandler {
     public void post(final HttpRequest request, final HttpResponse response) {
         logger.debug("REST call for path " + request.getRequestedPath());
         logger.trace("Message : " + request.getBody());
-        if (game.isGameStarted()) {
-            response.setStatusCode(400);
-            return;
-        }
+        // FIXME
+        //if (game.isGameStarted()) {
+        //    response.setStatusCode(400);
+        //    return;
+        //}
         try {
             String mail = null;
             String password = null;
@@ -52,33 +53,30 @@ public class LoginResourceRequestHandler extends RestHandler {
                 jp.nextToken(); // move to value, or START_OBJECT/START_ARRAY
                 if ("mail".equals(fieldname)) { // contains an object
                     mail = jp.getText();
-                }
-                else if ("password".equals(fieldname)) {
+                } else if ("password".equals(fieldname)) {
                     password = jp.getText();
-                }
-                else {
+                } else {
                     throw new IllegalStateException("Unrecognized field '" + fieldname + "'!");
                 }
             }
             if (mail != null && password != null) {
-            	
-            	User usr = userRepository.logUser(mail, password);
-            	if (usr != null) {
+
+                User usr = userRepository.logUser(mail, password);
+                if (usr != null) {
                     initCookie(request, response);
                     response.setStatusCode(200);
                     response.write("logged");
-                    
-                }
-                else {
+
+                } else {
                     response.setStatusCode(400);
                     response.write("Failed");
                     logger.info("logging failed found user is null");
-                  
+
                 }
-     
+
                 // Asyn call
-            	//queue.planify();
-    /*            asynclogUser(mail, password, new AsyncResult<User>() {
+                //queue.planify();
+                /*            asynclogUser(mail, password, new AsyncResult<User>() {
                     @Override
                     public void onFailure(Throwable throwable) {
                         response.setStatusCode(400);
@@ -101,17 +99,16 @@ public class LoginResourceRequestHandler extends RestHandler {
                         queue.pushResponseToSend(response);
                     }
                 });*/
-                
-   
+
+
             }
-        }
-        catch (IOException e1) {
-        	logger.info("IO error on logging", e1);
+        } catch (IOException e1) {
+            logger.info("IO error on logging", e1);
         }
         // ERROR
         response.setStatusCode(400);
-        
- 
+
+
     }
 
 //    private void asynclogUser(final String mail, final String password, final AsyncResult<User> callback) {

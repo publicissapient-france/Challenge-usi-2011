@@ -40,5 +40,9 @@ public abstract class AbstractRepository {
         return db;
     }
 
+    public Mongo getMongo(){
+        return mongo;
+    }
+
 
 }

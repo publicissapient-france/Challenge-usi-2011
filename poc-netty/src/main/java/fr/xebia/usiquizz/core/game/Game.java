@@ -1,29 +1,31 @@
 package fr.xebia.usiquizz.core.game;
 
+import com.usi.Question;
+import com.usi.Questiontype;
 import com.usi.Sessiontype;
+
+import java.util.List;
 
 public interface Game {
 
-    public void init(Sessiontype st);
+    void init(Sessiontype st);
 
     // Acces direct au valeur
-    public int getLongpollingduration();
+    int getLongpollingduration();
 
-    public int getNbusersthresold();
+    int getNbusersthresold();
 
-    public int getQuestiontimeframe();
+    int getQuestiontimeframe();
 
-    public int getNbquestions();
+    int getNbquestions();
 
-    public int getFlushusertable();
+    boolean getFlushusertable();
 
-    public int getTrackeduseridmail();
+    String getTrackeduseridmail();
 
-    public boolean incrementPlayer();
+    void addPlayer(String sessionId);
 
-    public int getUserConnected();
+    int getUserConnected();
 
-    boolean isGameStarted();
-
-    void startGame();
+    Question getQuestion(int index);
 }

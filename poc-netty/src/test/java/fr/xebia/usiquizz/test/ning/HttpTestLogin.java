@@ -1,6 +1,8 @@
 package fr.xebia.usiquizz.test.ning;
 
 import com.ning.http.client.*;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,13 +10,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class HttpTestLogin {
 
-    private static final int NB_CLIENT = 1000;
+    private static final int NB_CLIENT = 10000;
 
     private static final AtomicLong nbRequestSend = new AtomicLong(0);
     private static final AtomicLong nbLogin = new AtomicLong(0);
@@ -25,13 +28,14 @@ public class HttpTestLogin {
         configBuilder.setMaximumConnectionsPerHost(15000);
         configBuilder.setMaximumConnectionsTotal(100000);
         AsyncHttpClient c = new AsyncHttpClient(configBuilder.build());
-        File loginFile = new File("src/test/test-file/logins.json");
+        File loginFile = new File("src/test/test-file/1million_users_1.csv");
         List<Future<String>> futures = new ArrayList<Future<String>>();
 
         BufferedReader loginReader = new BufferedReader(new FileReader(loginFile));
+        loginReader.readLine();
         final long start = System.nanoTime();
         for (int i = 0; i < NB_CLIENT; i++) {
-            futures.add(sendRequest(c, "http://localhost:8080/api/login", loginReader.readLine()));
+            futures.add(sendRequest(c, "http://localhost:8080/api/login", createJsonForLogin(loginReader.readLine())));
             nbRequestSend.incrementAndGet();
         }
         final long loggedTime = System.nanoTime();
@@ -44,6 +48,16 @@ public class HttpTestLogin {
         final long end = System.nanoTime();
         System.out.println("Take : " + ((double) (end - start)) / 1000000d + " ms for complete");
         c.close();
+    }
+
+    private static String createJsonForLogin(String line) {
+        StringTokenizer st = new StringTokenizer(line, ",", false);
+        StringTemplate jsonUsers = new StringTemplate("{\"mail\":\"$mail$\",\"password\":\"$password$\"}", DefaultTemplateLexer.class);
+        st.nextToken();
+        st.nextToken();
+        jsonUsers.setAttribute("mail", st.nextToken());
+        jsonUsers.setAttribute("password", st.nextToken());
+        return jsonUsers.toString();
     }
 
     private static Future<String> sendRequest(AsyncHttpClient c, String requestUrl, String body) throws IOException {
