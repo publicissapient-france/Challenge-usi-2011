@@ -6,12 +6,15 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import org.deftserver.io.IOLoop;
+import org.deftserver.io.IOLoopController;
+import org.deftserver.io.IOLoopFactory;
 import org.deftserver.io.timeout.Timeout;
 import org.deftserver.web.Application;
 import org.deftserver.web.AsyncCallback;
 import org.deftserver.web.AsyncResult;
 import org.deftserver.web.Asynchronous;
 import org.deftserver.web.HttpServer;
+import org.deftserver.web.MultiThreadedHttpServer;
 import org.deftserver.web.handler.RequestHandler;
 import org.deftserver.web.http.HttpRequest;
 import org.deftserver.web.http.HttpResponse;
@@ -35,14 +38,13 @@ public class DeftUserService extends RequestHandler {
 	private final UserManager manager;
 	private final JsonMapper mapper;
 	private final Executor executor;
-	
-	private final AsyncResponseQueue queue;
+
 	
 	public DeftUserService() {
 		this.manager = new UserManagerMongoImpl();
 		this.mapper = new JsonMapperImpl();
 		this.executor = Executors.newFixedThreadPool(10);
-		this.queue = new AsyncResponseQueue();
+
 	}
 	
 	
@@ -57,7 +59,7 @@ public class DeftUserService extends RequestHandler {
         public void post(final HttpRequest request, final HttpResponse response) {
         	
   
-        	final User usr = mapper.mapJsonUser(request.getBody().getBytes());
+        	final User usr = mapper.mapJsonUser(request.getBodyBuffer().array());
         	
         	if (usr == null){
         		response.setStatusCode(400);
@@ -67,6 +69,8 @@ public class DeftUserService extends RequestHandler {
         	
         	final UserCallBack cb = new UserCallBack(request, response);
         	
+        	IOLoopFactory.getLoopController().planifyResponse();
+        	final IOLoopController loop = IOLoopFactory.getLoopController();
         	// Save the user and send response
         	executor.execute(new Runnable() {
 				
@@ -80,6 +84,7 @@ public class DeftUserService extends RequestHandler {
 					else {
 						cb.onFailure(null);
 					}
+					loop.pushResponse(response);
 				}
 			});
 
@@ -102,7 +107,6 @@ public class DeftUserService extends RequestHandler {
 
         		response.setStatusCode(400);
         		response.write("Bad user");
-        		queue.pushResponseToSend(response);
         	}
         	
         	@Override
@@ -110,8 +114,6 @@ public class DeftUserService extends RequestHandler {
         		
         		response.setStatusCode(201);
         		response.write("OK User saved :)");
-   
-        		queue.pushResponseToSend(response);
         	}
         }
 
@@ -121,7 +123,6 @@ public class DeftUserService extends RequestHandler {
         	
         	@Override
         	public void get(HttpRequest request, HttpResponse response) {
-        		// TODO Auto-generated method stub
         		super.get(request, response);
         	}
         	
@@ -132,9 +133,9 @@ public class DeftUserService extends RequestHandler {
 		HttpServerDescriptor.WRITE_BUFFER_SIZE = 1500;			// 1500 bytes 
 
         try {
-			HttpServer server = new org.deftserver.web.HttpServer(new Application(handlers));
+			MultiThreadedHttpServer server = new org.deftserver.web.MultiThreadedHttpServer(new Application(handlers));
 			server.listen(8080);
-			IOLoop.INSTANCE.start();
+			server.start();
 		} catch (Exception e) {
 			
 			e.printStackTrace();
