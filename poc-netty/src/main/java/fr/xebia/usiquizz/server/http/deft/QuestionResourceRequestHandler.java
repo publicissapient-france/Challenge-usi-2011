@@ -60,14 +60,14 @@ public class QuestionResourceRequestHandler extends RestHandler {
                 }
             });
         }
-        game.addPlayer(sessionKey);
-        if (game.getUserConnected() >= game.getNbusersthresold()) {
-            System.out.println(game.getUserConnected() + " player connected");
+        game.addPlayer(sessionKey, "");
+        if (game.countUserConnected() >= game.getNbusersthresold()) {
+            System.out.println(game.countUserConnected() + " player connected");
             //game.startGame();
             startQuizz();
         } else {
-            if (game.getUserConnected() % 100 == 0) {
-                System.out.println(game.getUserConnected() + " player connected");
+            if (game.countUserConnected() % 100 == 0) {
+                System.out.println(game.countUserConnected() + " player connected");
             }
         }
         return;

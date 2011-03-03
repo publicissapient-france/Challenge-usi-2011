@@ -15,6 +15,11 @@
  */
 package fr.xebia.usiquizz.server.http.netty;
 
+import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.gemfire.DistributedGame;
+import fr.xebia.usiquizz.core.persistence.GemfireRepository;
+import fr.xebia.usiquizz.core.persistence.GemfireUserRepository;
+import fr.xebia.usiquizz.core.persistence.MongoUserRepository;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.server.http.netty.resources.CachedResourcesRequestHandler;
 import fr.xebia.usiquizz.server.http.netty.rest.RestRequestHandler;
@@ -30,9 +35,12 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
-    private UserRepository userRepository = new UserRepository();
+    //private UserRepository userRepository = new MongoUserRepository();
+    private GemfireRepository gemfireRepository = new GemfireRepository();
+    private UserRepository userRepository = new GemfireUserRepository(gemfireRepository);
+    private Game game = new DistributedGame(gemfireRepository);
 
-    private RestRequestHandler restRequestHandler = new RestRequestHandler(userRepository);
+    private RestRequestHandler restRequestHandler = new RestRequestHandler(userRepository, game);
 
     private CachedResourcesRequestHandler staticRequestHandler = new CachedResourcesRequestHandler();
 

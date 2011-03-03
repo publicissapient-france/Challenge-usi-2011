@@ -43,5 +43,8 @@ public class HttpServer {
 
         // Bind and start to accept incoming connections.
         bootstrap.bind(new InetSocketAddress(8080));
+        bootstrap.setOption("tcpNoDelay", true);
+        bootstrap.setOption("keepAlive", true);
+
     }
 }

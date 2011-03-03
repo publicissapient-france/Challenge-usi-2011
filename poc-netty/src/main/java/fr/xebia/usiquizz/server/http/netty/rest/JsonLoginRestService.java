@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class JsonLoginRestService extends RestService {
 
@@ -57,14 +58,15 @@ public class JsonLoginRestService extends RestService {
                 }
             }
             if (mail != null && password != null) {
-                User dbuser;
-                if ((dbuser = userRepository.logUser(mail, password)) != null) {
-                    writeResponse(null, HttpResponseStatus.OK, ctx, e, true);
+                if ((userRepository.logUser(mail, password))) {
+                    String sessionKey = UUID.randomUUID().toString();
+                    game.addPlayer(sessionKey, mail);
+                    writeResponse(null, HttpResponseStatus.OK, ctx, e, sessionKey);
                     return;
                 }
             }
         } catch (IOException e1) {
-            e1.printStackTrace();
+            logger.error("Error ", e1);
         }
         // ERROR
         writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);

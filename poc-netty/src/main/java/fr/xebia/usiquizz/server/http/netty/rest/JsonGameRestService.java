@@ -64,10 +64,11 @@ public class JsonGameRestService extends RestService {
                 return;
             }
         } catch (IOException e1) {
-            e1.printStackTrace();
+            logger.error("Error ", e1);
             writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         } catch (InvalidParameterFileException e2) {
+             logger.error("Error ", e2);
             writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         }

@@ -4,6 +4,7 @@ import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.Response;
+import fr.xebia.usiquizz.test.mongodb.RecreateIndexDatabase;
 import fr.xebia.usiquizz.test.mongodb.ReinitDatabase;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
@@ -19,7 +20,7 @@ public class HttpCreateUser {
     private static AtomicLong userCreated = new AtomicLong(0);
     private static AtomicLong errRequest = new AtomicLong(0);
     private static String host;
-    private static int nbUserToCreate = 100;
+    private static int nbUserToCreate = 100000;
     private static final String DEFAULT_HOST = "127.0.0.1:8080";
 
     public static void main(String[] args) throws IOException, FileNotFoundException {
@@ -77,6 +78,8 @@ public class HttpCreateUser {
 
         // Cleanup 4
         client.close();
+
+
     }
 
     private static String generateJson(String s) {

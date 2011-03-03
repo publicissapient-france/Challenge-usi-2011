@@ -63,8 +63,6 @@ public class JsonAnswerRestService extends RestService {
                 logger.info("Player with no cookies... Rejected");
                 writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
                 return;
-            } else {
-                writeResponseWithoutClose(HttpResponseStatus.OK, ctx, e);
             }
 
             String answer = null;
@@ -85,30 +83,35 @@ public class JsonAnswerRestService extends RestService {
             // FIXME
             // Create real service and finish 
             int answerNumber = Integer.parseInt(answer);
-            Question question = game.getQuestion(0);
-            writeResponse(createJsonResponse(answerNumber == question.getGoodchoice(), question.getChoice().get(question.getGoodchoice()), 0), HttpResponseStatus.OK, ctx, e, false);
+            Question question = game.getQuestion(1);
+            writeResponse(createJsonResponse(answerNumber == question.getGoodchoice(), question.getChoice().get(question.getGoodchoice() - 1), 0), HttpResponseStatus.OK, ctx, e);
+            return;
         } catch (IOException e1) {
-            e1.printStackTrace();
+            logger.error("Error ", e1);
             writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         } catch (InvalidParameterFileException e2) {
-            e2.printStackTrace();
+            logger.error("Error ", e2);
             writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         } catch (Exception e3) {
-            e3.printStackTrace();
+            logger.error("Error ", e3);
             writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         }
-        // ERROR
-        writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
     }
 
+
+
     private String createJsonResponse(boolean isResponseGood, String goodAnswer, int currentScore) {
-        StringTemplate jsonAnswer = new StringTemplate("{\"are_u_right\":\"$isResponseGood$\",\"good_answer\":\"$goodAnswer$\",\"score\":$score$}", DefaultTemplateLexer.class);
-        jsonAnswer.setAttribute("isResponseGood", isResponseGood);
-        jsonAnswer.setAttribute("goodAnswer", goodAnswer);
-        jsonAnswer.setAttribute("score", currentScore + 1);
-        return jsonAnswer.toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"are_u_right\":\"");
+        sb.append(isResponseGood);
+        sb.append("\",\"good_answer\":\"");
+        sb.append(goodAnswer);
+        sb.append("\",\"score\":");
+        sb.append(currentScore);
+        sb.append("}");
+        return sb.toString();
     }
 }

@@ -2,16 +2,18 @@ package fr.xebia.usiquizz.server.http.netty;
 
 import fr.xebia.usiquizz.server.http.netty.resources.CachedResourcesRequestHandler;
 import fr.xebia.usiquizz.server.http.netty.rest.RestRequestHandler;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 
     private static final String API_PATH = "/api/";
     private static final String STATIC_PATH = "/static/";
     private static final String INDEX_PATH = "/";
+
+    private static final Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
 
     private RestRequestHandler restRequestHandler;
 
@@ -35,14 +37,18 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         if (uri != null) {
             if (uri.startsWith(API_PATH)) {
                 restRequestHandler.messageReceived(uri.substring(5), ctx, e);
-            }
-            else if (uri.startsWith(STATIC_PATH)) {
+            } else if (uri.startsWith(STATIC_PATH)) {
                 staticRequestHandler.messageReceived(ctx, e);
-            }
-            else if (uri.equals(INDEX_PATH)) {
+            } else if (uri.equals(INDEX_PATH)) {
 
             }
         }
+    }
+
+    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+        e.getCause().printStackTrace();
+        Channel ch = e.getChannel();
+        ch.close();
     }
 
 }

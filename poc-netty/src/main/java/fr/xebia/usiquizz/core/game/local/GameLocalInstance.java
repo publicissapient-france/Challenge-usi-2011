@@ -14,6 +14,8 @@ public class GameLocalInstance implements Game {
 
     private ConcurrentHashMap<String, Void> sessions = new ConcurrentHashMap<String, Void>();
 
+    private AtomicInteger currentQuestion = new AtomicInteger(1);
+
     public void init(Sessiontype sessiontype) {
         this.sessionType = sessiontype;
     }
@@ -42,17 +44,52 @@ public class GameLocalInstance implements Game {
         return "";
     }
 
+    @Override
+    public void addPlayer(String sessionId, String email) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public void addPlayer(String session) {
         sessions.put(session, null);
     }
 
     @Override
-    public int getUserConnected() {
+    public int countUserConnected() {
         return sessions.size();
+    }
+
+    @Override
+    public void addPlayerForCurrentQuestion(String sessionId) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public int countUserForCurrentQuestion() {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void emptyCurrentQuestion() {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public Question getQuestion(int index) {
         return sessionType.getQuestions().get(index).getQuestion();
+    }
+
+    @Override
+    public boolean allPlayerReadyForQuestion() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public int getCurrentQuestionIndex() {
+        return currentQuestion.get();
+    }
+
+    @Override
+    public void setCurrentQuestionIndex(int index) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 }

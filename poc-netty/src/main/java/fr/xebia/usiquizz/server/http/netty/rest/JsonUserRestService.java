@@ -8,10 +8,14 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class JsonUserRestService extends RestService {
+
+    private static final Logger logger = LoggerFactory.getLogger(JsonUserRestService.class);
 
     private static final String JSON_MAIL = "mail";
     private static final String JSON_PASSWORD = "password";
@@ -57,7 +61,7 @@ public class JsonUserRestService extends RestService {
                 writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
             }
         } catch (IOException e1) {
-            e1.printStackTrace();
+            logger.error("Error ", e1);
         }
 
         writeResponse(HttpResponseStatus.OK, ctx, event);

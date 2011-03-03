@@ -23,9 +23,21 @@ public interface Game {
 
     String getTrackeduseridmail();
 
-    void addPlayer(String sessionId);
+    void addPlayer(String sessionId, String email);
 
-    int getUserConnected();
+    int countUserConnected();
+
+    void addPlayerForCurrentQuestion(String sessionId);
+
+    int countUserForCurrentQuestion();
+
+    void emptyCurrentQuestion();
 
     Question getQuestion(int index);
+
+    boolean allPlayerReadyForQuestion();
+
+    int getCurrentQuestionIndex();
+
+    void setCurrentQuestionIndex(int index);
 }

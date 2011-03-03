@@ -60,9 +60,7 @@ public class LoginResourceRequestHandler extends RestHandler {
                 }
             }
             if (mail != null && password != null) {
-
-                User usr = userRepository.logUser(mail, password);
-                if (usr != null) {
+                if (userRepository.logUser(mail, password)) {
                     initCookie(request, response);
                     response.setStatusCode(200);
                     response.write("logged");

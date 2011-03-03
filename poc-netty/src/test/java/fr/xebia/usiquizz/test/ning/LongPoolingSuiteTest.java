@@ -12,26 +12,36 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class LongPoolingSuiteTest {
 
-    private static int nbClient = 5000;
+    private static int nbClient = 4000;
 
     private static String host;
     private static final String DEFAULT_HOST = "127.0.0.1:8080";
 
     private static final AtomicLong nbRequestSend = new AtomicLong(0);
     private static final AtomicLong nbLogin = new AtomicLong(0);
+    private static final AtomicLong nbQuestionRequested = new AtomicLong(0);
     private static final AtomicLong nbRequestCompleted = new AtomicLong(0);
     private static final AtomicLong responseSended = new AtomicLong(0);
     private static final AtomicLong scoreReceived = new AtomicLong(0);
+
+    // Counter for audit
+    private static final AtomicLong loginCounter = new AtomicLong(0);
+    private static final AtomicLong questionCounter = new AtomicLong(0);
+    private static final AtomicLong answerCounter = new AtomicLong(0);
+
+    private static final Map<String, Long> loginCallAudit = new ConcurrentHashMap<String, Long>();
+    private static final Map<String, Long> questionCallAudit = new ConcurrentHashMap<String, Long>();
+    private static final Map<String, Long> answerCallAudit = new ConcurrentHashMap<String, Long>();
+
     private static final List<Future<Void>> futures = new ArrayList<Future<Void>>();
     private static long start;
     private static GameParameterParser gpp = new GameParameterParser();
@@ -56,8 +66,8 @@ public class LongPoolingSuiteTest {
         configBuilder.setMaximumConnectionsPerHost(100000);
         configBuilder.setMaximumConnectionsTotal(1000000);
         // Timeout 10 minutes
-        configBuilder.setRequestTimeoutInMs(600000);
-        configBuilder.setAllowPoolingConnection(false);
+        configBuilder.setRequestTimeoutInMs(6000000);
+        configBuilder.setAllowPoolingConnection(true);
         AsyncHttpClient c = new AsyncHttpClient(configBuilder.build());
 
         // Init a game with NB_USER
@@ -69,6 +79,8 @@ public class LongPoolingSuiteTest {
         // Skip firstline
         loginReader.readLine();
         start = System.nanoTime();
+        nbRequestSend.set(0);
+        nbLogin.set(0);
         for (int i = 0; i < nbClient; i++) {
             sendLoginRequest(c, "http://" + host + "/api/login", createJsonForLogin(loginReader.readLine()));
             nbRequestSend.incrementAndGet();
@@ -80,16 +92,37 @@ public class LongPoolingSuiteTest {
         System.out.println("Take : " + ((double) (loggedTime - start)) / 1000000d + " ms for sending all request");
         loginReader.close();
 
+        writeAudit();
     }
 
-    private static String createJsonForLogin(String line) {
-        StringTokenizer st = new StringTokenizer(line, ",", false);
-        StringTemplate jsonUsers = new StringTemplate("{\"mail\":\"$mail$\",\"password\":\"$password$\"}", DefaultTemplateLexer.class);
-        st.nextToken();
-        st.nextToken();
-        jsonUsers.setAttribute("mail", st.nextToken());
-        jsonUsers.setAttribute("password", st.nextToken());
-        return jsonUsers.toString();
+    private static void writeAudit() {
+        long loginTotalTime = 0;
+        long loginMaxTime = 0;
+        for (long time : loginCallAudit.values()) {
+            loginTotalTime += time;
+            if (time > loginMaxTime)
+                loginMaxTime = time;
+        }
+        long questionTotalTime = 0;
+        long questionMaxTime = 0;
+        for (long time : questionCallAudit.values()) {
+            questionTotalTime += time;
+            if (time > questionMaxTime)
+                questionMaxTime = time;
+        }
+        long answerTotalTime = 0;
+        long answerMaxTime = 0;
+        for (long time : answerCallAudit.values()) {
+            answerTotalTime += time;
+            if (time > answerMaxTime)
+                answerMaxTime = time;
+        }
+        System.out.println("Login mean time : " + ((double) loginTotalTime / (double) loginCallAudit.size()));
+        System.out.println("Login max time : " + loginMaxTime);
+        System.out.println("Question mean time : " + ((double) questionTotalTime / (double) questionCallAudit.size()));
+        System.out.println("Question max time : " + questionMaxTime);
+        System.out.println("Answer mean time : " + ((double) answerTotalTime / (double) answerCallAudit.size()));
+        System.out.println("Answer max time : " + answerMaxTime);
     }
 
     private static void prepareGame(final AsyncHttpClient c) throws IOException, ExecutionException, InterruptedException {
@@ -98,19 +131,6 @@ public class LongPoolingSuiteTest {
         request.execute().get();
     }
 
-    private static byte[] createJsonGame(int nbClient) throws IOException {
-        StringWriter sw = new StringWriter();
-        JsonGenerator jgen = jf.createJsonGenerator(sw);
-
-        jgen.writeStartObject();
-        jgen.writeStringField("authentication_key", "xebia");
-        jgen.writeFieldName("parameters");
-        jgen.writeString(gpp.formatXmlParameter(generateSessionType(nbClient)));
-        jgen.writeEndObject();
-        jgen.close();
-
-        return sw.getBuffer().toString().getBytes();
-    }
 
     private static Sessiontype generateSessionType(int nbClient) {
         Sessiontype st = new Sessiontype();
@@ -156,10 +176,11 @@ public class LongPoolingSuiteTest {
     private static Future<Void> sendLoginRequest(final AsyncHttpClient c, String requestUrl, String body) throws IOException {
         AsyncHttpClient.BoundRequestBuilder request = c.preparePost(requestUrl);
         request.setBody(body);
-        request.execute(new AsyncCompletionHandler<Void>() {
+        request.execute(new AsyncAuditedCompletionHandler<Void>("login_" + loginCounter.getAndIncrement(), System.nanoTime()) {
 
             @Override
-            public Void onCompleted(final Response response) throws Exception {
+            public Void onCompleted(final Response response, final String id) throws Exception {
+                loginCallAudit.put(id, getRequestTimeInMillis());
                 // Once logged get first question
                 if (nbLogin.incrementAndGet() == nbClient) {
                     final long end = System.nanoTime();
@@ -169,7 +190,7 @@ public class LongPoolingSuiteTest {
                 c.getConfig().executorService().execute(new Runnable() {
                     @Override
                     public void run() {
-                        LongPoolingSuiteTest.sendGetQuestionRequest(c, response);
+                        LongPoolingSuiteTest.sendGetQuestionRequest(c, response, "1");
                     }
                 });
 
@@ -184,14 +205,26 @@ public class LongPoolingSuiteTest {
         return null;
     }
 
-    private static void sendGetQuestionRequest(final AsyncHttpClient client, Response response) {
-        AsyncHttpClient.BoundRequestBuilder request = client.prepareGet("http://" + host + "/api/question/1");
+    private static void sendGetQuestionRequest(final AsyncHttpClient client, Response response, final String questionNumber) {
+        AsyncHttpClient.BoundRequestBuilder request = client.prepareGet("http://" + host + "/api/question/" + questionNumber);
         for (Cookie c : response.getCookies()) {
             request.addCookie(c);
         }
 
         try {
-            request.execute(new AsyncHandler<Void>() {
+            nbQuestionRequested.incrementAndGet();
+            if (nbQuestionRequested.get() % 100 == 0) {
+                final long end = System.nanoTime();
+                System.out.println(nbQuestionRequested.get() + " question:" + questionNumber + " requested " + ((double) (end - start)) / 1000000d + " ms ");
+            }
+            // Last client request question...
+            // Reset counter
+            if (nbQuestionRequested.get() == nbClient) {
+                responseSended.set(0);
+                scoreReceived.set(0);
+                nbQuestionRequested.set(0);
+            }
+            request.execute(new AsyncAuditedCompletionHandler<Void>("question_" + questionCounter.getAndIncrement(), System.nanoTime()) {
 
                 @Override
                 public void onThrowable(Throwable t) {
@@ -199,25 +232,12 @@ public class LongPoolingSuiteTest {
                 }
 
                 @Override
-                public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart) throws Exception {
-                    return STATE.CONTINUE;
-                }
-
-                @Override
-                public STATE onStatusReceived(HttpResponseStatus responseStatus) throws Exception {
-                    return STATE.CONTINUE;
-                }
-
-                @Override
-                public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                    return STATE.CONTINUE;
-                }
-
-                @Override
-                public Void onCompleted() throws Exception {
+                public Void onCompleted(final Response response, final String id) throws Exception {
+                    questionCallAudit.put(id, getRequestTimeInMillis());
                     if (nbRequestCompleted.incrementAndGet() == nbClient) {
                         final long end = System.nanoTime();
                         System.out.println("Take : " + ((double) (end - start)) / 1000000d + " ms for complete long pooling");
+                        nbRequestCompleted.set(0);
                     } else if (nbRequestCompleted.get() % 100 == 0) {
                         final long end = System.nanoTime();
                         System.out.println(nbRequestCompleted.get() + " users ready in " + ((double) (end - start)) / 1000000d + " ms ");
@@ -225,7 +245,7 @@ public class LongPoolingSuiteTest {
                     client.getConfig().executorService().execute(new Runnable() {
                         @Override
                         public void run() {
-                            LongPoolingSuiteTest.sendRandomResponse(client);
+                            LongPoolingSuiteTest.sendRandomResponse(client, response, questionNumber);
                         }
                     });
 
@@ -238,21 +258,37 @@ public class LongPoolingSuiteTest {
         }
     }
 
-    private static void sendRandomResponse(AsyncHttpClient client) {
-        AsyncHttpClient.BoundRequestBuilder request = client.preparePost("http://" + host + "/api/answer/1");
+    private static void sendRandomResponse(final AsyncHttpClient client, Response response, final String questionNumber) {
+        AsyncHttpClient.BoundRequestBuilder request = client.preparePost("http://" + host + "/api/answer/" + questionNumber);
+        for (Cookie c : response.getCookies()) {
+            request.addCookie(c);
+        }
         request.setBody(createJsonRandomResponse());
         if (responseSended.incrementAndGet() % 100 == 0) {
             final long end = System.nanoTime();
             System.out.println(responseSended.get() + " answer sended in " + ((double) (end - start)) / 1000000d + " ms ");
         }
         try {
-            request.execute(new AsyncCompletionHandler<Void>() {
+            request.execute(new AsyncAuditedCompletionHandler<Void>("answer_" + answerCounter.getAndIncrement(), System.nanoTime()) {
 
                 @Override
-                public Void onCompleted(final Response response) throws Exception {
+                public Void onCompleted(final Response response, final String id) throws Exception {
+                    answerCallAudit.put(id, getRequestTimeInMillis());
                     if (scoreReceived.incrementAndGet() % 100 == 0) {
                         final long end = System.nanoTime();
                         System.out.println(scoreReceived.get() + " score received in " + ((double) (end - start)) / 1000000d + " ms ");
+                    }
+
+                    // Si il reste des questions on recommence
+                    if (Integer.parseInt(questionNumber) < 2) {
+                        client.getConfig().executorService().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                LongPoolingSuiteTest.sendGetQuestionRequest(client, response, Integer.toString(Integer.parseInt(questionNumber) + 1));
+                            }
+                        });
+                    } else if (scoreReceived.get() == nbClient) {
+                        writeAudit();
                     }
                     return null;
                 }
@@ -268,8 +304,37 @@ public class LongPoolingSuiteTest {
     }
 
     private static byte[] createJsonRandomResponse() {
-        StringTemplate jsonAnswer = new StringTemplate("{\"answer\",$response$}", DefaultTemplateLexer.class);
-        jsonAnswer.setAttribute("reponse", new Random().nextInt(2) + 1);
-        return jsonAnswer.toString().getBytes();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"answer\":");
+        sb.append(new Random().nextInt(2) + 1);
+        sb.append("}");
+        return sb.toString().getBytes();
+    }
+
+    private static String createJsonForLogin(String line) {
+        StringTokenizer st = new StringTokenizer(line, ",", false);
+        st.nextToken();
+        st.nextToken();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"mail\":\"");
+        sb.append(st.nextToken());
+        sb.append("\",\"password\":\"");
+        sb.append(st.nextToken());
+        sb.append("\"}");
+        return sb.toString();
+    }
+
+    private static byte[] createJsonGame(int nbClient) throws IOException {
+        StringWriter sw = new StringWriter();
+        JsonGenerator jgen = jf.createJsonGenerator(sw);
+
+        jgen.writeStartObject();
+        jgen.writeStringField("authentication_key", "xebia");
+        jgen.writeFieldName("parameters");
+        jgen.writeString(gpp.formatXmlParameter(generateSessionType(nbClient)));
+        jgen.writeEndObject();
+        jgen.close();
+
+        return sw.getBuffer().toString().getBytes();
     }
 }

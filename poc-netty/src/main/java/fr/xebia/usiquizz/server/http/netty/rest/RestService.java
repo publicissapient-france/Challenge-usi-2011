@@ -33,7 +33,7 @@ public abstract class RestService {
 
     protected JsonFactory jsonFactory = new JsonFactory();
 
-    protected void writeResponse(String content, HttpResponseStatus httpResponseStatus, ChannelHandlerContext ctx, MessageEvent e, boolean resetCookie) {
+    protected void writeResponse(String content, HttpResponseStatus httpResponseStatus, ChannelHandlerContext ctx, MessageEvent e, String sessionKey) {
 
         if (httpResponseStatus == null) {
             httpResponseStatus = OK;
@@ -44,13 +44,12 @@ public abstract class RestService {
             response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
         }
 
-        if (resetCookie) {
+        if (sessionKey != null) {
             // Encode the cookie.
             CookieEncoder cookieEncoder = new CookieEncoder(true);
-            cookieEncoder.addCookie(SESSION_KEY, UUID.randomUUID().toString());
+            cookieEncoder.addCookie(SESSION_KEY, sessionKey);
             response.addHeader(SET_COOKIE, cookieEncoder.encode());
-        }
-        else {
+        } else {
             // Encode the cookie.
             String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
             if (cookieString != null) {
@@ -72,8 +71,12 @@ public abstract class RestService {
         future.addListener(ChannelFutureListener.CLOSE);
     }
 
+    protected void writeResponse(String content, HttpResponseStatus httpResponseStatus, ChannelHandlerContext ctx, MessageEvent e) {
+        this.writeResponse(content, httpResponseStatus, ctx, e, null);
+    }
+
     protected void writeResponse(HttpResponseStatus httpResponseStatus, ChannelHandlerContext ctx, MessageEvent e) {
-        this.writeResponse(null, httpResponseStatus, ctx, e, false);
+        this.writeResponse(null, httpResponseStatus, ctx, e, null);
     }
 
     protected HttpResponse writeResponseWithoutClose(String content, ChannelHandlerContext ctx, MessageEvent e) {

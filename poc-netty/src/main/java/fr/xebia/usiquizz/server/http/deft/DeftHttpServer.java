@@ -3,6 +3,7 @@ package fr.xebia.usiquizz.server.http.deft;
 
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.local.GameLocalInstance;
+import fr.xebia.usiquizz.core.persistence.MongoUserRepository;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.deftserver.io.IOLoop;
@@ -21,7 +22,7 @@ public class DeftHttpServer {
 	private static final Logger LOG = LoggerFactory.getLogger("deft-http");
 	
     public static void main(String[] args) {
-        UserRepository userRepository = new UserRepository();
+        UserRepository userRepository = new MongoUserRepository();
         Game game = new GameLocalInstance();
         GameParameterParser gameParameterParser = new GameParameterParser();
 
