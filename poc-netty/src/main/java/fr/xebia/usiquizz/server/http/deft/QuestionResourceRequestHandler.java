@@ -1,9 +1,11 @@
 package fr.xebia.usiquizz.server.http.deft;
 
 import fr.xebia.usiquizz.core.game.Game;
+
+import org.deftserver.io.IOLoopController;
+import org.deftserver.io.IOLoopFactory;
 import org.deftserver.web.AsyncCallback;
 import org.deftserver.web.Asynchronous;
-import org.deftserver.web.handler.RequestHandler;
 import org.deftserver.web.http.HttpRequest;
 import org.deftserver.web.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -48,17 +50,22 @@ public class QuestionResourceRequestHandler extends RestHandler {
         if (sessionKey == null) {
             logger.info("Player with no cookies... Rejected");
             response.setStatusCode(401);
+            response.finish();
             return;
         }
         else {
             //response.setStatusCode(200);
             //response.write("");
             //response.flush();
+        	
+        	IOLoopFactory.getLoopController().planifyResponse();
+        	final IOLoopController loop = IOLoopFactory.getLoopController();
             // Don't close response
             longPollingManager.add(new AsyncCallback() {
                 @Override
                 public void onCallback() {
                     writeResponse(response);
+                    loop.pushResponse(response);
                 }
             });
         }
@@ -79,6 +86,7 @@ public class QuestionResourceRequestHandler extends RestHandler {
     }
 
     private void writeResponse(HttpResponse response) {
+    	
         response.write("{\n" +
                 "\"question\":\"La question 1\",\n" +
                 "\"answer_1\":\"La 1ere reponse à la question1\",\n" +
@@ -87,7 +95,7 @@ public class QuestionResourceRequestHandler extends RestHandler {
                 "\"answer_4\":\"La 4eme reponse à la question1\",\n" +
                 "\"score\":0\n" +
                 "} ");
-        response.finish();
+   //     response.finish();
     }
 
 }

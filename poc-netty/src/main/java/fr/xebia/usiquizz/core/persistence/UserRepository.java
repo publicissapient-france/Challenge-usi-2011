@@ -52,7 +52,9 @@ public class UserRepository extends AbstractRepository {
         user.put(LASTNAME_FIELD, lastname);
         getDb().getCollection(USER_COLLECTION_NAME).insert(user);
         ByteBuffer buffer = ByteBuffer.allocateDirect(256);
+        
         kryo.writeObject(buffer, new User(email, password, firstname, lastname));
+        buffer.clear();
         byte[] bytes = new byte[buffer.capacity()];
         buffer.get(bytes, 0, bytes.length);
         cache.put(email, bytes);

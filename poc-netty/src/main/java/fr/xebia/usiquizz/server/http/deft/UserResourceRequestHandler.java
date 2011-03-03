@@ -22,7 +22,7 @@ public class UserResourceRequestHandler extends RestHandler {
 	public void post(HttpRequest request, HttpResponse response) {
 
 
-        String content = request.getBody();
+        //String content = request.getBody();
         String email = null;
         String password = null;
         String firstname = null;
@@ -30,7 +30,7 @@ public class UserResourceRequestHandler extends RestHandler {
 
         JsonParser jp = null;
         try {
-            jp = jsonFactory.createJsonParser(content.getBytes());
+            jp = jsonFactory.createJsonParser(request.getBodyBuffer().array(), 0, request.getBodyBuffer().limit());
             jp.nextToken();
             while (jp.nextToken() != JsonToken.END_OBJECT) {
                 String fieldname = jp.getCurrentName();
@@ -54,7 +54,7 @@ public class UserResourceRequestHandler extends RestHandler {
 
             repo.insertUser(email, password, firstname, lastname);
             response.setStatusCode(200);
-            response.write(content);
+            response.write("Success");
             return;
         }
         catch (IOException e1) {

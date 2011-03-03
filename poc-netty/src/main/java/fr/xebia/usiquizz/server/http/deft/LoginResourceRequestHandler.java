@@ -36,16 +36,18 @@ public class LoginResourceRequestHandler extends RestHandler {
 
     @Override
     public void post(final HttpRequest request, final HttpResponse response) {
-        logger.debug("REST call for path " + request.getRequestedPath());
-        logger.trace("Message : " + request.getBody());
+        logger.debug("REST call for path {}" , request.getRequestedPath());
+   //     logger.trace("Message : " + request.getBody());
         if (game.isGameStarted()) {
+        	logger.debug("Game not started :p");
             response.setStatusCode(400);
+            response.write("Bad request !");
             return;
         }
         try {
             String mail = null;
             String password = null;
-            JsonParser jp = jsonFactory.createJsonParser(request.getBody());
+            JsonParser jp = jsonFactory.createJsonParser(request.getBodyBuffer().array(), 0, request.getBodyBuffer().limit());
             jp.nextToken(); // will return JsonToken.START_OBJECT (verify?)
             while (jp.nextToken() != JsonToken.END_OBJECT) {
                 String fieldname = jp.getCurrentName();
@@ -57,17 +59,18 @@ public class LoginResourceRequestHandler extends RestHandler {
                     password = jp.getText();
                 }
                 else {
-                    throw new IllegalStateException("Unrecognized field '" + fieldname + "'!");
+                    break;
                 }
             }
             if (mail != null && password != null) {
             	
             	User usr = userRepository.logUser(mail, password);
             	if (usr != null) {
+            		
                     initCookie(request, response);
                     response.setStatusCode(200);
                     response.write("logged");
-                    
+                    logger.debug("User {} successfully logged in", usr);
                 }
                 else {
                     response.setStatusCode(400);
@@ -75,6 +78,7 @@ public class LoginResourceRequestHandler extends RestHandler {
                     logger.info("logging failed found user is null");
                   
                 }
+            	return;
      
                 // Asyn call
             	//queue.planify();
@@ -106,11 +110,11 @@ public class LoginResourceRequestHandler extends RestHandler {
             }
         }
         catch (IOException e1) {
-        	logger.info("IO error on logging", e1);
+        	logger.error("IO error on logging", e1);
         }
         // ERROR
         response.setStatusCode(400);
-        
+        response.write("Bad request !");
  
     }
 

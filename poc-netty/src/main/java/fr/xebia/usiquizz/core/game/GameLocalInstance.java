@@ -9,12 +9,14 @@ public class GameLocalInstance implements Game {
 
     private Sessiontype sessionType;
 
-    private AtomicInteger nbJoueurLogged = new AtomicInteger(0);
+    private AtomicInteger nbJoueurLogged;
 
-    private AtomicBoolean gameStarted = new AtomicBoolean(false);
+    private AtomicBoolean gameStarted;
 
     public void init(Sessiontype sessiontype) {
         this.sessionType = sessiontype;
+        nbJoueurLogged = new AtomicInteger(0);
+        gameStarted = new AtomicBoolean(false);
     }
 
     public int getLongpollingduration() {
