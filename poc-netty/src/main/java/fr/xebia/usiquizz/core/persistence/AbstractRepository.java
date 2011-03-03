@@ -2,6 +2,7 @@ package fr.xebia.usiquizz.core.persistence;
 
 import com.mongodb.DB;
 import com.mongodb.Mongo;
+import fr.xebia.usiquizz.core.persistence.serialization.UserSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,9 @@ public abstract class AbstractRepository {
     private static DB db;
     private boolean initialized = false;
 
+    // Serializer
+    protected UserSerializer userSerializer = new UserSerializer();
+
     public AbstractRepository() {
         if (!initialized) {
             try {
@@ -31,13 +35,17 @@ public abstract class AbstractRepository {
                 initialized = true;
             }
             catch (UnknownHostException e) {
-                e.printStackTrace();
+               logger.error("unknown host", e);
             }
         }
     }
 
     public DB getDb() {
         return db;
+    }
+
+    public Mongo getMongo(){
+        return mongo;
     }
 
 

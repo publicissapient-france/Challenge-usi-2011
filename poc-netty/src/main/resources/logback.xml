@@ -29,6 +29,6 @@
   <logger name="org.deftserver.io.timeout" level="debug"/>
 
   <root level="info">
-    <appender-ref ref="stdout" />
+    <appender-ref ref="STDOUT" />
   </root>
 </configuration>

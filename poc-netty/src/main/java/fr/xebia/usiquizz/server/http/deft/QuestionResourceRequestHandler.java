@@ -52,8 +52,7 @@ public class QuestionResourceRequestHandler extends RestHandler {
             response.setStatusCode(401);
             response.finish();
             return;
-        }
-        else {
+        } else {
             //response.setStatusCode(200);
             //response.write("");
             //response.flush();
@@ -69,13 +68,14 @@ public class QuestionResourceRequestHandler extends RestHandler {
                 }
             });
         }
-        if (game.incrementPlayer()) {
-            System.out.println(game.getUserConnected() + " player connected");
-            game.startGame();
+        game.addPlayer(sessionKey, "");
+        if (game.countUserConnected() >= game.getNbusersthresold()) {
+            System.out.println(game.countUserConnected() + " player connected");
+            //game.startGame();
             startQuizz();
-        }else{
-            if(game.getUserConnected() % 100 == 0){
-                System.out.println(game.getUserConnected() + " player connected");
+        } else {
+            if (game.countUserConnected() % 100 == 0) {
+                System.out.println(game.countUserConnected() + " player connected");
             }
         }
         return;
