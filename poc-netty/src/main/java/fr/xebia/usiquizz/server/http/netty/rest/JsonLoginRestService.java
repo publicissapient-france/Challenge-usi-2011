@@ -61,7 +61,7 @@ public class JsonLoginRestService extends RestService {
                 if ((userRepository.logUser(mail, password))) {
                     String sessionKey = UUID.randomUUID().toString();
                     game.addPlayer(sessionKey, mail);
-                    writeResponse(null, HttpResponseStatus.OK, ctx, e, sessionKey);
+                    responseWriter.writeResponse(null, HttpResponseStatus.OK, ctx, e, sessionKey);
                     return;
                 }
             }
@@ -69,7 +69,7 @@ public class JsonLoginRestService extends RestService {
             logger.error("Error ", e1);
         }
         // ERROR
-        writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+        responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
     }
 
 }

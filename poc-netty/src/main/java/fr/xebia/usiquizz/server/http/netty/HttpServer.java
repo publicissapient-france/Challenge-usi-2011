@@ -17,8 +17,10 @@ package fr.xebia.usiquizz.server.http.netty;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -33,18 +35,19 @@ import java.util.concurrent.Executors;
 public class HttpServer {
     public static void main(String[] args) {
         // Configure the server.
-        //MemoryAwareThreadPoolExecutor bossExec = new MemoryAwareThreadPoolExecutor(1, 1000000, 10000000);
-        //MemoryAwareThreadPoolExecutor ioExec = new MemoryAwareThreadPoolExecutor(2, 1000000, 10000000);
+        ExecutorService bossExec = Executors.newCachedThreadPool();
+        ExecutorService ioExec = Executors.newCachedThreadPool();
+
         ServerBootstrap bootstrap = new ServerBootstrap(
-                new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
+                new NioServerSocketChannelFactory(bossExec, ioExec, 8));
 
         // Set up the event pipeline factory.
-        bootstrap.setPipelineFactory(new HttpServerPipelineFactory());
+        bootstrap.setPipelineFactory(new HttpServerPipelineFactory(ioExec));
 
         // Bind and start to accept incoming connections.
         bootstrap.bind(new InetSocketAddress(8080));
         bootstrap.setOption("tcpNoDelay", true);
-        bootstrap.setOption("keepAlive", true);
+        bootstrap.setOption("keepAlive", false);
 
     }
 }

@@ -1,9 +1,6 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 import fr.xebia.usiquizz.core.game.Game;
-import fr.xebia.usiquizz.core.game.gemfire.DistributedGame;
-import fr.xebia.usiquizz.core.game.local.GameLocalInstance;
-import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -29,14 +26,15 @@ public class RestRequestHandler {
     private Game game;
     private GameParameterParser gameParameterParser = new GameParameterParser();
 
-    public RestRequestHandler(UserRepository userRepository, Game game) {
+
+    public RestRequestHandler(UserRepository userRepository, Game game, LongPollingQuestionManager longPollingQuestionManager) {
         this.userRepository = userRepository;
         this.game = game;
         // Create all reste resources
         restMapping.put(USER_REST_SERVICE, new JsonUserRestService(this.userRepository));
         restMapping.put(LOGIN_REST_SERVICE, new JsonLoginRestService(this.userRepository, game));
         restMapping.put(GAME_REST_SERVICE, new JsonGameRestService(gameParameterParser, game));
-        restMapping.put(QUESTION_REST_SERVICE, new JsonQuestionRestService(this.userRepository, game));
+        restMapping.put(QUESTION_REST_SERVICE, new JsonQuestionRestService(this.userRepository, game, longPollingQuestionManager));
         restMapping.put(ANSWER_REST_SERVICE, new JsonAnswerRestService(game));
     }
 

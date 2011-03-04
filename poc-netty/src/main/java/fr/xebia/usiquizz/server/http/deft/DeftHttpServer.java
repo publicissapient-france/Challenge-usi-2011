@@ -2,7 +2,8 @@ package fr.xebia.usiquizz.server.http.deft;
 
 
 import fr.xebia.usiquizz.core.game.Game;
-import fr.xebia.usiquizz.core.game.local.GameLocalInstance;
+import fr.xebia.usiquizz.core.game.gemfire.DistributedGame;
+import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.MongoUserRepository;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
@@ -23,7 +24,7 @@ public class DeftHttpServer {
 	
     public static void main(String[] args) {
         UserRepository userRepository = new MongoUserRepository();
-        Game game = new GameLocalInstance();
+        Game game = new DistributedGame(new GemfireRepository());
         GameParameterParser gameParameterParser = new GameParameterParser();
 
         Map<String, RequestHandler> handlers = new HashMap<String, RequestHandler>();

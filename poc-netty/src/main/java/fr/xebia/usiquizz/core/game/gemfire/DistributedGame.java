@@ -1,17 +1,19 @@
 package fr.xebia.usiquizz.core.game.gemfire;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.CacheFactory;
-import com.gemstone.gemfire.cache.Region;
 import com.usi.Question;
-import com.usi.Questiontype;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.QuestionLongpollingCallback;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DistributedGame implements Game {
+
+    private static final Logger logger = LoggerFactory.getLogger(DistributedGame.class);
 
     private static final String LONG_POOLING_DURATION = "long-pooling-duration";
     private static final String NB_USERS_THRESOLD = "nb-users-thresold";
@@ -24,6 +26,8 @@ public class DistributedGame implements Game {
 
 
     private GemfireRepository gemfireRepository;
+    private QuestionLongpollingCallback longpollingCallback;
+    private boolean firstForQuestion = true;
 
     public DistributedGame(GemfireRepository gemfireRepository) {
         this.gemfireRepository = gemfireRepository;
@@ -82,18 +86,25 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public void addPlayerForCurrentQuestion(String sessionId) {
+    public void addPlayerForQuestion(String sessionId, int questionIndex) {
         gemfireRepository.getCurrentQuestionRegion().put(sessionId, "");
+        // FIXME EXPERIMENTATION Start timer
+        if (firstForQuestion) {
+            firstForQuestion = false;
+            logger.info("Start timers for longpolling");
+            Executors.newSingleThreadScheduledExecutor().schedule((new Runnable() {
+                @Override
+                public void run() {
+                    startLongpollingResponse();
+                }
+            }), getLongpollingduration(), TimeUnit.MILLISECONDS);
+
+        }
     }
 
     @Override
-    public int countUserForCurrentQuestion() {
+    public int countUserForQuestion(int questionIndex) {
         return gemfireRepository.getCurrentQuestionRegion().size();
-    }
-
-    @Override
-    public void emptyCurrentQuestion() {
-        gemfireRepository.getCurrentQuestionRegion().clear();
     }
 
     @Override
@@ -103,17 +114,16 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public boolean allPlayerReadyForQuestion() {
-        return gemfireRepository.getCurrentQuestionRegion().size() >= getNbusersthresold();
-    }
-
-    @Override
     public int getCurrentQuestionIndex() {
         return ((Integer) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX)).intValue();
     }
 
     @Override
-    public void setCurrentQuestionIndex(int index) {
-        gemfireRepository.getGameRegion().put(CURRENT_QUESTION_INDEX, index);
+    public void registerLongpollingCallback(QuestionLongpollingCallback callback) {
+        this.longpollingCallback = callback;
+    }
+
+    private void startLongpollingResponse() {
+        this.longpollingCallback.startSendAll();
     }
 }

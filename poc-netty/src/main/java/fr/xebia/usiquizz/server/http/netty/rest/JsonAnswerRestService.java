@@ -61,7 +61,7 @@ public class JsonAnswerRestService extends RestService {
             }
             if (sessionKey == null) {
                 logger.info("Player with no cookies... Rejected");
-                writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
+                responseWriter.writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
                 return;
             }
 
@@ -74,7 +74,7 @@ public class JsonAnswerRestService extends RestService {
                 if ("answer".equals(fieldname)) { // contains an object
                     answer = jp.getText();
                 } else {
-                    writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                    responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                     logger.error("Unrecognized field '" + fieldname + "'!");
                     return;
                 }
@@ -84,19 +84,19 @@ public class JsonAnswerRestService extends RestService {
             // Create real service and finish 
             int answerNumber = Integer.parseInt(answer);
             Question question = game.getQuestion(1);
-            writeResponse(createJsonResponse(answerNumber == question.getGoodchoice(), question.getChoice().get(question.getGoodchoice() - 1), 0), HttpResponseStatus.OK, ctx, e);
+            responseWriter.writeResponse(createJsonResponse(answerNumber == question.getGoodchoice(), question.getChoice().get(question.getGoodchoice() - 1), 0), HttpResponseStatus.OK, ctx, e);
             return;
         } catch (IOException e1) {
             logger.error("Error ", e1);
-            writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         } catch (InvalidParameterFileException e2) {
             logger.error("Error ", e2);
-            writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);
-            writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         }
     }

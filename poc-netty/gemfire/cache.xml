@@ -2,9 +2,7 @@
         "-//GemStone Systems, Inc.//GemFire Declarative Caching 6.5//EN"
         "http://www.gemstone.com/dtd/cache6_5.dtd">
 <cache>
-    <region name="game-region" refid="REPLICATE"/>
-    <region name="question-region" refid="REPLICATE"/>
-    <region name="player-region" refid="REPLICATE"/>
+
     <region name="user-region">
         <region-attributes
                 data-policy="persistent-replicate"
@@ -20,10 +18,11 @@
                 <disk-dir>gemfire-persistence/dbDir</disk-dir>
             </disk-dirs>
         </region-attributes>
-
     </region>
+    
+    <region name="game-region" refid="REPLICATE"/>
+    <region name="question-region" refid="REPLICATE"/>
+    <region name="player-region" refid="REPLICATE"/>
+    <region name="score-region" refid="REPLICATE"/>
     <region name="current-question-region" refid="REPLICATE"/>
-
-    <!-- you can override or add to the REPLICATE attributes by adding
-         a region-attributes sub element here -->
 </cache>

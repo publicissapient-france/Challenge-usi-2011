@@ -17,11 +17,9 @@ import java.io.IOException;
 public class GameResourceRequestHandler extends RestHandler {
     private static Logger logger = LoggerFactory.getLogger(GameResourceRequestHandler.class);
 
-
     private GameParameterParser gameParameterParser;
 
     private Game game;
-
 
     public GameResourceRequestHandler(GameParameterParser gameParameterParser, Game game) {
         this.game = game;
