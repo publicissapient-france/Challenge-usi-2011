@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <!-- encoders are assigned the type
-         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
+
   
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>quizz.log</file>
 	<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>tests.%i.log</fileNamePattern>
+      <fileNamePattern>log/server.log.%i</fileNamePattern>
       <minIndex>1</minIndex>
       <maxIndex>10</maxIndex>
     </rollingPolicy>
@@ -25,10 +19,12 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n</pattern>
     </encoder>
   </appender> 
-  
-  <logger name="org.deftserver.io.timeout" level="debug"/>
 
-  <root level="info">
-    <appender-ref ref="STDOUT" />
-  </root>
+
+    <logger name="org.deftserver.io.timeout" level="info"/>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
 </configuration>

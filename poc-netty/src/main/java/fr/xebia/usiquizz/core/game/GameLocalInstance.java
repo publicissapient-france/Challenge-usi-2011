@@ -1,9 +1,10 @@
 package fr.xebia.usiquizz.core.game;
 
-import com.usi.Sessiontype;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.usi.Question;
+import com.usi.Sessiontype;
 
 public class GameLocalInstance implements Game {
 
@@ -35,30 +36,77 @@ public class GameLocalInstance implements Game {
         return sessionType.getParameters().getNbquestions();
     }
 
-    public int getFlushusertable() {
-        return 0;
+    @Override
+    public boolean getFlushusertable() {
+        // TODO Auto-generated method stub
+        return false;
     }
 
-    public int getTrackeduseridmail() {
-        return 0;
+    @Override
+    public String getTrackeduseridmail() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public boolean incrementPlayer() {
         return nbJoueurLogged.incrementAndGet() >= getNbusersthresold();
     }
 
-    @Override
-    public int getUserConnected() {
-        return nbJoueurLogged.get();
+    public AtomicInteger getNbJoueurLogged() {
+        return nbJoueurLogged;
     }
 
     @Override
-    public boolean isGameStarted() {
-        return gameStarted.get();
+    public void addPlayer(String sessionId, String email) {
+        // TODO Auto-generated method stub
+
     }
 
     @Override
-    public void startGame() {
-        gameStarted.set(true);
+    public int countUserConnected() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void addPlayerForCurrentQuestion(String sessionId) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public int countUserForCurrentQuestion() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void emptyCurrentQuestion() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public Question getQuestion(int index) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public boolean allPlayerReadyForQuestion() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public int getCurrentQuestionIndex() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void setCurrentQuestionIndex(int index) {
+        // TODO Auto-generated method stub
+
     }
 }
