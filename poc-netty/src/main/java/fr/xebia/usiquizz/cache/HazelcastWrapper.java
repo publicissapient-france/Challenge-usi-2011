@@ -1,17 +1,19 @@
 package fr.xebia.usiquizz.cache;
 
 import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
 
 import java.util.Map;
 
 public class HazelcastWrapper<K, V> implements CacheWrapper<K, V> {
 
-    private HazelcastClient client;
+    private Hazelcast client;
     private Map<K, V> mapCache;
 
     public HazelcastWrapper() {
-        client = HazelcastClient.newHazelcastClient("quizz-dg", "quizz", "192.168.166.10");
-        mapCache = client.getMap("cache");
+
+        mapCache = Hazelcast.getMap("cache");
     }
 
     @Override

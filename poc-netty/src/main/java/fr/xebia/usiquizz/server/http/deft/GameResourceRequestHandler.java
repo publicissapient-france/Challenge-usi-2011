@@ -29,7 +29,7 @@ public class GameResourceRequestHandler extends RestHandler {
     @Override
     public void post(HttpRequest request, HttpResponse response) {
         logger.debug("REST call for path " + request.getRequestedPath());
-        logger.trace("Message : " + request.getBody());
+      //  logger.trace("Message : " + request.getBody());
         try {
             String authenticationKey = null;
             String parameters = null;

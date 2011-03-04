@@ -10,6 +10,7 @@ import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.deftserver.io.IOLoop;
 import org.deftserver.web.Application;
 import org.deftserver.web.HttpServer;
+import org.deftserver.web.MultiThreadedHttpServer;
 import org.deftserver.web.handler.RequestHandler;
 import org.deftserver.web.http.HttpServerDescriptor;
 import org.slf4j.Logger;
@@ -38,9 +39,11 @@ public class DeftHttpServer {
         HttpServerDescriptor.KEEP_ALIVE_TIMEOUT = 600000;
 		HttpServerDescriptor.READ_BUFFER_SIZE = 1500;			// 1500 bytes 
 		HttpServerDescriptor.WRITE_BUFFER_SIZE = 1500;			// 1500 bytes 
-        HttpServer server = new HttpServer(new Application(handlers));
-        server.listen(8080);
-        IOLoop.INSTANCE.start();
-     
+	//	HttpServer server = new org.deftserver.web.HttpServer(new Application(handlers));
+       // server.listen(8080);
+       // IOLoop.INSTANCE.start();
+     MultiThreadedHttpServer server = new MultiThreadedHttpServer(new Application(handlers));
+     server.listen(8080);
+     server.start();
     }
 }

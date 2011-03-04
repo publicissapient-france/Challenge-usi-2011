@@ -2,6 +2,7 @@ package fr.xebia.usi.quizz.web.deft;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.deftserver.io.DefaultIOWorkerLoop;
 import org.deftserver.io.IOLoop;
 import org.deftserver.io.timeout.Timeout;
 import org.deftserver.web.AsyncCallback;
@@ -10,6 +11,7 @@ import org.deftserver.web.http.HttpResponse;
 public class AsyncResponseQueue {
 
 	private final LinkedBlockingQueue<HttpResponse> queue;
+	
 	
 	private Boolean planned;
 

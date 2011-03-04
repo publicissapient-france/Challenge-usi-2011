@@ -44,7 +44,7 @@ public class AsyncResponseQueue {
 		
 	}
 
-	public void sendQueuedResponses() {
+	private void sendQueuedResponses() {
 		HttpResponse resp;
 		while ((resp = queue.poll()) != null) {
 			resp.finish();
