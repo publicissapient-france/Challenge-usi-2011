@@ -1,1 +1,0 @@
-mvn clean compile exec:java -Dexec.mainClass="fr.xebia.usiquizz.test.ReinitDatabase"

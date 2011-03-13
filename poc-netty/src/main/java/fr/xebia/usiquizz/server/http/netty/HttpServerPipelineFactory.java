@@ -15,11 +15,12 @@
  */
 package fr.xebia.usiquizz.server.http.netty;
 
+import fr.xebia.usiquizz.core.game.DistributedScoring;
 import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.game.gemfire.DistributedGame;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.GemfireUserRepository;
-import fr.xebia.usiquizz.core.persistence.MongoUserRepository;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.server.http.netty.resources.CachedResourcesRequestHandler;
 import fr.xebia.usiquizz.server.http.netty.rest.LongPollingQuestionManager;
@@ -43,6 +44,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     private GemfireRepository gemfireRepository;
     private UserRepository userRepository;
     private Game game;
+    private Scoring scoring;
     private LongPollingQuestionManager longPollingQuestionManager;
 
     private RestRequestHandler restRequestHandler;
@@ -53,8 +55,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         gemfireRepository = new GemfireRepository();
         userRepository = new GemfireUserRepository(gemfireRepository);
         game = new DistributedGame(gemfireRepository);
-        longPollingQuestionManager = new LongPollingQuestionManager(game, new ResponseWriter(), executorService);
-        restRequestHandler = new RestRequestHandler(userRepository, game, longPollingQuestionManager);
+        scoring = new DistributedScoring(gemfireRepository);
+        longPollingQuestionManager = new LongPollingQuestionManager(game, new ResponseWriter(executorService));
+        restRequestHandler = new RestRequestHandler(userRepository, game, scoring, longPollingQuestionManager, executorService);
     }
 
     public ChannelPipeline getPipeline() throws Exception {

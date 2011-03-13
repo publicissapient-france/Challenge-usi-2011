@@ -1,11 +1,14 @@
 package fr.xebia.usiquizz.core.persistence;
 
+import com.esotericsoftware.kryo.util.IntHashMap;
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
 import com.usi.Questiontype;
+import fr.xebia.usiquizz.core.game.Score;
 
 import java.util.List;
+import java.util.Map;
 
 public class GemfireRepository {
 
@@ -18,10 +21,13 @@ public class GemfireRepository {
 
     // Region for the current game
     private Region<String, Object> gameRegion = cache.getRegion("game-region");
-    private Region<String, List<Questiontype>> questionRegion = cache.getRegion("question-region");
+    private Region<String, Questiontype> questionRegion = cache.getRegion("question-region");
     private Region<String, String> playerRegion = cache.getRegion("player-region");
     private Region<String, String> currentQuestionRegion = cache.getRegion("current-question-region");
-    private Region<Integer, List<String>> scoreRegion = cache.getRegion("score-region");
+    private Map<Byte, Byte> questionStatusRegion = cache.getRegion("question-status");
+
+    // Region for score
+    private Region<String, Score> scoreRegion = cache.getRegion("score-region");
 
     public Cache getCache() {
         return cache;
@@ -31,7 +37,7 @@ public class GemfireRepository {
         return gameRegion;
     }
 
-    public Region<String, List<Questiontype>> getQuestionRegion() {
+    public Region<String, Questiontype> getQuestionRegion() {
         return questionRegion;
     }
 
@@ -47,7 +53,11 @@ public class GemfireRepository {
         return userRegion;
     }
 
-    public Region<Integer, List<String>> getScoreRegion() {
+    public Region<String, Score> getScoreRegion() {
         return scoreRegion;
+    }
+
+    public Map<Byte, Byte> getQuestionStatusRegion() {
+        return questionStatusRegion;
     }
 }

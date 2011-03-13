@@ -1,6 +1,8 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
+import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -10,6 +12,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 public class RestRequestHandler {
 
@@ -24,18 +27,20 @@ public class RestRequestHandler {
     private Map<String, RestService> restMapping = new HashMap<String, RestService>();
     private UserRepository userRepository;
     private Game game;
+    private Scoring scoring;
     private GameParameterParser gameParameterParser = new GameParameterParser();
 
 
-    public RestRequestHandler(UserRepository userRepository, Game game, LongPollingQuestionManager longPollingQuestionManager) {
+    public RestRequestHandler(UserRepository userRepository, Game game, Scoring scoring, LongPollingQuestionManager longPollingQuestionManager, ExecutorService executorService) {
         this.userRepository = userRepository;
         this.game = game;
+        this.scoring = scoring;
         // Create all reste resources
-        restMapping.put(USER_REST_SERVICE, new JsonUserRestService(this.userRepository));
-        restMapping.put(LOGIN_REST_SERVICE, new JsonLoginRestService(this.userRepository, game));
-        restMapping.put(GAME_REST_SERVICE, new JsonGameRestService(gameParameterParser, game));
-        restMapping.put(QUESTION_REST_SERVICE, new JsonQuestionRestService(this.userRepository, game, longPollingQuestionManager));
-        restMapping.put(ANSWER_REST_SERVICE, new JsonAnswerRestService(game));
+        restMapping.put(USER_REST_SERVICE, new JsonUserRestService(this.userRepository, game, scoring, executorService));
+        restMapping.put(LOGIN_REST_SERVICE, new JsonLoginRestService(this.userRepository, game, scoring, executorService));
+        restMapping.put(GAME_REST_SERVICE, new JsonGameRestService(gameParameterParser, game, scoring, executorService));
+        restMapping.put(QUESTION_REST_SERVICE, new JsonQuestionRestService(this.userRepository, longPollingQuestionManager, game, scoring, executorService));
+        restMapping.put(ANSWER_REST_SERVICE, new JsonAnswerRestService(game, scoring, executorService));
     }
 
     public void messageReceived(String path, ChannelHandlerContext ctx, MessageEvent e) {
@@ -47,14 +52,11 @@ public class RestRequestHandler {
         }
         if (request.getMethod().equals(HttpMethod.GET)) {
             restMapping.get(serviceToUse).get(path, ctx, e);
-        }
-        else if (request.getMethod().equals(HttpMethod.POST)) {
+        } else if (request.getMethod().equals(HttpMethod.POST)) {
             restMapping.get(serviceToUse).post(path, ctx, e);
-        }
-        else if (request.getMethod().equals(HttpMethod.PUT)) {
+        } else if (request.getMethod().equals(HttpMethod.PUT)) {
             //restMapping.get("user").get(path, e);
-        }
-        else if (request.getMethod().equals(HttpMethod.DELETE)) {
+        } else if (request.getMethod().equals(HttpMethod.DELETE)) {
             //   restMapping.get("user").get(path, e);
         }
     }

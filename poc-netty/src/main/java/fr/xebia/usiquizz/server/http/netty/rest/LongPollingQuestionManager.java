@@ -1,5 +1,6 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
+import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.QuestionLongpollingCallback;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -10,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-public class LongPollingQuestionManager implements QuestionLongpollingCallback{
+public class LongPollingQuestionManager implements QuestionLongpollingCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(LongPollingQuestionManager.class);
 
@@ -22,14 +23,14 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback{
 
     private ExecutorService executorService;
 
-    public LongPollingQuestionManager(Game game, ResponseWriter responseWriter, ExecutorService executorService) {
+    public LongPollingQuestionManager(Game game, ResponseWriter responseWriter) {
         this.game = game;
         this.responseWriter = responseWriter;
         this.executorService = executorService;
         this.game.registerLongpollingCallback(this);
     }
 
-    public void addPlayer(String sessionKey, ChannelHandlerContext ctx, int questionNbr) {
+    public void addPlayer(String sessionKey, ChannelHandlerContext ctx, byte questionNbr) {
         longPollingResponse.put(sessionKey, ctx);
         game.addPlayerForQuestion(sessionKey, questionNbr);
     }
@@ -38,15 +39,9 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback{
         logger.info("Send all question to player");
         final String question = game.getQuestion(game.getCurrentQuestionIndex()).getLabel();
         for (final String sessionKey : longPollingResponse.keySet()) {
-            executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    responseWriter.endWritingResponseWithoutClose(question, longPollingResponse.get(sessionKey));
-                }
-            });
-
+            responseWriter.endWritingResponseWithoutClose(question, longPollingResponse.get(sessionKey));
         }
-        longPollingResponse.clear();
+        //longPollingResponse.clear();
     }
 
     @Override

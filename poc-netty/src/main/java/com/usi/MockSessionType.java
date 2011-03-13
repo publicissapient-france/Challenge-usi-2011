@@ -5,13 +5,10 @@ import java.util.List;
 
 public class MockSessionType extends Sessiontype {
 
-    private List<Questiontype> questionsList;
+    private Questiontype qt;
 
-    public MockSessionType(){
-        questionsList = new ArrayList<Questiontype>();
-        Questiontype qt1 = new Questiontype();
-        Questiontype qt2 = new Questiontype();
-        Questiontype qt3 = new Questiontype();
+    public MockSessionType() {
+        qt = new Questiontype();
         Question q1 = new Question();
         Question q2 = new Question();
         Question q3 = new Question();
@@ -30,20 +27,19 @@ public class MockSessionType extends Sessiontype {
         q3.getChoice().add("Reponse 2");
         q3.getChoice().add("Reponse 3");
         q1.setGoodchoice(3);
-        qt1.setQuestion(q1);
-        qt2.setQuestion(q2);
-        qt3.setQuestion(q3);
-        questionsList.add(qt1);
-        questionsList.add(qt2);
-        questionsList.add(qt3);
+        qt.getQuestion().add(q1);
+        qt.getQuestion().add(q2);
+        qt.getQuestion().add(q3);
     }
 
+    @Override
     public Parametertype getParameters() {
         return new MockParameter();
     }
 
-    public List<Questiontype> getQuestions() {
-        return questionsList;
+    @Override
+    public Questiontype getQuestions() {
+        return qt;
     }
 }
 

@@ -1,5 +1,7 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
+import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.persistence.UserAlreadyExists;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import org.codehaus.jackson.JsonParser;
@@ -12,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 public class JsonUserRestService extends RestService {
 
@@ -24,7 +27,8 @@ public class JsonUserRestService extends RestService {
 
     private UserRepository userRepository;
 
-    public JsonUserRestService(UserRepository userRepository) {
+    public JsonUserRestService(UserRepository userRepository, Game game, Scoring scoring, ExecutorService executorService) {
+        super(game, scoring, executorService);
         this.userRepository = userRepository;
     }
 

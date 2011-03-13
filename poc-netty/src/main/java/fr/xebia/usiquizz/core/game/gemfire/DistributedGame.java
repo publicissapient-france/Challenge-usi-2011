@@ -15,7 +15,8 @@ public class DistributedGame implements Game {
 
     private static final Logger logger = LoggerFactory.getLogger(DistributedGame.class);
 
-    private static final String LONG_POOLING_DURATION = "long-pooling-duration";
+    private static final String LOGIN_TIMEOUT = "login-timeout";
+    private static final String SYNCHROTIME = "synchrotime";
     private static final String NB_USERS_THRESOLD = "nb-users-thresold";
     private static final String QUESTION_TIME_FRAME = "question-time-frame";
     private static final String NB_QUESTIONS = "nb-questions";
@@ -24,10 +25,15 @@ public class DistributedGame implements Game {
     private static final String QUESTION_LIST = "question_list";
     private static final String CURRENT_QUESTION_INDEX = "current-question-index";
 
+    private static final byte NON_JOUEE = 10;
+    private static final byte EN_COURS = 11;
+    private static final byte JOUEE = 12;
+
 
     private GemfireRepository gemfireRepository;
     private QuestionLongpollingCallback longpollingCallback;
     private boolean firstForQuestion = true;
+    private boolean firstLogin = true;
 
     public DistributedGame(GemfireRepository gemfireRepository) {
         this.gemfireRepository = gemfireRepository;
@@ -35,19 +41,28 @@ public class DistributedGame implements Game {
 
     @Override
     public void init(Sessiontype st) {
-        gemfireRepository.getGameRegion().put(LONG_POOLING_DURATION, st.getParameters().getLongpollingduration());
-        gemfireRepository.getGameRegion().put(NB_USERS_THRESOLD, st.getParameters().getNbusersthresold());
+        // Parametre du jeu
+        gemfireRepository.getGameRegion().put(LOGIN_TIMEOUT, st.getParameters().getLogintimeout());
+        gemfireRepository.getGameRegion().put(SYNCHROTIME, st.getParameters().getSynchrotime());
+        gemfireRepository.getGameRegion().put(NB_USERS_THRESOLD, st.getParameters().getNbusersthreshold());
         gemfireRepository.getGameRegion().put(QUESTION_TIME_FRAME, st.getParameters().getQuestiontimeframe());
         gemfireRepository.getGameRegion().put(NB_QUESTIONS, st.getParameters().getNbquestions());
         gemfireRepository.getGameRegion().put(FLUSH_USER_TABLE, st.getParameters().isFlushusertable());
         gemfireRepository.getGameRegion().put(TRACKED_USER_IDMAIL, st.getParameters().getTrackeduseridmail());
         gemfireRepository.getGameRegion().put(CURRENT_QUESTION_INDEX, 1);
+
+        // les questions
         gemfireRepository.getQuestionRegion().put(QUESTION_LIST, st.getQuestions());
+
+        // Les status de chaque question (non jouée, en cours, jouée)
+        for (byte currentIndex = 1; currentIndex <= st.getParameters().getNbquestions(); currentIndex++) {
+            gemfireRepository.getQuestionStatusRegion().put(currentIndex, NON_JOUEE);
+        }
     }
 
     @Override
-    public int getLongpollingduration() {
-        return ((Integer) gemfireRepository.getGameRegion().get(LONG_POOLING_DURATION)).intValue();
+    public int getLoginTimeout() {
+        return ((Integer) gemfireRepository.getGameRegion().get(LOGIN_TIMEOUT)).intValue();
     }
 
     @Override
@@ -78,6 +93,22 @@ public class DistributedGame implements Game {
     @Override
     public void addPlayer(String sessionId, String email) {
         gemfireRepository.getPlayerRegion().put(sessionId, email);
+        // FIXME EXPERIMENTATION Start timer
+        if (firstLogin) {
+            firstLogin = false;
+            logger.info("Start timers for login timeout");
+            //Executors.newSingleThreadScheduledExecutor().schedule((new Runnable() {
+            //    @Override
+            //    public void run() {
+            //        startCurrentLongPolling((byte) 1);
+            //    }
+            //}), getLoginTimeout(), TimeUnit.MILLISECONDS);
+        }
+    }
+
+    @Override
+    public boolean isAlreadyLogged(String email) {
+        return gemfireRepository.getPlayerRegion().containsKey(email);
     }
 
     @Override
@@ -86,7 +117,7 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public void addPlayerForQuestion(String sessionId, int questionIndex) {
+    public void addPlayerForQuestion(final String sessionId, final byte questionIndex) {
         gemfireRepository.getCurrentQuestionRegion().put(sessionId, "");
         // FIXME EXPERIMENTATION Start timer
         if (firstForQuestion) {
@@ -95,9 +126,9 @@ public class DistributedGame implements Game {
             Executors.newSingleThreadScheduledExecutor().schedule((new Runnable() {
                 @Override
                 public void run() {
-                    startLongpollingResponse();
+                    startCurrentLongPolling(questionIndex);
                 }
-            }), getLongpollingduration(), TimeUnit.MILLISECONDS);
+            }), getQuestiontimeframe(), TimeUnit.MILLISECONDS);
 
         }
     }
@@ -110,12 +141,13 @@ public class DistributedGame implements Game {
     @Override
     public Question getQuestion(int index) {
         // -1 difference between spec and list implementation
-        return gemfireRepository.getQuestionRegion().get(QUESTION_LIST).get(index - 1).getQuestion();
+        return gemfireRepository.getQuestionRegion().get(QUESTION_LIST).getQuestion().get(index);
     }
 
     @Override
     public int getCurrentQuestionIndex() {
-        return ((Integer) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX)).intValue();
+        Integer i =  (Integer) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX);
+        return i;
     }
 
     @Override
@@ -123,7 +155,43 @@ public class DistributedGame implements Game {
         this.longpollingCallback = callback;
     }
 
-    private void startLongpollingResponse() {
-        this.longpollingCallback.startSendAll();
+    @Override
+    public boolean isPlayerCanAnswer(String sessionKey, byte currentQuestion) {
+        // L'index de la question doit être la question courante.
+        if (currentQuestion != getCurrentQuestionIndex()) {
+            return false;
+        }
+
+        // On doit être encore dans la bonne timeframe
+        // FIXME implements...
+
+        // Le joueur ne doit pas déja avoir répondu
+        // FIXME A voir si reèlement obligatoire
+        return true;
+    }
+
+    @Override
+    public boolean isPlayerCanAskQuestion(String sessionKey, byte questionNbr) {
+        // L'index de la question doit être la question courante.
+        if (questionNbr != getCurrentQuestionIndex()) {
+            return false;
+        }
+
+        // On doit être encore dans la bonne timeframe
+        // FIXME implements...
+
+        // Le joueur ne doit pas déja avoir demandé la question
+        return !gemfireRepository.getCurrentQuestionRegion().containsKey(sessionKey);
+
+
+    }
+
+    private void startCurrentLongPolling(byte questionIndex) {
+        // On lance le longpolling uniquement si la question n'est pas encore joue...
+        if (gemfireRepository.getQuestionStatusRegion().get(questionIndex) == NON_JOUEE) {
+            gemfireRepository.getQuestionStatusRegion().put(questionIndex, EN_COURS);
+            longpollingCallback.startSendAll();
+            gemfireRepository.getQuestionStatusRegion().put(questionIndex, JOUEE);
+        }
     }
 }

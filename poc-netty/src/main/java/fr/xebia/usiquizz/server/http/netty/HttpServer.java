@@ -18,10 +18,13 @@ package fr.xebia.usiquizz.server.http.netty;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
+import org.jboss.netty.logging.InternalLoggerFactory;
+import org.jboss.netty.logging.Slf4JLoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * An HTTP server that sends back the content of the received HTTP request
@@ -33,16 +36,33 @@ import java.util.concurrent.Executors;
  * @version $Rev: 2080 $, $Date: 2010-01-26 18:04:19 +0900 (Tue, 26 Jan 2010) $
  */
 public class HttpServer {
+
+    static{
+        InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
+    }
+
     public static void main(String[] args) {
+        ThreadFactory threadFactory = new ThreadFactory() {
+
+            private int i = 1;
+
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName("BossExec #1-" + i++);
+                return thread;
+            }
+        };
         // Configure the server.
+        //ExecutorService bossExec = Executors.newFixedThreadPool(20, threadFactory);
         ExecutorService bossExec = Executors.newCachedThreadPool();
         ExecutorService ioExec = Executors.newCachedThreadPool();
 
         ServerBootstrap bootstrap = new ServerBootstrap(
-                new NioServerSocketChannelFactory(bossExec, ioExec, 8));
+                new NioServerSocketChannelFactory(bossExec, ioExec, 20));
 
         // Set up the event pipeline factory.
-        bootstrap.setPipelineFactory(new HttpServerPipelineFactory(ioExec));
+        bootstrap.setPipelineFactory(new HttpServerPipelineFactory(bossExec));
 
         // Bind and start to accept incoming connections.
         bootstrap.bind(new InetSocketAddress(8080));

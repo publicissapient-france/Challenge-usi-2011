@@ -1,0 +1,1 @@
+java -cp quizz-usi-jar-with-dependencies.jar fr.xebia.usiquizz.server.http.netty.HttpServer

@@ -3,7 +3,9 @@ package fr.xebia.usiquizz.server.http.netty.rest;
 import com.usi.Question;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.authentication.AdminAuthentication;
+import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import fr.xebia.usiquizz.core.xml.InvalidParameterFileException;
 import org.antlr.stringtemplate.StringTemplate;
@@ -22,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutorService;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 
@@ -31,10 +34,10 @@ public class JsonAnswerRestService extends RestService {
 
     private static final String SESSION_KEY = "session_key";
 
-    private Game game;
+    private static final CookieDecoder cookieDecoder = new CookieDecoder();
 
-    public JsonAnswerRestService(Game game) {
-        this.game = game;
+    public JsonAnswerRestService(Game game, Scoring scoring, ExecutorService executorService) {
+        super(game, scoring, executorService);
     }
 
     @Override
@@ -45,11 +48,13 @@ public class JsonAnswerRestService extends RestService {
         logger.debug("Parameters : {}", new String(request.getContent().array()));
         try {
 
+            // currentQuestion
+            byte currentQuestion = 1;
             // Get session_key
             String sessionKey = null;
             String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
             if (cookieString != null) {
-                CookieDecoder cookieDecoder = new CookieDecoder();
+
                 Set<Cookie> cookies = cookieDecoder.decode(cookieString);
                 if (!cookies.isEmpty()) {
                     for (Cookie c : cookies) {
@@ -65,6 +70,20 @@ public class JsonAnswerRestService extends RestService {
                 return;
             }
 
+            // Verifie que l'on est encore dans la bonne fenetre de réponse.
+            if (!game.isPlayerCanAnswer(sessionKey, currentQuestion)) {
+                logger.info("Player {} outside windows answer of question {}", sessionKey, currentQuestion);
+                responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                return;
+            }
+
+            // Verifie que le joueur n'a pas deja répondu.
+            if (scoring.isPlayerAlreadyAnswered(sessionKey, currentQuestion)) {
+                logger.info("Player {} has already answer question {}", sessionKey, currentQuestion);
+                responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                return;
+            }
+
             String answer = null;
             JsonParser jp = jsonFactory.createJsonParser(request.getContent().array());
             jp.nextToken(); // will return JsonToken.START_OBJECT (verify?)
@@ -75,24 +94,19 @@ public class JsonAnswerRestService extends RestService {
                     answer = jp.getText();
                 } else {
                     responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
-                    logger.error("Unrecognized field '" + fieldname + "'!");
+                    logger.info("Unrecognized field '" + fieldname + "'!");
                     return;
                 }
             }
 
-            // FIXME
-            // Create real service and finish 
             int answerNumber = Integer.parseInt(answer);
-            Question question = game.getQuestion(1);
-            responseWriter.writeResponse(createJsonResponse(answerNumber == question.getGoodchoice(), question.getChoice().get(question.getGoodchoice() - 1), 0), HttpResponseStatus.OK, ctx, e);
-            return;
-        } catch (IOException e1) {
-            logger.error("Error ", e1);
-            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
-            return;
-        } catch (InvalidParameterFileException e2) {
-            logger.error("Error ", e2);
-            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+            Question question = game.getQuestion(currentQuestion);
+            // Verify is answerd is correction
+            boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
+            // update score
+            scoring.addScore(sessionKey, answerIsCorrect, currentQuestion);
+
+            responseWriter.writeResponse(createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice()), 0), HttpResponseStatus.OK, ctx, e);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);
@@ -100,7 +114,6 @@ public class JsonAnswerRestService extends RestService {
             return;
         }
     }
-
 
 
     private String createJsonResponse(boolean isResponseGood, String goodAnswer, int currentScore) {

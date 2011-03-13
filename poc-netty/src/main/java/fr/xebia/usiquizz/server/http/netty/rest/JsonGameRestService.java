@@ -3,6 +3,7 @@ package fr.xebia.usiquizz.server.http.netty.rest;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.authentication.AdminAuthentication;
 import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import fr.xebia.usiquizz.core.xml.InvalidParameterFileException;
 import org.codehaus.jackson.JsonParser;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 public class JsonGameRestService extends RestService {
 
@@ -22,11 +24,9 @@ public class JsonGameRestService extends RestService {
 
     private GameParameterParser gameParameterParser;
 
-    private Game game;
-
-    public JsonGameRestService(GameParameterParser gameParameterParser, Game game) {
+    public JsonGameRestService(GameParameterParser gameParameterParser, Game game, Scoring scoring, ExecutorService executorService) {
+        super(game, scoring, executorService);
         this.gameParameterParser = gameParameterParser;
-        this.game = game;
     }
 
     @Override
@@ -55,6 +55,7 @@ public class JsonGameRestService extends RestService {
             }
             if (authenticationKey != null && parameters != null) {
                 if (!authenticationKey.equals(AdminAuthentication.key)) {
+                    logger.info("User with bad authentication ");
                     responseWriter.writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
                     return;
                 }
@@ -68,7 +69,7 @@ public class JsonGameRestService extends RestService {
             responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         } catch (InvalidParameterFileException e2) {
-             logger.error("Error ", e2);
+            logger.error("Error ", e2);
             responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         }

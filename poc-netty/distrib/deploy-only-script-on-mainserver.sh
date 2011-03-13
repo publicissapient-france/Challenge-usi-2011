@@ -1,0 +1,1 @@
+scp -r ../distrib/*.sh "user@92.103.37.12:/home/user/quizz/"

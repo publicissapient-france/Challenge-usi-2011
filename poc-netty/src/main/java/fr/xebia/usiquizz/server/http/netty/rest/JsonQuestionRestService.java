@@ -1,6 +1,8 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
+import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 
@@ -23,12 +26,12 @@ public class JsonQuestionRestService extends RestService {
 
     private static final String SESSION_KEY = "session_key";
 
-    private Game game;
+    private static final CookieDecoder cookieDecoder = new CookieDecoder();
 
     private LongPollingQuestionManager longPollingQuestionManager;
 
-    public JsonQuestionRestService(UserRepository userRepository, Game game, LongPollingQuestionManager longPollingQuestionManager) {
-        this.game = game;
+    public JsonQuestionRestService(UserRepository userRepository, LongPollingQuestionManager longPollingQuestionManager, Game game, Scoring scoring, ExecutorService executorService) {
+        super(game, scoring, executorService);
         this.longPollingQuestionManager = longPollingQuestionManager;
     }
 
@@ -41,7 +44,7 @@ public class JsonQuestionRestService extends RestService {
             String sessionKey = null;
             String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
             if (cookieString != null) {
-                CookieDecoder cookieDecoder = new CookieDecoder();
+
                 Set<Cookie> cookies = cookieDecoder.decode(cookieString);
                 if (!cookies.isEmpty()) {
                     for (Cookie c : cookies) {
@@ -58,9 +61,10 @@ public class JsonQuestionRestService extends RestService {
             }
 
             // Verify question asked... is active
-            int questionNbr = Integer.parseInt(path.substring(path.lastIndexOf("/") + 1));
-            if (game.getCurrentQuestionIndex() != questionNbr) {
+            byte questionNbr = Byte.parseByte(path.substring(path.lastIndexOf("/") + 1));
+            if (!game.isPlayerCanAskQuestion(sessionKey, questionNbr)) {
                 // Bad player flow
+                logger.warn("Bad question requested {} by {}", questionNbr, sessionKey);
                 responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                 return;
             }

@@ -12,7 +12,7 @@ public interface Game {
     void init(Sessiontype st);
 
     // Acces direct au parametrage du jeux
-    int getLongpollingduration();
+    int getLoginTimeout();
 
     int getNbusersthresold();
 
@@ -37,6 +37,14 @@ public interface Game {
     void addPlayer(String sessionId, String email);
 
     /**
+     * Return true si le joueur est deja connecté
+     *
+     * @param email
+     * @return
+     */
+    boolean isAlreadyLogged(String email);
+
+    /**
      * Retourne le nombre de joueur connecté à la partir (phase de login passé)
      *
      * @return
@@ -48,7 +56,7 @@ public interface Game {
      *
      * @param sessionId
      */
-    void addPlayerForQuestion(String sessionId, int questionIndex);
+    void addPlayerForQuestion(String sessionId, byte questionIndex);
 
     /**
      * Retourne le nombre de joueur ayant demandé une question
@@ -65,4 +73,15 @@ public interface Game {
     int getCurrentQuestionIndex();
 
     void registerLongpollingCallback(QuestionLongpollingCallback callback);
+
+    /**
+     * Verification of flow
+     * @param sessionKey
+     * @param currentQuestion
+     * @return
+     */
+
+    boolean isPlayerCanAnswer(String sessionKey, byte currentQuestion);
+
+    boolean isPlayerCanAskQuestion(String sessionKey, byte questionNbr);
 }

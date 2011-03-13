@@ -1,0 +1,1 @@
+java -cp quizz-usi-jar-with-dependencies.jar fr.xebia.usiquizz.injector.HttpCreateUser vfabric1:8080 1million_users_1.csv 100000

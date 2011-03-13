@@ -1,0 +1,1 @@
+java -cp quizz-usi-jar-with-dependencies.jar fr.xebia.usiquizz.injector.LongPoolingSuiteTest vfabric:8080 1million_users_1.csv 500

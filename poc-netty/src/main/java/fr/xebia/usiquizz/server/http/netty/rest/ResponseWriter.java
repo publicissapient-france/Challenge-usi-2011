@@ -9,6 +9,7 @@ import org.jboss.netty.handler.codec.http.*;
 import org.jboss.netty.util.CharsetUtil;
 
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
@@ -21,11 +22,14 @@ public class ResponseWriter {
     private static final String CONTENT_TYPE_VALUE = "text/plain; charset=UTF-8";
     private static final String SESSION_KEY = "session_key";
 
-    public void writeResponse(String content, HttpResponseStatus httpResponseStatus, ChannelHandlerContext ctx, MessageEvent e, String sessionKey) {
+    private ExecutorService executorService;
 
-        if (httpResponseStatus == null) {
-            httpResponseStatus = OK;
-        }
+    public ResponseWriter(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    public void writeResponse(final String content, final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx, final MessageEvent e, final String sessionKey) {
+
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, httpResponseStatus);
         if (content != null) {
             response.setContent(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
@@ -57,17 +61,18 @@ public class ResponseWriter {
         // Write the response.
         ChannelFuture future = ctx.getChannel().write(response);
         future.addListener(ChannelFutureListener.CLOSE);
+
     }
 
-    public void writeResponse(String content, HttpResponseStatus httpResponseStatus, ChannelHandlerContext ctx, MessageEvent e) {
+    public void writeResponse(final String content, final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx, final MessageEvent e) {
         this.writeResponse(content, httpResponseStatus, ctx, e, null);
     }
 
-    public void writeResponse(HttpResponseStatus httpResponseStatus, ChannelHandlerContext ctx, MessageEvent e) {
+    public void writeResponse(final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx, final MessageEvent e) {
         this.writeResponse(null, httpResponseStatus, ctx, e, null);
     }
 
-    public HttpResponse writeResponseWithoutClose(HttpResponseStatus status, ChannelHandlerContext ctx, MessageEvent e) {
+    public void writeResponseWithoutClose(final HttpResponseStatus status, final ChannelHandlerContext ctx, final MessageEvent e) {
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
         response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
@@ -88,19 +93,14 @@ public class ResponseWriter {
 
         // Write the response.
         ChannelFuture future = ctx.getChannel().write(response);
-        return response;
     }
 
-    public void continueWritingResponseWithoutClose(String content, ChannelHandlerContext ctx) {
 
-        // Write the response.
-        ChannelFuture future = ctx.getChannel().write(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
-    }
-
-    public void endWritingResponseWithoutClose(String content, ChannelHandlerContext ctx) {
+    public void endWritingResponseWithoutClose(final String content, final ChannelHandlerContext ctx) {
 
         // Write the response.
         ChannelFuture future = ctx.getChannel().write(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
         future.addListener(ChannelFutureListener.CLOSE);
+
     }
 }

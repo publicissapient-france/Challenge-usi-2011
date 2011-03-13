@@ -1,6 +1,8 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
+import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.persistence.User;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import org.codehaus.jackson.JsonParser;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 public class JsonLoginRestService extends RestService {
 
@@ -24,11 +27,9 @@ public class JsonLoginRestService extends RestService {
 
     private UserRepository userRepository;
 
-    private Game game;
-
-    public JsonLoginRestService(UserRepository userRepository, Game game) {
+    public JsonLoginRestService(UserRepository userRepository, Game game, Scoring scoring, ExecutorService executorService) {
+        super(game, scoring, executorService);
         this.userRepository = userRepository;
-        this.game = game;
     }
 
     @Override
@@ -54,14 +55,30 @@ public class JsonLoginRestService extends RestService {
                 } else if (JSON_PASSWORD.equals(fieldname)) {
                     password = jp.getText();
                 } else {
-                    throw new IllegalStateException("Unrecognized field '" + fieldname + "'!");
+                    //throw new IllegalStateException("Unrecognized field '" + fieldname + "'!");
+                    logger.info("Bad field : {}, login refused", fieldname);
+                    responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                    return;
                 }
             }
             if (mail != null && password != null) {
                 if ((userRepository.logUser(mail, password))) {
                     String sessionKey = UUID.randomUUID().toString();
+                    if (game.isAlreadyLogged(mail)) {
+                        logger.info("user already logged");
+                        responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                        return;
+                    }
+                    // Add player as logged
                     game.addPlayer(sessionKey, mail);
+                    // Add a score object to player
+                    scoring.createScore(sessionKey);
+
                     responseWriter.writeResponse(null, HttpResponseStatus.OK, ctx, e, sessionKey);
+                    return;
+                } else {
+                    logger.warn("Authentication refused {}", mail);
+                    responseWriter.writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
                     return;
                 }
             }
@@ -69,6 +86,7 @@ public class JsonLoginRestService extends RestService {
             logger.error("Error ", e1);
         }
         // ERROR
+        logger.error("Flow not supported");
         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
     }
 
