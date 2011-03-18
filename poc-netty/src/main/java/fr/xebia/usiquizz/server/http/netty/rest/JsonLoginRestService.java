@@ -1,9 +1,8 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
-import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
-import fr.xebia.usiquizz.core.persistence.User;
+import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
@@ -70,7 +69,12 @@ public class JsonLoginRestService extends RestService {
                         return;
                     }
                     // Add player as logged
-                    game.addPlayer(sessionKey, mail);
+                    try {
+                        game.logPlayerToApplication(sessionKey, mail);
+                    } catch (LoginPhaseEndedException e1) {
+                        // Trop tard pour se logguer ...
+                        responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                    }
                     // Add a score object to player
                     scoring.createScore(sessionKey);
 

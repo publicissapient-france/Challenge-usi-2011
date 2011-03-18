@@ -20,8 +20,15 @@ public abstract class AsyncAuditedCompletionHandler<T> extends AsyncCompletionHa
         return onCompleted(response, uniqueRequestIdentifier);
     }
 
+    @Override
+    public void onThrowable(Throwable t) {
+        this.receiveResponseAt = System.nanoTime();
+        onThrowable(t, uniqueRequestIdentifier);
+    }
 
-    public abstract T onCompleted(Response response, String uniqueRequestIdentifier) throws Exception;
+    protected abstract void onThrowable(Throwable throwable, String uniqueRequestIdentifier);
+
+    protected abstract T onCompleted(Response response, String uniqueRequestIdentifier) throws Exception;
 
     public long getRequestTimeInMillis() {
         return (receiveResponseAt - requestExecutedAt) / 1000000l;

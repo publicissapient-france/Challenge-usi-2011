@@ -16,6 +16,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.GZIPInputStream;
 
 public class LongPoolingSuiteTest {
 
@@ -44,8 +45,9 @@ public class LongPoolingSuiteTest {
     private static long start;
     private static GameParameterParser gpp = new GameParameterParser();
     private static JsonFactory jf = new JsonFactory();
+    private static Sessiontype session;
 
-    private static String userFile = "src/test/test-file/1million_users_1.csv";
+    private static String userFile = "src/test/test-file/1million_users_1.csv.gz";
     private static String gameFile = "src/test/test-file/game.xml";
     private static String gameContent;
 
@@ -85,14 +87,20 @@ public class LongPoolingSuiteTest {
         //configBuilder.setAsyncHttpClientProviderConfig(nettyConfig);
         AsyncHttpClient c = new AsyncHttpClient(configBuilder.build());
         gameContent = loadContent();
-        Sessiontype session = new GameParameterParser().parseXmlParameter(gameContent);
+        session = new GameParameterParser().parseXmlParameter(gameContent);
         nbClient = session.getParameters().getNbusersthreshold();
         // Init a game with NB_USER
         prepareGame(c);
 
         // Launch a game
         File loginFile = new File(userFile);
-        BufferedReader loginReader = new BufferedReader(new FileReader(loginFile));
+        BufferedReader loginReader;
+        if (userFile.endsWith(".gz")) {
+            loginReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(userFile))));
+        } else {
+            loginReader = new BufferedReader(new FileReader(userFile));
+        }
+
         // Skip firstline
         loginReader.readLine();
         start = System.nanoTime();
@@ -174,7 +182,7 @@ public class LongPoolingSuiteTest {
                 }
 
                 @Override
-                public void onThrowable(Throwable t) {
+                public void onThrowable(Throwable t, final String id) {
                     logger.error("Error in login request", t);
                     // Try again
                     //LongPoolingSuiteTest.sendLoginRequest(c, requestUrl, body);
@@ -208,7 +216,7 @@ public class LongPoolingSuiteTest {
             request.execute(new AsyncAuditedCompletionHandler<Void>("question_" + questionCounter.getAndIncrement(), System.nanoTime()) {
 
                 @Override
-                public void onThrowable(Throwable t) {
+                public void onThrowable(Throwable t, final String id) {
                     logger.error("Error in get question request", t);
                     // Try again
                     //LongPoolingSuiteTest.sendGetQuestionRequest(client, response, questionNumber);
@@ -263,7 +271,7 @@ public class LongPoolingSuiteTest {
                     }
 
                     // Si il reste des questions on recommence
-                    if (Integer.parseInt(questionNumber) < 1) {
+                    if (Integer.parseInt(questionNumber) < session.getParameters().getNbquestions()) {
                         client.getConfig().executorService().execute(new Runnable() {
                             @Override
                             public void run() {
@@ -277,7 +285,7 @@ public class LongPoolingSuiteTest {
                 }
 
                 @Override
-                public void onThrowable(Throwable t) {
+                public void onThrowable(Throwable t, final String id) {
                     logger.error("Error send response request", t);
                 }
             });

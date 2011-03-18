@@ -1,5 +1,6 @@
 package fr.xebia.usiquizz.core.game;
 
+import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
 
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 
@@ -14,7 +15,7 @@ public class DistributedScoring implements Scoring {
     @Override
     public void createScore(String sessionKey) {
         // FIXME pass nb question
-        gemfireRepository.getScoreRegion().put(sessionKey, new Score((byte) 1));
+        gemfireRepository.getScoreRegion().put(sessionKey, new Score(((Integer) gemfireRepository.getGameRegion().get(NB_QUESTIONS)).byteValue()));
     }
 
     @Override

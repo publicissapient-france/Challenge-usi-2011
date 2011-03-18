@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LongPollingQuestionManager implements QuestionLongpollingCallback {
 
@@ -23,11 +24,21 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
 
     private ExecutorService executorService;
 
-    public LongPollingQuestionManager(Game game, ResponseWriter responseWriter) {
+    private AtomicBoolean sendQuestionStarted = new AtomicBoolean(false);
+
+    private byte currentQuestionIndex = 1;
+
+    public LongPollingQuestionManager(Game game, ResponseWriter responseWriter, ExecutorService executorService) {
         this.game = game;
         this.responseWriter = responseWriter;
         this.executorService = executorService;
         this.game.registerLongpollingCallback(this);
+    }
+
+    public void initNewQuestion(byte currentQuestionIndex) {
+        this.longPollingResponse.clear();
+        this.currentQuestionIndex = currentQuestionIndex;
+        sendQuestionStarted.set(false);
     }
 
     public void addPlayer(String sessionKey, ChannelHandlerContext ctx, byte questionNbr) {
@@ -36,10 +47,29 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
     }
 
     public void sendQuestionToAllPlayer() {
-        logger.info("Send all question to player");
-        final String question = game.getQuestion(game.getCurrentQuestionIndex()).getLabel();
-        for (final String sessionKey : longPollingResponse.keySet()) {
-            responseWriter.endWritingResponseWithoutClose(question, longPollingResponse.get(sessionKey));
+        if (!sendQuestionStarted.getAndSet(true)) {
+            logger.info("Send all question to player");
+            final String question = game.getQuestion(currentQuestionIndex).getLabel();
+
+            // On incrémente l'index de question attendu
+            game.setCurrentQuestionIndex((byte) (currentQuestionIndex + 1));
+
+            // On demande la réinitialisation
+            game.resetPlayerAskedQuestion();
+
+            for (final String sessionKey : longPollingResponse.keySet()) {
+                //executorService.submit(new Runnable() {
+                //    @Override
+                //    public void run() {
+                responseWriter.endWritingResponseWithoutClose(question, longPollingResponse.get(sessionKey));
+                //    }
+                //});
+
+            }
+            // On démarre un timer locale...
+            // On le démarre apres avoir envoyer toute les questions histoire que tous les clients est au moins questiontimeframe pour répondre.
+            // Et ca nous arrange....
+            game.startQuestionTimeframe(currentQuestionIndex);
         }
         //longPollingResponse.clear();
     }

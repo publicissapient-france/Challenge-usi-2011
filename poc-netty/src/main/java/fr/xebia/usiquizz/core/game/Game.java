@@ -3,6 +3,7 @@ package fr.xebia.usiquizz.core.game;
 import com.usi.Question;
 import com.usi.Questiontype;
 import com.usi.Sessiontype;
+import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.server.http.netty.rest.LongPollingQuestionManager;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public interface Game {
      * @param sessionId
      * @param email
      */
-    void addPlayer(String sessionId, String email);
+    void logPlayerToApplication(String sessionId, String email) throws LoginPhaseEndedException;
 
     /**
      * Return true si le joueur est deja connecté
@@ -70,9 +71,21 @@ public interface Game {
      *
      * @return
      */
-    int getCurrentQuestionIndex();
+    byte getCurrentQuestionIndex();
+
+    /**
+     * Retourne l'index de la réponse courante
+     * @return
+     */
+    byte getCurrentAnswerIndex();
+
+    void setCurrentQuestionIndex(byte newIndex);
+
+    void setCurrentAnswerIndex(byte newIndex);
 
     void registerLongpollingCallback(QuestionLongpollingCallback callback);
+
+    void startCurrentLongPolling();
 
     /**
      * Verification of flow
@@ -84,4 +97,8 @@ public interface Game {
     boolean isPlayerCanAnswer(String sessionKey, byte currentQuestion);
 
     boolean isPlayerCanAskQuestion(String sessionKey, byte questionNbr);
+
+    void startQuestionTimeframe(byte currentQuestionIndex);
+
+    void resetPlayerAskedQuestion();
 }

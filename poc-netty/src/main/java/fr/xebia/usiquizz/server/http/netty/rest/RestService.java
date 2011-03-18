@@ -34,7 +34,7 @@ public abstract class RestService {
 
     protected RestService(Game game, Scoring scoring, ExecutorService executorService) {
         this.executorService = executorService;
-        this.responseWriter = new ResponseWriter(executorService);
+        this.responseWriter = new ResponseWriter();
         this.game = game;
         this.scoring = scoring;
     }

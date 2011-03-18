@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class HttpServer {
 
-    static{
+    static {
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
     }
 
@@ -59,15 +59,19 @@ public class HttpServer {
         ExecutorService ioExec = Executors.newCachedThreadPool();
 
         ServerBootstrap bootstrap = new ServerBootstrap(
-                new NioServerSocketChannelFactory(bossExec, ioExec, 20));
+                new NioServerSocketChannelFactory(bossExec, ioExec, 50));
+
 
         // Set up the event pipeline factory.
         bootstrap.setPipelineFactory(new HttpServerPipelineFactory(bossExec));
 
         // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(8080));
-        bootstrap.setOption("tcpNoDelay", true);
+
+        // A priori beaucoup de pb de connection reset by peer sous macos sans ces options
+        bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("keepAlive", false);
+        bootstrap.bind(new InetSocketAddress(8080));
+
 
     }
 }

@@ -5,6 +5,7 @@ import com.usi.Sessiontype;
 
 // Async version of game
 // Must be manually synchrnized with Game interface
+// No more used.... 
 public interface AsyncGame extends Game {
 
     void init(Sessiontype st, GameCallback<Void> callback);

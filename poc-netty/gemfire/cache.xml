@@ -19,11 +19,20 @@
             </disk-dirs>
         </region-attributes>
     </region>
-    
+
     <region name="game-region" refid="REPLICATE"/>
     <region name="question-region" refid="REPLICATE"/>
     <region name="player-region" refid="REPLICATE"/>
     <region name="score-region" refid="REPLICATE"/>
     <region name="current-question-region" refid="REPLICATE"/>
-    <region name="question-status" refid="REPLICATE"/>
+    <!-- Created by API -->
+    <!--
+    <region name="question-status" refid="REPLICATE">
+        <region-attributes>
+            <cache-listener>
+                <class-name></class-name>
+            </cache-listener>
+        </region-attributes>
+    </region>
+    -->
 </cache>

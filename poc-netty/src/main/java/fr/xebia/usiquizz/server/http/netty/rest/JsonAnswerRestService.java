@@ -49,7 +49,7 @@ public class JsonAnswerRestService extends RestService {
         try {
 
             // currentQuestion
-            byte currentQuestion = 1;
+            byte questionNbr = Byte.parseByte(path.substring(path.lastIndexOf("/") + 1));
             // Get session_key
             String sessionKey = null;
             String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
@@ -71,15 +71,15 @@ public class JsonAnswerRestService extends RestService {
             }
 
             // Verifie que l'on est encore dans la bonne fenetre de réponse.
-            if (!game.isPlayerCanAnswer(sessionKey, currentQuestion)) {
-                logger.info("Player {} outside windows answer of question {}", sessionKey, currentQuestion);
+            if (!game.isPlayerCanAnswer(sessionKey, questionNbr)) {
+                logger.info("Player {} outside windows answer of question {}", sessionKey, questionNbr);
                 responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                 return;
             }
 
             // Verifie que le joueur n'a pas deja répondu.
-            if (scoring.isPlayerAlreadyAnswered(sessionKey, currentQuestion)) {
-                logger.info("Player {} has already answer question {}", sessionKey, currentQuestion);
+            if (scoring.isPlayerAlreadyAnswered(sessionKey, questionNbr)) {
+                logger.info("Player {} has already answer question {}", sessionKey, questionNbr);
                 responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                 return;
             }
@@ -100,11 +100,11 @@ public class JsonAnswerRestService extends RestService {
             }
 
             int answerNumber = Integer.parseInt(answer);
-            Question question = game.getQuestion(currentQuestion);
+            Question question = game.getQuestion(questionNbr);
             // Verify is answerd is correction
             boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
             // update score
-            scoring.addScore(sessionKey, answerIsCorrect, currentQuestion);
+            scoring.addScore(sessionKey, answerIsCorrect, questionNbr);
 
             responseWriter.writeResponse(createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice()), 0), HttpResponseStatus.OK, ctx, e);
             return;

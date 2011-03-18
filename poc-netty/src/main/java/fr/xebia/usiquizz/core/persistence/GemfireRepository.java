@@ -1,9 +1,7 @@
 package fr.xebia.usiquizz.core.persistence;
 
 import com.esotericsoftware.kryo.util.IntHashMap;
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.CacheFactory;
-import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.*;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
 
@@ -11,6 +9,24 @@ import java.util.List;
 import java.util.Map;
 
 public class GemfireRepository {
+
+    // PARAMETRE DU JEU
+    public static final String LOGIN_TIMEOUT = "login-timeout";
+    public static final String SYNCHROTIME = "synchrotime";
+    public static final String NB_USERS_THRESOLD = "nb-users-thresold";
+    public static final String QUESTION_TIME_FRAME = "question-time-frame";
+    public static final String NB_QUESTIONS = "nb-questions";
+    public static final String FLUSH_USER_TABLE = "flush-user-table";
+    public static final String TRACKED_USER_IDMAIL = "tracked-user-idmail";
+
+    // QUESTION
+    public static final String QUESTION_LIST = "question_list";
+
+
+    // ETAT COURANT DU JEU
+    public static final String CURRENT_QUESTION_INDEX = "current-question-index";
+    public static final String CURRENT_ANSWER_INDEX = "current-answer-index";
+    public static final String LOGIN_PHASE_STATUS = "login-phase-status";
 
     private Cache cache = new CacheFactory()
             .set("cache-xml-file", "gemfire/cache.xml")
@@ -24,10 +40,18 @@ public class GemfireRepository {
     private Region<String, Questiontype> questionRegion = cache.getRegion("question-region");
     private Region<String, String> playerRegion = cache.getRegion("player-region");
     private Region<String, String> currentQuestionRegion = cache.getRegion("current-question-region");
-    private Map<Byte, Byte> questionStatusRegion = cache.getRegion("question-status");
+    private Region<Byte, Byte> questionStatusRegion;
 
     // Region for score
     private Region<String, Score> scoreRegion = cache.getRegion("score-region");
+
+    public void initQestionStatusResgion(CacheListener questionStatusCacheListener) {
+        AttributesFactory questionStatusAttribute = new AttributesFactory();
+        questionStatusAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        questionStatusAttribute.addCacheListener(questionStatusCacheListener);
+        RegionFactory rf = cache.createRegionFactory(questionStatusAttribute.create());
+        questionStatusRegion = rf.create("question-status");
+    }
 
     public Cache getCache() {
         return cache;
@@ -57,7 +81,7 @@ public class GemfireRepository {
         return scoreRegion;
     }
 
-    public Map<Byte, Byte> getQuestionStatusRegion() {
+    public Region<Byte, Byte> getQuestionStatusRegion() {
         return questionStatusRegion;
     }
 }

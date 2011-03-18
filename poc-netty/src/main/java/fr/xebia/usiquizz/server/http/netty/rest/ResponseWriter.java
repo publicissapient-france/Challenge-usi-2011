@@ -22,10 +22,8 @@ public class ResponseWriter {
     private static final String CONTENT_TYPE_VALUE = "text/plain; charset=UTF-8";
     private static final String SESSION_KEY = "session_key";
 
-    private ExecutorService executorService;
-
-    public ResponseWriter(ExecutorService executorService) {
-        this.executorService = executorService;
+    public ResponseWriter() {
+        
     }
 
     public void writeResponse(final String content, final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx, final MessageEvent e, final String sessionKey) {
