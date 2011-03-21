@@ -21,6 +21,7 @@ public class GemfireRepository {
     private Region<String, List<Questiontype>> questionRegion = cache.getRegion("question-region");
     private Region<String, String> playerRegion = cache.getRegion("player-region");
     private Region<String, String> currentQuestionRegion = cache.getRegion("current-question-region");
+    private Region<Integer, List<String>> scoreRegion = cache.getRegion("score-region");
 
     public Cache getCache() {
         return cache;
@@ -44,5 +45,9 @@ public class GemfireRepository {
 
     public Region<String, byte[]> getUserRegion() {
         return userRegion;
+    }
+
+    public Region<Integer, List<String>> getScoreRegion() {
+        return scoreRegion;
     }
 }

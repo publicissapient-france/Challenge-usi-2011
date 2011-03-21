@@ -31,13 +31,13 @@ public class LoginResourceRequestHandler extends RestHandler {
     @Override
     public void post(final HttpRequest request, final HttpResponse response) {
 
-        logger.debug("REST call for path " + request.getRequestedPath());
-        logger.trace("Message : " + request.getBody());
-        // FIXME
-        // if (game.isGameStarted()) {
-        // response.setStatusCode(400);
-        // return;
-        // }
+        logger.debug("REST call for path {}", request.getRequestedPath());
+        // logger.trace("Message : " + request.getBody());
+        /*
+         * if (game.isGameStarted()) { logger.debug("Game not started :p");
+         * response.setStatusCode(400); response.write("Bad request !"); return;
+         * }
+         */
 
         try {
             String mail = null;
@@ -105,6 +105,7 @@ public class LoginResourceRequestHandler extends RestHandler {
         // ERROR
         response.setStatusCode(400);
         response.write("Bad request !");
+
     }
 
 }

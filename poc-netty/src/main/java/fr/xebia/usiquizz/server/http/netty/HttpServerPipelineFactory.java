@@ -22,6 +22,8 @@ import fr.xebia.usiquizz.core.persistence.GemfireUserRepository;
 import fr.xebia.usiquizz.core.persistence.MongoUserRepository;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
 import fr.xebia.usiquizz.server.http.netty.resources.CachedResourcesRequestHandler;
+import fr.xebia.usiquizz.server.http.netty.rest.LongPollingQuestionManager;
+import fr.xebia.usiquizz.server.http.netty.rest.ResponseWriter;
 import fr.xebia.usiquizz.server.http.netty.rest.RestRequestHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -31,18 +33,29 @@ import org.jboss.netty.handler.codec.http.HttpContentCompressor;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 
+import java.util.concurrent.ExecutorService;
+
 import static org.jboss.netty.channel.Channels.pipeline;
 
 public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
     //private UserRepository userRepository = new MongoUserRepository();
-    private GemfireRepository gemfireRepository = new GemfireRepository();
-    private UserRepository userRepository = new GemfireUserRepository(gemfireRepository);
-    private Game game = new DistributedGame(gemfireRepository);
+    private GemfireRepository gemfireRepository;
+    private UserRepository userRepository;
+    private Game game;
+    private LongPollingQuestionManager longPollingQuestionManager;
 
-    private RestRequestHandler restRequestHandler = new RestRequestHandler(userRepository, game);
+    private RestRequestHandler restRequestHandler;
 
     private CachedResourcesRequestHandler staticRequestHandler = new CachedResourcesRequestHandler();
+
+    public HttpServerPipelineFactory(ExecutorService executorService) {
+        gemfireRepository = new GemfireRepository();
+        userRepository = new GemfireUserRepository(gemfireRepository);
+        game = new DistributedGame(gemfireRepository);
+        longPollingQuestionManager = new LongPollingQuestionManager(game, new ResponseWriter(), executorService);
+        restRequestHandler = new RestRequestHandler(userRepository, game, longPollingQuestionManager);
+    }
 
     public ChannelPipeline getPipeline() throws Exception {
         // Create a default pipeline implementation.

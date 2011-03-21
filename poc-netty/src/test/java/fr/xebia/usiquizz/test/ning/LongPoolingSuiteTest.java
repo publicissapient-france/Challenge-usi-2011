@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class LongPoolingSuiteTest {
 
-    private static int nbClient = 4000;
+    private static int nbClient = 1000;
 
     private static String host;
     private static final String DEFAULT_HOST = "127.0.0.1:8080";
@@ -92,7 +92,6 @@ public class LongPoolingSuiteTest {
         System.out.println("Take : " + ((double) (loggedTime - start)) / 1000000d + " ms for sending all request");
         loginReader.close();
 
-        writeAudit();
     }
 
     private static void writeAudit() {

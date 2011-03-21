@@ -58,12 +58,12 @@ public class JsonUserRestService extends RestService {
             try {
                 userRepository.insertUser(email, password, firstname, lastname);
             } catch (UserAlreadyExists uae) {
-                writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
+                responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
             }
         } catch (IOException e1) {
             logger.error("Error ", e1);
         }
 
-        writeResponse(HttpResponseStatus.OK, ctx, event);
+        responseWriter.writeResponse(HttpResponseStatus.OK, ctx, event);
     }
 }

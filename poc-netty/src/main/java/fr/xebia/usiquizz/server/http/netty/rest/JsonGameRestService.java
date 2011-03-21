@@ -48,31 +48,31 @@ public class JsonGameRestService extends RestService {
                 } else if ("parameters".equals(fieldname)) {
                     parameters = jp.getText();
                 } else {
-                    writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                    responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                     logger.error("Unrecognized field '" + fieldname + "'!");
                     return;
                 }
             }
             if (authenticationKey != null && parameters != null) {
                 if (!authenticationKey.equals(AdminAuthentication.key)) {
-                    writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
+                    responseWriter.writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
                     return;
                 }
                 Sessiontype sessionType = gameParameterParser.parseXmlParameter(parameters);
                 game.init(sessionType);
-                writeResponse(HttpResponseStatus.CREATED, ctx, e);
+                responseWriter.writeResponse(HttpResponseStatus.CREATED, ctx, e);
                 return;
             }
         } catch (IOException e1) {
             logger.error("Error ", e1);
-            writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         } catch (InvalidParameterFileException e2) {
              logger.error("Error ", e2);
-            writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         }
         // ERROR
-        writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+        responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
     }
 }

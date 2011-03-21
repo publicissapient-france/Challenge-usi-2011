@@ -22,9 +22,11 @@ public class DeftHttpServer {
     private static final Logger LOG = LoggerFactory.getLogger("deft-http");
 
     public static void main(String[] args) {
+
         GemfireRepository gemfireRepository = new GemfireRepository();
         UserRepository userRepository = new GemfireUserRepository(gemfireRepository);
         Game game = new DistributedGame(gemfireRepository);
+
         GameParameterParser gameParameterParser = new GameParameterParser();
 
         Map<String, RequestHandler> handlers = new HashMap<String, RequestHandler>();
