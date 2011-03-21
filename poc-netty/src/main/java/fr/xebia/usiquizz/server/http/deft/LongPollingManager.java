@@ -1,10 +1,9 @@
 package fr.xebia.usiquizz.server.http.deft;
 
-
-import org.deftserver.web.AsyncCallback;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.deftserver.web.AsyncCallback;
 
 public class LongPollingManager {
 
@@ -18,5 +17,9 @@ public class LongPollingManager {
         for (AsyncCallback ac : longPoolingResponse.keySet()) {
             ac.onCallback();
         }
+    }
+
+    public void clear() {
+        longPoolingResponse.clear();
     }
 }

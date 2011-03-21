@@ -1,6 +1,6 @@
 package fr.xebia.usiquizz.server.http.deft;
 
-import fr.xebia.usiquizz.core.game.Game;
+import java.util.Set;
 
 import org.deftserver.io.IOLoopController;
 import org.deftserver.io.IOLoopFactory;
@@ -13,11 +13,11 @@ import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-
+import fr.xebia.usiquizz.core.game.Game;
 
 public class QuestionResourceRequestHandler extends RestHandler {
-    private static final Logger logger = LoggerFactory.getLogger(QuestionResourceRequestHandler.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(QuestionResourceRequestHandler.class);
 
     private Game game;
 
@@ -30,9 +30,9 @@ public class QuestionResourceRequestHandler extends RestHandler {
     @Override
     @Asynchronous
     public void get(HttpRequest request, final HttpResponse response) {
-//        if (game.isGameStarted()) {
-//            response.setStatusCode(200);
-//        }
+        // if (game.isGameStarted()) {
+        // response.setStatusCode(200);
+        // }
         // Get session_key
         String sessionKey = null;
         String cookieString = request.getHeader("Cookie");
@@ -47,34 +47,50 @@ public class QuestionResourceRequestHandler extends RestHandler {
                 }
             }
         }
+
         if (sessionKey == null) {
             logger.info("Player with no cookies... Rejected");
             response.setStatusCode(401);
             response.finish();
             return;
-        } else {
-            //response.setStatusCode(200);
-            //response.write("");
-            //response.flush();
-        	
-        	IOLoopFactory.getLoopController().planifyResponse();
-        	final IOLoopController loop = IOLoopFactory.getLoopController();
-            // Don't close response
-            longPollingManager.add(new AsyncCallback() {
-                @Override
-                public void onCallback() {
-                    writeResponse(response);
-                    loop.pushResponse(response);
-                }
-            });
         }
-        game.addPlayer(sessionKey, "");
-        if (game.countUserConnected() >= game.getNbusersthresold()) {
+
+        // Verify question asked... is active
+        final int questionNbr = Integer.parseInt(request.getRequestedPath().substring(
+                request.getRequestedPath().lastIndexOf("/") + 1));
+        if (game.getCurrentQuestionIndex() != questionNbr) {
+            // Bad player flow
+            response.setStatusCode(400);
+            response.write("Not current question !");
+            return;
+        }
+
+        // response.setStatusCode(200);
+        // response.write("");
+        // response.flush();
+
+        IOLoopFactory.getLoopController().planifyResponse();
+        final IOLoopController loop = IOLoopFactory.getLoopController();
+        // Don't close response
+        longPollingManager.add(new AsyncCallback() {
+            @Override
+            public void onCallback() {
+                writeResponse(response, questionNbr);
+                loop.pushResponse(response);
+            }
+        });
+
+        game.addPlayerForCurrentQuestion(sessionKey);
+
+        if (game.allPlayerReadyForQuestion()) {
             System.out.println(game.countUserConnected() + " player connected");
-            //game.startGame();
+            // game.startGame();
             startQuizz();
+            longPollingManager.clear();
+            game.emptyCurrentQuestion();
+            game.setCurrentQuestionIndex(game.getCurrentQuestionIndex() + 1);
         } else {
-            if (game.countUserConnected() % 100 == 0) {
+            if (game.countUserForCurrentQuestion() % 100 == 0) {
                 System.out.println(game.countUserConnected() + " player connected");
             }
         }
@@ -85,17 +101,11 @@ public class QuestionResourceRequestHandler extends RestHandler {
         longPollingManager.sendAllResponse();
     }
 
-    private void writeResponse(HttpResponse response) {
-    	
-        response.write("{\n" +
-                "\"question\":\"La question 1\",\n" +
-                "\"answer_1\":\"La 1ere reponse à la question1\",\n" +
-                "\"answer_2\":\"La 2nd reponse à la question1\",\n" +
-                "\"answer_3\":\"La 3eme reponse à la question1\",\n" +
-                "\"answer_4\":\"La 4eme reponse à la question1\",\n" +
-                "\"score\":0\n" +
-                "} ");
-   //     response.finish();
+    private void writeResponse(HttpResponse response, int nb) {
+
+        response.write(game.getQuestion(nb).getLabel());
+
+        // response.finish();
     }
 
 }
