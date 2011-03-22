@@ -61,7 +61,7 @@ public class GemfireRepository {
     // Cette region contient le rang : rang --> score;firstname;lastname;mail
     // Doit permettre de répondre tres vite au requête de ranking
     // La difficulté est de le remplir
-    private Region<Integer, String> finalRankingRegion = cache.getRegion("final-ranking-region");
+    private Region<Integer, Joueur> finalRankingRegion = cache.getRegion("final-ranking-region");
 
     public void initQestionStatusResgion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();
@@ -101,5 +101,17 @@ public class GemfireRepository {
 
     public Region<Byte, Byte> getQuestionStatusRegion() {
         return questionStatusRegion;
+    }
+
+    public Region<Integer, TreeSet<Joueur>> getInverseScoreRegion() {
+        return inverseScoreRegion;
+    }
+
+    public Region<String, Integer> getRanking() {
+        return ranking;
+    }
+
+    public Region<Integer, Joueur> getFinalRankingRegion() {
+        return finalRankingRegion;
     }
 }

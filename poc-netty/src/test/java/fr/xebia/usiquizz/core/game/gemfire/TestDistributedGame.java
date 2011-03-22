@@ -14,7 +14,7 @@ import static junit.framework.Assert.assertTrue;
 
 public class TestDistributedGame {
 
-    private DistributedGame distributedGame = new DistributedGame(new GemfireRepository());
+    private DistributedGame distributedGame = new DistributedGame(new GemfireRepository(), null);
 
     private Cache cache = new CacheFactory().set("cache-xml-file", "gemfire/cache.xml").create();
 

@@ -12,4 +12,6 @@ public interface Scoring {
 
     boolean isPlayerAlreadyAnswered(String sessionKey, byte currentQuestion);
 
+    // temporary Called at the end of game 
+    void calculRanking();
 }

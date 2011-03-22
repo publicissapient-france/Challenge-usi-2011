@@ -7,6 +7,7 @@ import com.usi.Question;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.QuestionLongpollingCallback;
+import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import org.slf4j.Logger;
@@ -50,11 +51,13 @@ public class DistributedGame implements Game {
 
     private GemfireRepository gemfireRepository;
     private QuestionLongpollingCallback longpollingCallback;
+    private Scoring scoring;
     private boolean firstForQuestion = true;
     private boolean firstLogin = true;
 
-    public DistributedGame(GemfireRepository gemfireRepository) {
+    public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
+        this.scoring = scoring;
         gemfireRepository.initQestionStatusResgion(new QuestionStatusCacheListener(this, eventTaskExector));
     }
 
@@ -246,6 +249,9 @@ public class DistributedGame implements Game {
                 if (currentQuestionIndex >= getNbquestions()) {
                     // End of game
                     logger.info("END OF GAME");
+                    // FIXME Il faut vraiment trouver un moyen de le faire au fur et à mesure....
+                    // On déclenche la creation du ranking
+                    scoring.calculRanking();
                 } else {
                     // Sinon On déclenche le synchrotime...
                     startSynchroTime();
