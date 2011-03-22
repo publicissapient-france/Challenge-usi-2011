@@ -25,6 +25,9 @@
     <region name="player-region" refid="REPLICATE"/>
     <region name="score-region" refid="REPLICATE"/>
     <region name="current-question-region" refid="REPLICATE"/>
+    <region name="inverse-score-region" refid="REPLICATE"/>
+    <region name="ranking-region" refid="REPLICATE"/>
+    <region name="final-ranking-region" refid="REPLICATE"/>
     <!-- Created by API -->
     <!--
     <region name="question-status" refid="REPLICATE">
