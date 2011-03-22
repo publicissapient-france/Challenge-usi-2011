@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <usi:gamesession xmlns:usi="http://www.usi.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.usi.com gamesession.xsd ">
   <usi:questions>
-    <usi:question goodchoice="0">
+    <usi:question goodchoice="1">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
@@ -143,10 +143,10 @@
     </usi:question>
   </usi:questions>
   <usi:parameters>
-    <usi:logintimeout>15000</usi:logintimeout>
+    <usi:logintimeout>5000</usi:logintimeout>
     <usi:synchrotime>5000</usi:synchrotime>
-    <usi:nbusersthreshold>2000</usi:nbusersthreshold>
-    <usi:questiontimeframe>15000</usi:questiontimeframe>
+    <usi:nbusersthreshold>500</usi:nbusersthreshold>
+    <usi:questiontimeframe>20000</usi:questiontimeframe>
     <usi:nbquestions>2</usi:nbquestions>
     <usi:flushusertable>false</usi:flushusertable>
     <usi:trackeduseridmail>usi:trackeduseridmail</usi:trackeduseridmail>

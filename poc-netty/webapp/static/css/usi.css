@@ -1,0 +1,89 @@
+.banner {
+    position: relative;
+    background-color: #3C3F45;
+    padding: 8px 20px;
+    border-radius-topleft: 8px;
+    border-radius-topright: 8px;
+    -moz-border-radius-topleft: 8px;
+    -moz-border-radius-topright: 8px;
+    -webkit-border-top-left-radius: 8px;
+    -webkit-border-top-right-radius: 8px;
+    border-top-left-radius: 8px 8px;
+    border-top-right-radius: 8px 8px;
+}
+
+.main-content {
+    -moz-border-radius-bottomleft: 8px;
+    -moz-border-radius-bottomright: 8px;
+    background: none repeat scroll 0 0 #FFFFFF;
+    border-bottom: 1px solid #DFDFDF;
+    border-left: 1px solid #DFDFDF;
+    border-right: 1px solid #DFDFDF;
+    padding: 30px 20px 20px;
+}
+
+.player-stat {
+    -moz-border-radius-bottomleft: 8px;
+    -moz-border-radius-bottomright: 8px;
+    background: none repeat scroll 0 0 #FFFFFF;
+    border-bottom: 1px solid #DFDFDF;
+    border-left: 1px solid #DFDFDF;
+    border-right: 1px solid #DFDFDF;
+    padding: 30px 20px 20px;
+}
+
+.banner h2 {
+    font-size: 3em;
+    padding: 10px 10px 5px;
+    color: white;
+    text-shadow: 0 1px 3px black;
+}
+
+.content {
+    background: white;
+    border-left: 1px solid #DFDFDF;
+    border-right: 1px solid #DFDFDF;
+    border-bottom: 1px solid #DFDFDF;
+    padding: 30px 20px 20px;
+    border-radius-bottomleft: 8px;
+    border-radius-bottomright: 8px;
+    -moz-border-radius-bottomleft: 8px;
+    -moz-border-radius-bottomright: 8px;
+    -webkit-border-bottom-left-radius: 8px;
+    -webkit-border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px 8px;
+    border-bottom-right-radius: 8px 8px;
+}
+
+#page {
+    position: relative;
+    width: 1000px;
+    padding: 0;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.answer:hover {
+   color: #EE0000;
+}
+
+
+.questionLabel {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.answerLabel {
+    font-size: 1.3em;
+    margin-bottom: 3px;
+    text-decoration: underline;
+}
+
+.answerButton {
+    font-size: 1.3em;
+}
+
+)
+label {
+    width: auto;
+}

@@ -113,6 +113,7 @@ public class DistributedGame implements Game {
         return ((String) gemfireRepository.getGameRegion().get(TRACKED_USER_IDMAIL));
     }
 
+    @Override
     public int getSynchrotime() {
         return ((Integer) gemfireRepository.getGameRegion().get(SYNCHROTIME));
     }
@@ -259,6 +260,26 @@ public class DistributedGame implements Game {
     @Override
     public void resetPlayerAskedQuestion() {
         gemfireRepository.getCurrentQuestionRegion().clear();
+    }
+
+    @Override
+    public String createQuestionInJson(byte currentQuestionIndex, String session_key) {
+        StringBuffer sb = new StringBuffer();
+        Question question = gemfireRepository.getQuestionRegion().get(QUESTION_LIST).getQuestion().get(currentQuestionIndex - 1);
+        sb.append("{\"question\":\"");
+        sb.append(question.getLabel());
+        sb.append("\",\"answer_1\":\"");
+        sb.append(question.getChoice().get(0));
+        sb.append("\",\"answer_2\":\"");
+        sb.append(question.getChoice().get(1));
+        sb.append("\",\"answer_3\":\"");
+        sb.append(question.getChoice().get(2));
+        sb.append("\",\"answer_4\":\"");
+        sb.append(question.getChoice().get(3));
+        sb.append("\",\"score\":");
+        sb.append(gemfireRepository.getScoreRegion().get(session_key).getCurrentScore());
+        sb.append("}");
+        return sb.toString();
     }
 
     private void startSynchroTime() {

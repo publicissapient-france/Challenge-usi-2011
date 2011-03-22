@@ -19,6 +19,8 @@ public interface Game {
 
     int getQuestiontimeframe();
 
+    int getSynchrotime();
+
     int getNbquestions();
 
     boolean getFlushusertable();
@@ -101,4 +103,6 @@ public interface Game {
     void startQuestionTimeframe(byte currentQuestionIndex);
 
     void resetPlayerAskedQuestion();
+
+    String createQuestionInJson(byte currentQuestionIndex, String sessionKey);
 }

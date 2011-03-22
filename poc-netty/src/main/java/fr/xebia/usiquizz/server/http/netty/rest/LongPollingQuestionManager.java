@@ -49,7 +49,6 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
     public void sendQuestionToAllPlayer() {
         if (!sendQuestionStarted.getAndSet(true)) {
             logger.info("Send all question to player");
-            final String question = game.getQuestion(currentQuestionIndex).getLabel();
 
             // On incrémente l'index de question attendu
             game.setCurrentQuestionIndex((byte) (currentQuestionIndex + 1));
@@ -61,7 +60,7 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
                 //executorService.submit(new Runnable() {
                 //    @Override
                 //    public void run() {
-                responseWriter.endWritingResponseWithoutClose(question, longPollingResponse.get(sessionKey));
+                responseWriter.endWritingResponseWithoutClose(game.createQuestionInJson(currentQuestionIndex, sessionKey), sessionKey, longPollingResponse.get(sessionKey));
                 //    }
                 //});
 

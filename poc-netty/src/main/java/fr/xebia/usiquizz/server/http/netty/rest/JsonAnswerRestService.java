@@ -104,9 +104,9 @@ public class JsonAnswerRestService extends RestService {
             // Verify is answerd is correction
             boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
             // update score
-            scoring.addScore(sessionKey, answerIsCorrect, questionNbr);
+            byte newScore = scoring.addScore(sessionKey, answerIsCorrect, questionNbr);
 
-            responseWriter.writeResponse(createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice()), 0), HttpResponseStatus.OK, ctx, e);
+            responseWriter.writeResponse(createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice()), newScore), HttpResponseStatus.OK, ctx, e);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);

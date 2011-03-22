@@ -1,0 +1,207 @@
+<html>
+<head>
+    <script type="text/javascript" src="../script/jquery-1.3.2.js"></script>
+    <script type="text/javascript" src="../script/jquery.json-1.3.min.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/usi.css">
+</head>
+<body>
+<div id="page">
+    <div class="banner">
+        <h2>Waiting for question <span id="question_number_waiting">1</span></h2>
+    </div>
+    <div class="player-stat">
+        fsdfsdfsdf@sdfsfd.com votre score est de : <p id="current_score_value">0</p>
+    </div>
+    <div id="waiting_content" class="main-content">
+    </div>
+    <div id="question_content" class="main-content">
+        <div id="answer_content">
+            <form action="" method="post">
+                <p id="question-text" class="questionLabel">
+
+                </p>
+
+                <p id="answer_1" class="answer">
+                    <input id="1" type="radio" name="answer" value="1" style="display:none;"/>
+                    <label id="response_1_value" for="1" class="answerLabel"></label>
+                </p>
+
+                <p id="answer_2" class="answer">
+                    <input id="2" type="radio" name="answer" value="2" style="display:none;"/>
+                    <label id="response_2_value" for="2" class="answerLabel"></label>
+                </p>
+
+                <p id="answer_3" class="answer">
+                    <input id="3" type="radio" name="answer" value="3" style="display:none;"/>
+                    <label id="response_3_value" for="3" class="answerLabel"></label>
+                </p>
+
+                <p id="answer_4" class="answer">
+                    <input id="4" type="radio" name="answer" value="4" style="display:none;"/>
+                    <label id="response_4_value" for="4" class="answerLabel"></label>
+                </p>
+
+
+                <button id="valid_button" class="answerButton" disabled="true">Valider</button>
+
+
+            </form>
+        </div>
+    </div>
+    <div id="score_content" class="main-content">
+        <div>
+            <span><p>are u right : </p><p id="are_u_right_value"></p></span>
+            <span><p>Good answer : </p><p id="good_andswer_value"></p></span>
+            <span><p>score : </p><p id="score_value"></p></span>
+
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<script type="text/javascript">
+
+    var currentQuestionIndex = 1;
+
+    var counter = 0;
+
+    var nbQuestion;
+
+    var questionTimeFrame;
+
+    var synchroTime;
+
+    var sendAnswer = function() {
+        $('form').submit(function() {
+            if (counter > 0) return false;
+            $.ajax({type: "POST", url: "../../api/answer/" + currentQuestionIndex, data: $.toJSON($('form').serializeObject()), dataType: "json", success: function(data) {
+                $("#are_u_right_value").html(data.are_u_right);
+                $("#good_andswer_value").html(data.good_answer);
+                $("#score_value").html(data.score);
+                $("#waiting_content").hide();
+                $("#score_content").show();
+                $("#question_content").hide();
+
+                // On increment l'index de question courante
+                incrementQuestionIndex();
+                // S'il reste encore des questions on demande la suivante
+                if (currentQuestionIndex <= nbQuestion) {
+                    // Une fois le score obtenue on lance l'appel a la question suivante
+                    callQuestion();
+
+                    // Et on fait apparaitre l'attente à la question
+                }
+                // Sinon fin du jeu
+                // On appel les résultats finaux
+
+            }
+            });
+            counter++;
+            return false;
+        });
+    };
+
+
+    // Define getQuestion function
+    var callQuestion = function() {
+        $.ajax({ url: "/api/question/" + currentQuestionIndex, dataType:"json", success: function(data) {
+            $("#question-text").html(data.question);
+            $("#response_1_value").html(data.answer_1);
+            $("#response_2_value").html(data.answer_2);
+            $("#response_3_value").html(data.answer_3);
+            $("#response_4_value").html(data.answer_4);
+            $("#score_value").html(data.current_score);
+            $("#waiting_content").hide();
+            $("#score_content").hide();
+            $("#question_content").show();
+            counter = 0;
+        }
+        });
+        return false;
+    };
+
+    var incrementQuestionIndex = function() {
+        currentQuestionIndex++;
+    };
+
+    // Quand la page est prete démarrage du jeu
+    $(document).ready(function() {
+        $("#waiting_content").show();
+        $("#question_content").hide();
+        $("#score_content").hide();
+
+        // prepare game parameters..
+        $.ajax({ async:false, url: "/api/parameter/", dataType:"json", success: function(data) {
+            nbQuestion = data.nbQuestion;
+            questionTimeFrame = data.questionTimeFrame;
+            synchroTime = data.synchrotime;
+        }
+        });
+
+        //Override button click event
+        // Send answer
+        $("#valid_button").click(function() {
+            // Soumission du la réponse
+            sendAnswer();
+        });
+
+        // Manage response state
+        $("#response_1_value").click(function() {
+            $("#response_1_value").css('color', '#EE0000');
+            $("#response_2_value").css('color', '#000000');
+            $("#response_3_value").css('color', '#000000');
+            $("#response_4_value").css('color', '#000000');
+            $("#valid_button").removeAttr('disabled');
+        });
+        $("#response_2_value").click(function() {
+            $("#response_1_value").css('color', '#000000');
+            $("#response_2_value").css('color', '#EE0000');
+            $("#response_3_value").css('color', '#000000');
+            $("#response_4_value").css('color', '#000000');
+            $("#valid_button").removeAttr('disabled');
+        });
+        $("#response_3_value").click(function() {
+            $("#response_1_value").css('color', '#000000');
+            $("#response_2_value").css('color', '#000000');
+            $("#response_3_value").css('color', '#EE0000');
+            $("#response_4_value").css('color', '#000000');
+            $("#valid_button").removeAttr('disabled');
+        });
+        $("#response_4_value").click(function() {
+            $("#response_1_value").css('color', '#000000');
+            $("#response_2_value").css('color', '#000000');
+            $("#response_3_value").css('color', '#000000');
+            $("#response_4_value").css('color', '#EE0000');
+            $("#valid_button").removeAttr('disabled');
+        });
+
+
+        // Call question 1
+        callQuestion();
+
+    });
+
+
+    // Fonction utilitaire de marshalling JS
+    $.fn.serializeObject = function() {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function() {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            }
+            else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+
+
+</script>

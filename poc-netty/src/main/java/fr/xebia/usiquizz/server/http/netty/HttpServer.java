@@ -69,7 +69,7 @@ public class HttpServer {
 
         // A priori beaucoup de pb de connection reset by peer sous macos sans ces options
         bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("keepAlive", false);
+        bootstrap.setOption("keepAlive", true);
         bootstrap.bind(new InetSocketAddress(8080));
 
 

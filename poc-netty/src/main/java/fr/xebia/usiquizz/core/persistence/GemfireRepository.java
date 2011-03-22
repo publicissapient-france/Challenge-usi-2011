@@ -7,6 +7,8 @@ import fr.xebia.usiquizz.core.game.Score;
 
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class GemfireRepository {
 
@@ -43,7 +45,23 @@ public class GemfireRepository {
     private Region<Byte, Byte> questionStatusRegion;
 
     // Region for score
+    // Cette région contient le score de manière session --> score
+    // Utilie lors de l'envoie de la réponse pour donner rapidement son score à un joueur
     private Region<String, Score> scoreRegion = cache.getRegion("score-region");
+
+    // Permet de trier pour un score donnée l'ensemble des joueurs.
+    // L'intérer serait de 'partionner' sur les différents serveurs le tri par ordre alphabetique des ex-equo
+    private Region<Integer, TreeSet<Joueur>> inverseScoreRegion = cache.getRegion("inverse-score-region");
+
+    // Cette region contient le rang : session-id --> rang
+    // Permet de rapidement retrouver le rang d'un joueur
+    // Permet avec finalRankingRegion de répondre au requête de ranking
+    private Region<String, Integer> ranking = cache.getRegion("ranking-region");
+
+    // Cette region contient le rang : rang --> score;firstname;lastname;mail
+    // Doit permettre de répondre tres vite au requête de ranking
+    // La difficulté est de le remplir
+    private Region<Integer, String> finalRankingRegion = cache.getRegion("final-ranking-region");
 
     public void initQestionStatusResgion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();

@@ -41,7 +41,7 @@
     {
         var responseStatus=$.ajax({async: false, type: "POST", url: "../../api/login", data: $.toJSON($('form').serializeObject()), dataType: "json"}).status;
         if(responseStatus == 200){
-            document.location.href="/static/html/waiting-player.html";
+            document.location.href="/static/html/game.html";
         }else {
             alert("Bad login");
         }
