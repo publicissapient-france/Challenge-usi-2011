@@ -84,14 +84,14 @@ public class JsonAnswerRestService extends RestService {
                 return;
             }
 
-            String answer = null;
+            int answer = 0;
             JsonParser jp = jsonFactory.createJsonParser(request.getContent().array());
             jp.nextToken(); // will return JsonToken.START_OBJECT (verify?)
             while (jp.nextToken() != JsonToken.END_OBJECT) {
                 String fieldname = jp.getCurrentName();
                 jp.nextToken(); // move to value, or START_OBJECT/START_ARRAY
                 if ("answer".equals(fieldname)) { // contains an object
-                    answer = jp.getText();
+                    answer = jp.getIntValue();
                 } else {
                     responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                     logger.info("Unrecognized field '" + fieldname + "'!");
@@ -99,12 +99,13 @@ public class JsonAnswerRestService extends RestService {
                 }
             }
 
-            int answerNumber = Integer.parseInt(answer);
+
             Question question = game.getQuestion(questionNbr);
-            // Verify is answerd is correction
-                boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
+            // Verify if answer is correct
+            boolean answerIsCorrect = question.getGoodchoice() == answer;
+
             // update score
-            byte newScore = scoring.addScore(sessionKey, answerIsCorrect, questionNbr);
+            byte newScore = scoring.addScore(sessionKey, (byte)answer, answerIsCorrect, questionNbr);
 
             responseWriter.writeResponse(createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice()-1), newScore), HttpResponseStatus.OK, ctx, e);
             return;

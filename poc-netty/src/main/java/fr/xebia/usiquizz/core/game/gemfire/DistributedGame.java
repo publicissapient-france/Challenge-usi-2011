@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -57,6 +58,8 @@ public class DistributedGame implements Game {
     private boolean firstForQuestion = true;
     private boolean firstLogin = true;
 
+    private byte[] goodAnswers;
+
     public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
         this.scoring = scoring;
@@ -81,6 +84,18 @@ public class DistributedGame implements Game {
 
         // les questions
         gemfireRepository.getQuestionRegion().put(QUESTION_LIST, st.getQuestions());
+
+        // Build good answers :)
+        goodAnswers = new byte[st.getParameters().getNbquestions()];
+        Iterator<Question> it = st.getQuestions().getQuestion().iterator();
+        int i = 0;
+        while (it.hasNext()){
+            Question q = it.next();
+            goodAnswers[i] = (byte) q.getGoodchoice();
+            i++;
+        }
+        gemfireRepository.getGameRegion().put(GOOD_RESPONSE, goodAnswers);
+
 
         // Les status de chaque question (non jouée, en cours, jouée)
         for (byte currentIndex = 1; currentIndex <= st.getParameters().getNbquestions(); currentIndex++) {
@@ -319,6 +334,11 @@ public class DistributedGame implements Game {
 
     public void startCurrentLongPolling() {
         longpollingCallback.startSendAll();
+    }
+
+
+    public byte[] getGoodAnswers(){
+       return (byte[]) gemfireRepository.getGameRegion().get(GOOD_RESPONSE);
     }
 
 }

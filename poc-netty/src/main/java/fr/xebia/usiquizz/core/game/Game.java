@@ -110,4 +110,7 @@ public interface Game {
     String getEmailFromSession(String sessionKey);
 
     Collection<String> listPlayer();
+
+    // Good answers byte array
+    byte[] getGoodAnswers();
 }

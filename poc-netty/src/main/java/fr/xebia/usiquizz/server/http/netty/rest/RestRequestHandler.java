@@ -25,6 +25,7 @@ public class RestRequestHandler {
     private static final String RANKING_REST_SERVICE = "ranking";
     private static final String SCORE_REST_SERVICE = "score";
     private static final String LIST_USER_REST_SERVICE = "player-list";
+    private static final String AUDIT_REST_SERVICE = "audit";
 
     private static final String PATH_SEPARATOR = "/";
 
@@ -49,6 +50,7 @@ public class RestRequestHandler {
         restMapping.put(RANKING_REST_SERVICE, new JsonRankingRestService(game, scoring, executorService));
         restMapping.put(SCORE_REST_SERVICE, new JsonScoreRestService(game, scoring, executorService));
         restMapping.put(LIST_USER_REST_SERVICE, new JsonPlayerListRestService(game, scoring, executorService));
+        restMapping.put(AUDIT_REST_SERVICE, new JsonAuditAnswerRestService(game, scoring, executorService));
     }
 
     public void messageReceived(String path, ChannelHandlerContext ctx, MessageEvent e) {

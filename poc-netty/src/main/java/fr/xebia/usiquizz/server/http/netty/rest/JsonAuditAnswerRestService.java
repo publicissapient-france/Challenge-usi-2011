@@ -1,6 +1,7 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 
+import com.usi.Question;
 import fr.xebia.usiquizz.core.authentication.AdminAuthentication;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
@@ -59,15 +60,53 @@ public class JsonAuditAnswerRestService extends RestService {
                 byte questionNbr = Byte.parseByte(requestPath.substring(requestPath.lastIndexOf("/") + 1));
                 // audit d'une question
                 //auditQuestion(questionNbr);
+
+                    // Fail on bad question number
+                if (questionNbr < 1 || questionNbr > game.getNbquestions()){
+                    responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                    return;
+                }
+
+
+                responseWriter.writeResponse(sendQuestionResult(game.getQuestion(questionNbr),scoring.getAnswers(userMail)[questionNbr -1]), HttpResponseStatus.OK, ctx, e);
+                return;
             } catch (NumberFormatException ex) {
                 // audit de tout
                 //auditAllQuestion();
             }
 
+            responseWriter.writeResponse(sendAllQuestionResult(scoring.getAnswers(userMail), game.getGoodAnswers()), HttpResponseStatus.OK, ctx, e);
+            return;
 
         } catch (Exception exc) {
             logger.error("error during question rest service", exc);
             responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
         }
+    }
+
+
+    private String sendQuestionResult(Question question, byte uResponse){
+        StringBuilder sb = new StringBuilder("{\"user_answer\":");
+        sb.append(",\"good_answer\":").append(question.getGoodchoice());
+        sb.append("\"question\":\"").append(question.getLabel()).append("\"}");
+        return sb.toString();
+    }
+
+    private String sendAllQuestionResult(byte[] uResponse, byte[] gResponse){
+        StringBuilder sb = new StringBuilder("{\"user_answers\":[");
+        StringBuilder sbg = new StringBuilder("[");
+        int i = 0;
+        while(i < uResponse.length){
+
+            if (i>0){
+                sb.append(',');
+                sbg.append(',');
+            }
+            sb.append(uResponse[i]);
+            sbg.append(gResponse[i]);
+            i++;
+        }
+        sb.append("],\"good_answers\":").append(sbg).append("]}");
+        return sb.toString();
     }
 }

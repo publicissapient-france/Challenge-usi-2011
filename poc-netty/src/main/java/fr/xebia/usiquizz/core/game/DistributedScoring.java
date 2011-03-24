@@ -37,10 +37,10 @@ public class DistributedScoring implements Scoring {
     }
 
     @Override
-    public byte addScore(String sessionId, boolean good, byte index) {
+    public byte addScore(String sessionId, byte choice, boolean good, byte index) {
         String email = gemfireRepository.getPlayerRegion().get(sessionId);
         Score score = gemfireRepository.getScoreRegion().get(email);
-        score.addResponse(good, index);
+        score.addResponse(choice, good, index);
         gemfireRepository.getScoreRegion().put(email, score);
         return score.getCurrentScore();
     }
@@ -111,5 +111,8 @@ public class DistributedScoring implements Scoring {
         return res;
     }
 
+    public byte[] getAnswers(String email){
+        return getCurrentScoreByEmail(email).getReponse();
+    }
 
 }
