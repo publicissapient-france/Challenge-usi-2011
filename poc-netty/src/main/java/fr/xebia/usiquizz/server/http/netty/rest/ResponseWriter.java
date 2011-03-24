@@ -1,3 +1,4 @@
+
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 import org.jboss.netty.buffer.ChannelBuffers;

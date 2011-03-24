@@ -1,3 +1,4 @@
+
 package fr.xebia.usiquizz.core.persistence;
 
 import com.esotericsoftware.kryo.util.IntHashMap;

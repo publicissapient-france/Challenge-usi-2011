@@ -1,3 +1,4 @@
+
 package fr.xebia.usiquizz.core.game;
 
 import com.usi.Question;

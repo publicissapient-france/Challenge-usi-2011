@@ -1,3 +1,4 @@
+
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 import fr.xebia.usiquizz.core.game.Game;

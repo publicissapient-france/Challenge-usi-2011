@@ -1,3 +1,4 @@
+
 package fr.xebia.usiquizz.core.game.gemfire;
 
 import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
