@@ -1,4 +1,3 @@
-
 package fr.xebia.usiquizz.core.game;
 
 import com.usi.Question;
@@ -7,6 +6,7 @@ import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.server.http.netty.rest.LongPollingQuestionManager;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface Game {
@@ -43,10 +43,10 @@ public interface Game {
     /**
      * Return true si le joueur est deja connecté
      *
-     * @param email
+     * @param sessionKey
      * @return
      */
-    boolean isAlreadyLogged(String email);
+    boolean isAlreadyLogged(String sessionKey);
 
     /**
      * Retourne le nombre de joueur connecté à la partir (phase de login passé)
@@ -106,4 +106,8 @@ public interface Game {
     void resetPlayerAskedQuestion();
 
     String createQuestionInJson(byte currentQuestionIndex, String sessionKey);
+
+    String getEmailFromSession(String sessionKey);
+
+    Collection<String> listPlayer();
 }

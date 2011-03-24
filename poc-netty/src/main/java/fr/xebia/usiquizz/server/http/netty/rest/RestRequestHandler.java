@@ -1,4 +1,3 @@
-
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 import fr.xebia.usiquizz.core.game.AsyncGame;
@@ -23,6 +22,9 @@ public class RestRequestHandler {
     private static final String QUESTION_REST_SERVICE = "question";
     private static final String ANSWER_REST_SERVICE = "answer";
     private static final String PARAMETER_REST_SERVICE = "parameter";
+    private static final String RANKING_REST_SERVICE = "ranking";
+    private static final String SCORE_REST_SERVICE = "score";
+    private static final String LIST_USER_REST_SERVICE = "player-list";
 
     private static final String PATH_SEPARATOR = "/";
 
@@ -44,6 +46,9 @@ public class RestRequestHandler {
         restMapping.put(QUESTION_REST_SERVICE, new JsonQuestionRestService(this.userRepository, longPollingQuestionManager, game, scoring, executorService));
         restMapping.put(ANSWER_REST_SERVICE, new JsonAnswerRestService(game, scoring, executorService));
         restMapping.put(PARAMETER_REST_SERVICE, new JsonParameterRestService(game, scoring, executorService));
+        restMapping.put(RANKING_REST_SERVICE, new JsonRankingRestService(game, scoring, executorService));
+        restMapping.put(SCORE_REST_SERVICE, new JsonScoreRestService(game, scoring, executorService));
+        restMapping.put(LIST_USER_REST_SERVICE, new JsonPlayerListRestService(game, scoring, executorService));
     }
 
     public void messageReceived(String path, ChannelHandlerContext ctx, MessageEvent e) {

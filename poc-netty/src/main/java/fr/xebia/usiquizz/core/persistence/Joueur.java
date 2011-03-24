@@ -8,13 +8,12 @@ public class Joueur {
     private String lastName;
     private String firstName;
     private String email;
-    private String sessionId;
 
-    public Joueur(int score, String lastName, String firstName, String email, String sessionId) {
+    public Joueur(int score, String lastName, String firstName, String email) {
+        this.score = score;
         this.lastName = lastName;
         this.firstName = firstName;
         this.email = email;
-        this.sessionId = sessionId;
     }
 
     public String getLastName() {
@@ -33,16 +32,12 @@ public class Joueur {
         return score;
     }
 
-    public String getSessionId() {
-        return sessionId;
-    }
-
     public static class JoueurComparator implements Comparator<Joueur> {
 
         @Override
         public int compare(Joueur o1, Joueur o2) {
             int comp;
-            if ((comp = o1.getScore() - o2.getScore()) == 0) {
+            if ((comp = o2.getScore() - o1.getScore()) == 0) {
                 if ((comp = o1.getEmail().compareTo(o2.getEmail())) == 0) {
                     if ((comp = o1.getLastName().compareTo(o2.getLastName())) == 0) {
                         return o1.getFirstName().compareTo(o2.getFirstName());

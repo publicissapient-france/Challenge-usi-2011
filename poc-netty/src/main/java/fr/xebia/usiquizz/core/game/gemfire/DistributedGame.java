@@ -1,4 +1,3 @@
-
 package fr.xebia.usiquizz.core.game.gemfire;
 
 import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
@@ -14,6 +13,8 @@ import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class DistributedGame implements Game {
@@ -136,6 +137,7 @@ public class DistributedGame implements Game {
                 public void run() {
                     logger.info("Login timer ended");
                     gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_TERMINER);
+                    logger.info("{} player logged for game", gemfireRepository.getPlayerRegion().size());
 
                     // On change le status de la première question.
                     // Un listener permet, si nécessaire (pas tous les joueurs de loggué) de démarrer l'envoie de la premiere question
@@ -147,8 +149,18 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public boolean isAlreadyLogged(String email) {
-        return gemfireRepository.getPlayerRegion().containsKey(email);
+    public boolean isAlreadyLogged(String sessionKey) {
+        return gemfireRepository.getPlayerRegion().containsKey(sessionKey);
+    }
+
+    @Override
+    public String getEmailFromSession(String sessionKey) {
+       return gemfireRepository.getPlayerRegion().get(sessionKey);
+    }
+
+    @Override
+    public Collection<String> listPlayer() {
+        return gemfireRepository.getPlayerRegion().values();
     }
 
     @Override
@@ -169,7 +181,7 @@ public class DistributedGame implements Game {
     @Override
     public Question getQuestion(int index) {
         // -1 difference between spec and list implementation
-        return gemfireRepository.getQuestionRegion().get(QUESTION_LIST).getQuestion().get(index);
+        return gemfireRepository.getQuestionRegion().get(QUESTION_LIST).getQuestion().get(index - 1);
     }
 
     @Override
@@ -284,10 +296,11 @@ public class DistributedGame implements Game {
         sb.append("\",\"answer_4\":\"");
         sb.append(question.getChoice().get(3));
         sb.append("\",\"score\":");
-        sb.append(gemfireRepository.getScoreRegion().get(session_key).getCurrentScore());
+        sb.append(gemfireRepository.getScoreRegion().get(gemfireRepository.getPlayerRegion().get(session_key)).getCurrentScore());
         sb.append("}");
         return sb.toString();
     }
+
 
     private void startSynchroTime() {
         logger.info("Start synchro time");
