@@ -1,140 +1,140 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<usi:gamesession xmlns:usi="http://www.usi.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.usi.com gamesession.xsd ">
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<usi:gamesession xmlns:usi=\"http://www.usi.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.usi.com gamesession.xsd \">
   <usi:questions>
-    <usi:question goodchoice="1">
+    <usi:question goodchoice=\"1\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="2">
+    <usi:question goodchoice=\"2\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="3">
+    <usi:question goodchoice=\"3\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="4">
+    <usi:question goodchoice=\"4\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="1">
+    <usi:question goodchoice=\"1\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="2">
+    <usi:question goodchoice=\"2\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="3">
+    <usi:question goodchoice=\"3\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="4">
+    <usi:question goodchoice=\"4\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="1">
+    <usi:question goodchoice=\"1\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="2">
+    <usi:question goodchoice=\"2\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="3">
+    <usi:question goodchoice=\"3\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="4">
+    <usi:question goodchoice=\"4\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="1">
+    <usi:question goodchoice=\"1\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="2">
+    <usi:question goodchoice=\"2\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="3">
+    <usi:question goodchoice=\"3\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="4">
+    <usi:question goodchoice=\"4\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="1">
+    <usi:question goodchoice=\"1\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="2">
+    <usi:question goodchoice=\"2\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="3">
+    <usi:question goodchoice=\"3\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
     </usi:question>
-    <usi:question goodchoice="4">
+    <usi:question goodchoice=\"4\">
       <usi:label>usi:label</usi:label>
       <usi:choice>usi:choice</usi:choice>
       <usi:choice>usi:choice</usi:choice>
@@ -143,11 +143,11 @@
     </usi:question>
   </usi:questions>
   <usi:parameters>
-    <usi:logintimeout>10000</usi:logintimeout>
+    <usi:logintimeout>20000</usi:logintimeout>
     <usi:synchrotime>3000</usi:synchrotime>
     <usi:nbusersthreshold>500</usi:nbusersthreshold>
-    <usi:questiontimeframe>10000</usi:questiontimeframe>
-    <usi:nbquestions>3</usi:nbquestions>
+    <usi:questiontimeframe>5</usi:questiontimeframe>
+    <usi:nbquestions>20</usi:nbquestions>
     <usi:flushusertable>false</usi:flushusertable>
     <usi:trackeduseridmail>usi:trackeduseridmail</usi:trackeduseridmail>
   </usi:parameters>

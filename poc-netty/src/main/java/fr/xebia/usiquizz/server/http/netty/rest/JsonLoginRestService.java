@@ -62,8 +62,8 @@ public class JsonLoginRestService extends RestService {
             }
             if (mail != null && password != null) {
                 if ((userRepository.logUser(mail, password))) {
-                    String sessionKey = UUID.randomUUID().toString();
-                    if (game.isAlreadyLogged(mail)) {
+                    String sessionKey = Integer.toString(mail.hashCode());
+                    if (game.isAlreadyLogged(sessionKey)) {
                         logger.info("user already logged");
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                         return;

@@ -40,12 +40,14 @@ public class GemfireRepository {
     // Region for the current game
     private Region<String, Object> gameRegion = cache.getRegion("game-region");
     private Region<String, Questiontype> questionRegion = cache.getRegion("question-region");
+    // FIXME add index on value....
+    // Some search on email 
     private Region<String, String> playerRegion = cache.getRegion("player-region");
     private Region<String, String> currentQuestionRegion = cache.getRegion("current-question-region");
     private Region<Byte, Byte> questionStatusRegion;
 
     // Region for score
-    // Cette région contient le score de manière session --> score
+    // Cette région contient le score de manière email --> score
     // Utilie lors de l'envoie de la réponse pour donner rapidement son score à un joueur
     private Region<String, Score> scoreRegion = cache.getRegion("score-region");
 

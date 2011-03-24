@@ -54,8 +54,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     public HttpServerPipelineFactory(ExecutorService executorService) {
         gemfireRepository = new GemfireRepository();
         userRepository = new GemfireUserRepository(gemfireRepository);
-        game = new DistributedGame(gemfireRepository, scoring);
         scoring = new DistributedScoring(gemfireRepository);
+        game = new DistributedGame(gemfireRepository, scoring);
         longPollingQuestionManager = new LongPollingQuestionManager(game, new ResponseWriter(), executorService);
         restRequestHandler = new RestRequestHandler(userRepository, game, scoring, longPollingQuestionManager, executorService);
     }

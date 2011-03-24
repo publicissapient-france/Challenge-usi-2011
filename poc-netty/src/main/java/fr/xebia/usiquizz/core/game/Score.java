@@ -42,7 +42,7 @@ public class Score {
             goodResponse[index] = false;
             reponseFourni[index] = true;
         }
-
+        this.currentScore = newScore;
         return newScore;
     }
 
@@ -60,6 +60,6 @@ public class Score {
 
     public boolean isAlreadyAnswer(byte currentQuestion) {
         // Manage difference between question index
-        return reponseFourni[currentQuestion-1];
+        return reponseFourni[currentQuestion - 1];
     }
 }

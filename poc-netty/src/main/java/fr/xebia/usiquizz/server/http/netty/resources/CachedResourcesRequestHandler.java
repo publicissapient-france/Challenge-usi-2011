@@ -24,6 +24,8 @@ import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class CachedResourcesRequestHandler {
 
+    private final static boolean cacheActivated = false;
+
     private Map<String, byte[]> cache = new HashMap<String, byte[]>();
 
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -39,13 +41,18 @@ public class CachedResourcesRequestHandler {
             return;
         }
 
-        byte[] content;
-        if (cache.containsKey(path)) {
-            content = cache.get(path);
+        // On separe le path et le query String
+        String pathOnly = path;
+        if (path.contains("?")) {
+            pathOnly = path.substring(0, path.indexOf("?"));
         }
-        else {
+        
+        byte[] content;
+        if (cache.containsKey(pathOnly) && cacheActivated) {
+            content = cache.get(pathOnly);
+        } else {
             synchronized (this) {
-                File file = new File(path);
+                File file = new File(pathOnly);
                 if (file.isHidden() || !file.exists()) {
                     sendError(ctx, NOT_FOUND);
                     return;
@@ -58,15 +65,15 @@ public class CachedResourcesRequestHandler {
                 RandomAccessFile raf;
                 try {
                     raf = new RandomAccessFile(file, "r");
-                }
-                catch (FileNotFoundException fnfe) {
+                } catch (FileNotFoundException fnfe) {
                     sendError(ctx, NOT_FOUND);
                     return;
                 }
                 // FIXME use it only for small file
                 content = new byte[(int) raf.length()];
                 raf.readFully(content);
-                cache.put(path, content);
+                cache.put(pathOnly, content);
+                raf.close();
             }
         }
 
@@ -99,12 +106,10 @@ public class CachedResourcesRequestHandler {
         // Decode the path.
         try {
             uri = URLDecoder.decode(uri, "UTF-8");
-        }
-        catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             try {
                 uri = URLDecoder.decode(uri, "ISO-8859-1");
-            }
-            catch (UnsupportedEncodingException e1) {
+            } catch (UnsupportedEncodingException e1) {
                 throw new Error();
             }
         }
