@@ -13,7 +13,10 @@ public interface Scoring {
 
     Score getCurrentScoreByEmail(String email);
 
-    byte addScore(String sessionId, boolean good, byte index);
+    // Compute new score and store choice then return result
+    byte addScore(String sessionId, byte choice, boolean good, byte index);
+
+    byte[] getAnswers(String email);
 
     boolean isPlayerAlreadyAnswered(String sessionKey, byte currentQuestion);
 

@@ -2,7 +2,6 @@ package fr.xebia.usiquizz.core.game.gemfire;
 
 import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
 
-import com.gemstone.gemfire.cache.CacheListener;
 import com.usi.Question;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.Game;
@@ -16,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -309,6 +307,10 @@ public class DistributedGame implements Game {
 
     public void startCurrentLongPolling() {
         longpollingCallback.startSendAll();
+    }
+
+    public byte[] getGoodAnswers() {
+        return (byte[]) gemfireRepository.getGameRegion().get(GOOD_RESPONSE);
     }
 
 

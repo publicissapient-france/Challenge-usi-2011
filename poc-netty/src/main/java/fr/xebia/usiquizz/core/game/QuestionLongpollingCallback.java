@@ -5,3 +5,4 @@ public interface QuestionLongpollingCallback {
 
     void initNewQuestion(byte currentQuestionIndex);
 }
+

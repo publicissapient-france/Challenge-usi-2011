@@ -5,19 +5,19 @@ import java.util.Arrays;
 public class Score {
 
     private byte currentScore;
-    private boolean[] goodResponse;
-    private boolean[] reponseFourni;
+    private byte[] reponse;
+    private byte goodResponseCount;
 
     public Score(byte nbQuestion) {
         currentScore = 0;
-        goodResponse = new boolean[nbQuestion];
-        reponseFourni = new boolean[nbQuestion];
+        goodResponseCount = 0;
+        reponse = new byte[nbQuestion];
+
         // init array
-        Arrays.fill(goodResponse, false);
-        Arrays.fill(reponseFourni, false);
+        Arrays.fill(reponse, (byte)0);
     }
 
-    public byte addResponse(boolean good, byte index) {
+    public byte addResponse(int choice, boolean good, byte index) {
         // Manage first question = 0 internal
         index = (byte) (index - 1);
         byte newScore = currentScore;
@@ -30,18 +30,16 @@ public class Score {
             }
 
             // Calcul du bonus
+            newScore += goodResponseCount;
 
-            byte currentIndex = (byte) (index - 1);
-            while (currentIndex >= 0 && goodResponse[currentIndex]) {
-                newScore += 1;
-                currentIndex--;
-            }
-            goodResponse[index] = true;
-            reponseFourni[index] = true;
-        } else {
-            goodResponse[index] = false;
-            reponseFourni[index] = true;
+            goodResponseCount++;
+
+        }else {
+            goodResponseCount = 0;
         }
+
+        reponse[index] = (byte)choice;
+
         this.currentScore = newScore;
         return newScore;
     }
@@ -50,16 +48,13 @@ public class Score {
         return currentScore;
     }
 
-    public boolean[] getGoodResponse() {
-        return goodResponse;
+    public byte[] getReponse() {
+        return reponse;
     }
 
-    public boolean[] getReponseFourni() {
-        return reponseFourni;
-    }
 
     public boolean isAlreadyAnswer(byte currentQuestion) {
         // Manage difference between question index
-        return reponseFourni[currentQuestion - 1];
+        return reponse[currentQuestion - 1] != 0;
     }
 }

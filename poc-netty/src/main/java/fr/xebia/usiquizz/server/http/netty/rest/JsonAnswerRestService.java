@@ -101,13 +101,8 @@ public class JsonAnswerRestService extends RestService {
             }
 
             int answerNumber = Integer.parseInt(answer);
-            Question question = game.getQuestion(questionNbr);
-            // Verify is answerd is correction
-            boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
-            // update score
-            byte newScore = scoring.addScore(sessionKey, answerIsCorrect, questionNbr);
-
-            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice() - 1), newScore), HttpResponseStatus.OK, ctx, e, null);
+            Question question = game.getQuestion(1);
+            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerNumber == question.getGoodchoice(), question.getChoice().get(question.getGoodchoice() - 1), 0), HttpResponseStatus.OK, ctx, e, sessionKey);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);
@@ -130,9 +125,9 @@ public class JsonAnswerRestService extends RestService {
         private static ChannelBuffer createJsonResponse(boolean isResponseGood, String goodAnswer, int currentScore) {
             ChannelBuffer cb = ChannelBuffers.dynamicBuffer(512);
             cb.writeBytes(ARE_U_RIGHT_BA);
-            if(isResponseGood){
+            if (isResponseGood) {
                 cb.writeBytes(TRUE_BA);
-            }else{
+            } else {
                 cb.writeBytes(FALSE_BA);
             }
             cb.writeBytes(GOOD_ANSWER_BA);
@@ -142,15 +137,6 @@ public class JsonAnswerRestService extends RestService {
             cb.writeBytes(END_BA);
             return cb;
 
-            //StringBuilder sb = new StringBuilder();
-            //sb.append("{\"are_u_right\":\"");
-            //sb.append(isResponseGood);
-            //sb.append("\",\"good_answer\":\"");
-            //sb.append(goodAnswer);
-            //sb.append("\",\"score\":");
-            //sb.append(currentScore);
-            //sb.append("}");
-            //return sb.toString();
         }
     }
 }

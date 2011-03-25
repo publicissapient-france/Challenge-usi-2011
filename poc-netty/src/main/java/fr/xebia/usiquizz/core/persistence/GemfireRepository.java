@@ -23,6 +23,8 @@ public class GemfireRepository {
 
     // QUESTION
     public static final String QUESTION_LIST = "question_list";
+    // Response
+    public static final String GOOD_RESPONSE = "good-response";
 
 
     // ETAT COURANT DU JEU
