@@ -2,6 +2,8 @@ package fr.xebia.usiquizz.server.http.netty.rest;
 
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -15,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 
 // Private API
 public class JsonPlayerListRestService extends RestService {
-    
+
     private static Logger logger = LoggerFactory.getLogger(JsonPlayerListRestService.class);
 
 
@@ -28,18 +30,18 @@ public class JsonPlayerListRestService extends RestService {
         try {
             HttpRequest request = (HttpRequest) e.getMessage();
             Collection<String> playersMail = game.listPlayer();
-            responseWriter.writeResponse(listPlayerToJson(playersMail), HttpResponseStatus.OK, ctx, e);
+            responseWriter.writeResponse(listPlayerToJson(playersMail), HttpResponseStatus.OK, ctx, e, null);
         } catch (Exception exc) {
             logger.error("error during question rest service", exc);
             responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
         }
     }
 
-    private String listPlayerToJson(Collection<String> playersMail) {
+    private ChannelBuffer listPlayerToJson(Collection<String> playersMail) {
         StringBuilder sbSk = new StringBuilder();
         StringBuilder sbEmail = new StringBuilder();
         int i = 1;
-        for(String s : playersMail){
+        for (String s : playersMail) {
             sbSk.append("\"");
             sbSk.append(s.hashCode());
             sbSk.append("\"");
@@ -47,7 +49,7 @@ public class JsonPlayerListRestService extends RestService {
             sbEmail.append("\"");
             sbEmail.append(s);
             sbEmail.append("\"");
-            if(i < playersMail.size()){
+            if (i < playersMail.size()) {
                 sbSk.append(",");
                 sbEmail.append(",");
             }
@@ -57,15 +59,17 @@ public class JsonPlayerListRestService extends RestService {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         sb.append("\"session_key\":[");
-            // session list
+        // session list
         sb.append(sbSk.toString());
         sb.append("],");
 
         sb.append("\"email\":[");
-            // email list
+        // email list
         sb.append(sbEmail.toString());
         sb.append("]");
         sb.append("}");
-        return sb.toString();
+        ChannelBuffer cb = ChannelBuffers.dynamicBuffer();
+        cb.writeBytes(sb.toString().getBytes());
+        return cb;
     }
 }

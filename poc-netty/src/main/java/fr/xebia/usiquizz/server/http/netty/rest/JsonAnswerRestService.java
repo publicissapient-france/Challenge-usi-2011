@@ -12,6 +12,8 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -34,6 +36,8 @@ public class JsonAnswerRestService extends RestService {
 
     private static final String SESSION_KEY = "session_key";
 
+    private static final String JSON_ANSWER_ATTRIBUTE = "answer";
+
     private static final CookieDecoder cookieDecoder = new CookieDecoder();
 
     public JsonAnswerRestService(Game game, Scoring scoring, ExecutorService executorService) {
@@ -42,10 +46,7 @@ public class JsonAnswerRestService extends RestService {
 
     @Override
     public void post(String path, ChannelHandlerContext ctx, MessageEvent e) {
-        logger.debug("REST call for path {} ", path);
-        logger.trace("Message : {}", e.getMessage().toString());
         HttpRequest request = (HttpRequest) e.getMessage();
-        logger.debug("Parameters : {}", new String(request.getContent().array()));
         try {
 
             // currentQuestion
@@ -90,7 +91,7 @@ public class JsonAnswerRestService extends RestService {
             while (jp.nextToken() != JsonToken.END_OBJECT) {
                 String fieldname = jp.getCurrentName();
                 jp.nextToken(); // move to value, or START_OBJECT/START_ARRAY
-                if ("answer".equals(fieldname)) { // contains an object
+                if (JSON_ANSWER_ATTRIBUTE.equals(fieldname)) { // contains an object
                     answer = jp.getText();
                 } else {
                     responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
@@ -102,11 +103,11 @@ public class JsonAnswerRestService extends RestService {
             int answerNumber = Integer.parseInt(answer);
             Question question = game.getQuestion(questionNbr);
             // Verify is answerd is correction
-                boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
+            boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
             // update score
             byte newScore = scoring.addScore(sessionKey, answerIsCorrect, questionNbr);
 
-            responseWriter.writeResponse(createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice()-1), newScore), HttpResponseStatus.OK, ctx, e);
+            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerIsCorrect, question.getChoice().get(question.getGoodchoice() - 1), newScore), HttpResponseStatus.OK, ctx, e, null);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);
@@ -116,15 +117,40 @@ public class JsonAnswerRestService extends RestService {
     }
 
 
-    private String createJsonResponse(boolean isResponseGood, String goodAnswer, int currentScore) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"are_u_right\":\"");
-        sb.append(isResponseGood);
-        sb.append("\",\"good_answer\":\"");
-        sb.append(goodAnswer);
-        sb.append("\",\"score\":");
-        sb.append(currentScore);
-        sb.append("}");
-        return sb.toString();
+    static class AnswerJsonWriter {
+
+        private final static byte[] ARE_U_RIGHT_BA = "{\"are_u_right\":\"".getBytes();
+        private final static byte[] GOOD_ANSWER_BA = "\",\"good_answer\":\"".getBytes();
+        private final static byte[] SCORE_BA = "\",\"score\":".getBytes();
+        private final static byte[] END_BA = "}".getBytes();
+        private final static byte[] TRUE_BA = Boolean.TRUE.toString().getBytes();
+        private final static byte[] FALSE_BA = Boolean.FALSE.toString().getBytes();
+
+
+        private static ChannelBuffer createJsonResponse(boolean isResponseGood, String goodAnswer, int currentScore) {
+            ChannelBuffer cb = ChannelBuffers.dynamicBuffer(512);
+            cb.writeBytes(ARE_U_RIGHT_BA);
+            if(isResponseGood){
+                cb.writeBytes(TRUE_BA);
+            }else{
+                cb.writeBytes(FALSE_BA);
+            }
+            cb.writeBytes(GOOD_ANSWER_BA);
+            cb.writeBytes(goodAnswer.getBytes());
+            cb.writeBytes(SCORE_BA);
+            cb.writeBytes(Integer.toString(currentScore).getBytes());
+            cb.writeBytes(END_BA);
+            return cb;
+
+            //StringBuilder sb = new StringBuilder();
+            //sb.append("{\"are_u_right\":\"");
+            //sb.append(isResponseGood);
+            //sb.append("\",\"good_answer\":\"");
+            //sb.append(goodAnswer);
+            //sb.append("\",\"score\":");
+            //sb.append(currentScore);
+            //sb.append("}");
+            //return sb.toString();
+        }
     }
 }

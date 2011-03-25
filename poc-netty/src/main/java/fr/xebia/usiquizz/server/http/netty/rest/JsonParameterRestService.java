@@ -3,6 +3,8 @@ package fr.xebia.usiquizz.server.http.netty.rest;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
 import org.antlr.stringtemplate.StringTemplate;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -24,10 +26,10 @@ public class JsonParameterRestService extends RestService {
     @Override
     public void get(String path, ChannelHandlerContext ctx, MessageEvent e) {
         game.getQuestiontimeframe();
-        responseWriter.writeResponse(constructJsonResponse(game.getNbquestions(), game.getQuestiontimeframe(), game.getSynchrotime()), HttpResponseStatus.OK, ctx, e);
+        responseWriter.writeResponse(constructJsonResponse(game.getNbquestions(), game.getQuestiontimeframe(), game.getSynchrotime()), HttpResponseStatus.OK, ctx, e, null);
     }
 
-    private String constructJsonResponse(int nbQuestion, int questionTimeFrame, int synchrotime) {
+    private ChannelBuffer constructJsonResponse(int nbQuestion, int questionTimeFrame, int synchrotime) {
         StringTemplate st = new StringTemplate("{ \n" +
                 "\"nbQuestion\" : \"$nbQuestion$\", \n" +
                 "\"questionTimeFrame\" : \"$questionTimeFrame$\", \n" +
@@ -36,6 +38,8 @@ public class JsonParameterRestService extends RestService {
         st.setAttribute("nbQuestion", nbQuestion);
         st.setAttribute("questionTimeFrame", questionTimeFrame);
         st.setAttribute("synchrotime", synchrotime);
-        return st.toString();
+        ChannelBuffer cb = ChannelBuffers.dynamicBuffer();
+        cb.writeBytes(st.toString().getBytes());
+        return cb;
     }
 }

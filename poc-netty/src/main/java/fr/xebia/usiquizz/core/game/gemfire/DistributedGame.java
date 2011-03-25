@@ -10,11 +10,14 @@ import fr.xebia.usiquizz.core.game.QuestionLongpollingCallback;
 import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 public class DistributedGame implements Game {
@@ -56,6 +59,7 @@ public class DistributedGame implements Game {
     private Scoring scoring;
     private boolean firstForQuestion = true;
     private boolean firstLogin = true;
+    private JsonQuestionWriter jsonQuestionWriter = new JsonQuestionWriter();
 
     public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
@@ -155,7 +159,7 @@ public class DistributedGame implements Game {
 
     @Override
     public String getEmailFromSession(String sessionKey) {
-       return gemfireRepository.getPlayerRegion().get(sessionKey);
+        return gemfireRepository.getPlayerRegion().get(sessionKey);
     }
 
     @Override
@@ -282,23 +286,9 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public String createQuestionInJson(byte currentQuestionIndex, String session_key) {
-        StringBuffer sb = new StringBuffer();
-        Question question = gemfireRepository.getQuestionRegion().get(QUESTION_LIST).getQuestion().get(currentQuestionIndex - 1);
-        sb.append("{\"question\":\"");
-        sb.append(question.getLabel());
-        sb.append("\",\"answer_1\":\"");
-        sb.append(question.getChoice().get(0));
-        sb.append("\",\"answer_2\":\"");
-        sb.append(question.getChoice().get(1));
-        sb.append("\",\"answer_3\":\"");
-        sb.append(question.getChoice().get(2));
-        sb.append("\",\"answer_4\":\"");
-        sb.append(question.getChoice().get(3));
-        sb.append("\",\"score\":");
-        sb.append(gemfireRepository.getScoreRegion().get(gemfireRepository.getPlayerRegion().get(session_key)).getCurrentScore());
-        sb.append("}");
-        return sb.toString();
+    public ChannelBuffer createQuestionInJson(byte currentQuestionIndex, String session_key) {
+        return jsonQuestionWriter.createQuestionInJson(currentQuestionIndex, gemfireRepository.getScoreRegion().get(gemfireRepository.getPlayerRegion().get(session_key)).getCurrentScore());
+
     }
 
 
@@ -321,4 +311,45 @@ public class DistributedGame implements Game {
         longpollingCallback.startSendAll();
     }
 
+
+    private class JsonQuestionWriter {
+
+        private final byte[] END_BA = "}".getBytes();
+
+        private Map<Byte, byte[]> questionCache = new ConcurrentHashMap<Byte, byte[]>();
+
+        public ChannelBuffer createQuestionInJson(byte currentQuestionIndex, byte currentScore) {
+            ChannelBuffer cb = ChannelBuffers.dynamicBuffer(1024);
+            byte[] questionBa = questionCache.get(currentQuestionIndex);
+            if (questionBa == null) {
+                synchronized (this) {
+                    questionBa = questionCache.get(currentQuestionIndex);
+                    if (questionBa == null) {
+                        // construct question
+                        Question question = getQuestion(currentQuestionIndex);
+                        StringBuffer sb = new StringBuffer();
+                        sb.append("{\"question\":\"");
+                        sb.append(question.getLabel());
+                        sb.append("\",\"answer_1\":\"");
+                        sb.append(question.getChoice().get(0));
+                        sb.append("\",\"answer_2\":\"");
+                        sb.append(question.getChoice().get(1));
+                        sb.append("\",\"answer_3\":\"");
+                        sb.append(question.getChoice().get(2));
+                        sb.append("\",\"answer_4\":\"");
+                        sb.append(question.getChoice().get(3));
+                        sb.append("\",\"score\":");
+                        questionBa = sb.toString().getBytes();
+                        questionCache.put(currentQuestionIndex, questionBa);
+                    }
+                }
+            }
+            cb.writeBytes(questionBa);
+            cb.writeBytes(Byte.toString(currentScore).getBytes());
+            cb.writeBytes(END_BA);
+
+            return cb;
+        }
+
+    }
 }

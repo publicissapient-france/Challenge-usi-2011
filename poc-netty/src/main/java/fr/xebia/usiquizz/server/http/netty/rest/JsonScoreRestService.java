@@ -5,6 +5,8 @@ import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Score;
 import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.persistence.Joueur;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.*;
@@ -61,7 +63,7 @@ public class JsonScoreRestService extends RestService {
             // On a besoin du score courant
             // Du top 100
             // Des 50 precedents et 50 suivants
-            responseWriter.writeResponse(constructJsonResponse(scoring.getCurrentScoreByEmail(userMail), scoring.getTop100(), scoring.get50Prec(userMail), scoring.get50Suiv(userMail)), HttpResponseStatus.OK, ctx, e);
+            responseWriter.writeResponse(constructJsonResponse(scoring.getCurrentScoreByEmail(userMail), scoring.getTop100(), scoring.get50Prec(userMail), scoring.get50Suiv(userMail)), HttpResponseStatus.OK, ctx, e, null);
 
 
         } catch (Exception exc) {
@@ -70,7 +72,7 @@ public class JsonScoreRestService extends RestService {
         }
     }
 
-    public String constructJsonResponse(Score score, List<Joueur> top100, List<Joueur> prec, List<Joueur> suiv) {
+    public ChannelBuffer constructJsonResponse(Score score, List<Joueur> top100, List<Joueur> prec, List<Joueur> suiv) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"score\":");
         sb.append(score.getCurrentScore());
@@ -95,7 +97,9 @@ public class JsonScoreRestService extends RestService {
         }
         sb.append("}");
 
-        return sb.toString();
+        ChannelBuffer cb = ChannelBuffers.dynamicBuffer(20000);
+        cb.writeBytes(sb.toString().getBytes());
+        return cb;
     }
 
     private void createJsonListJoueur(List<Joueur> list, StringBuilder sb) {

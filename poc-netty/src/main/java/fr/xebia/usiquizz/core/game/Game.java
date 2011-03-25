@@ -5,6 +5,7 @@ import com.usi.Questiontype;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.server.http.netty.rest.LongPollingQuestionManager;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 import java.util.Collection;
 import java.util.List;
@@ -105,7 +106,7 @@ public interface Game {
 
     void resetPlayerAskedQuestion();
 
-    String createQuestionInJson(byte currentQuestionIndex, String sessionKey);
+    ChannelBuffer createQuestionInJson(byte currentQuestionIndex, String sessionKey);
 
     String getEmailFromSession(String sessionKey);
 

@@ -59,7 +59,7 @@ public class HttpServer {
         ExecutorService ioExec = Executors.newCachedThreadPool();
 
         ServerBootstrap bootstrap = new ServerBootstrap(
-                new NioServerSocketChannelFactory(bossExec, ioExec, 50));
+                new NioServerSocketChannelFactory(bossExec, ioExec, 4));
 
 
         // Set up the event pipeline factory.
