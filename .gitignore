@@ -3,7 +3,6 @@ target
 *.iml
 *.ipr
 *.iws
-generated-java
 .DS_Store
 poc-java/.classpath
 poc-java/.project
