@@ -7,12 +7,9 @@ package fr.xebia.usiquizz.core.sort;
  * Time: 17:05
  * To change this template use File | Settings | File Templates.
  */
-public class Node<T extends Comparable<T>, V> {
+public class Node<T extends Comparable<T>> {
 
-    T information;
-
-    V value;
-
+    public T information;
 
     T parent;
 
@@ -22,13 +19,12 @@ public class Node<T extends Comparable<T>, V> {
 
     char balance;
 
-    public Node(T information, T parent, V value) {
+    public Node(T information, T parent) {
         this.information = information;
         this.parent = parent;
         this.left = null;
         this.right = null;
         this.balance = '_';
-        this.value = value;
     }
 
     boolean isLeaf() {
@@ -47,11 +43,11 @@ public class Node<T extends Comparable<T>, V> {
         return (right != null);
     }
 
-    boolean isLeftNode(NodeStore<T,V> ns) {
+    boolean isLeftNode(NodeStore<T> ns) {
         return (information.equals(ns.get(parent).left));
     }
 
-    boolean isRightNode(NodeStore<T,V> ns) {
+    boolean isRightNode(NodeStore<T> ns) {
         return (information.equals(ns.get(parent).right));
     }
 

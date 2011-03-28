@@ -71,7 +71,7 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public void calculRanking() {
-        TreeSet<Joueur> set = new TreeSet<Joueur>(new Joueur.JoueurComparator());
+        TreeSet<Joueur> set = new TreeSet<Joueur>();
         for (String email : gemfireRepository.getScoreRegion().keySet()) {
             Score score = gemfireRepository.getScoreRegion().get(email);
             set.add(new Joueur(score.getCurrentScore(), "", "", email));

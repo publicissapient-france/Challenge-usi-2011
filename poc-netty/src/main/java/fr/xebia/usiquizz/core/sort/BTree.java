@@ -24,15 +24,15 @@ import java.util.NoSuchElementException;
  * @author ds-emedia
  * @author slm
  */
-public class BTree<T extends Comparable<T>, V> {
+public class BTree<T extends Comparable<T>> {
     
-    private Node<T, V> root;
+    private Node<T> root;
 
-    private Node<T, V> max;
+    private Node<T> max;
 
-    private Node<T, V> min;
+    private Node<T> min;
 
-    private NodeStore<T, V> store;
+    private NodeStore<T> store;
 
     private Long size;
 
@@ -41,25 +41,16 @@ public class BTree<T extends Comparable<T>, V> {
      */
     public BTree() {
         root = null;
-        store = new DefaultNodeStore<T, V>();
+        store = new DefaultNodeStore<T>();
         size = 0l;
     }
 
-    /**
-     * Creates a balances tree using the given node as tree root.
-     */
-    public BTree(Node<T,V> root) {
-        this();
-        this.root = root;
-        store.updateRoot(root);
-    }
-
-    public BTree(NodeStore<T,V> _store){
+    public BTree(NodeStore<T> _store){
         this();
         store = _store;
     }
 
-    public NodeStore<T,V> getStore(){
+    public NodeStore<T> getStore(){
         return store;
     }
 
@@ -67,8 +58,10 @@ public class BTree<T extends Comparable<T>, V> {
     /**
      * Inserts an element into the tree.
      */
-    public void insert(T info, V value) {
-        insertIterative(info, value);
+    public void insert(T info ) {
+        store.startModification();
+        insertIterative(info);
+        store.finishModification();
     }
 
     /**
@@ -82,7 +75,8 @@ public class BTree<T extends Comparable<T>, V> {
      * Removes an elememt from the tree.
      */
     public void delete(T info) {
-        Node<T, V> node = find(info);
+        store.startModification();
+        Node<T> node = find(info);
         if (node == null) {
             throw new NoSuchElementException("No entry for "+ info);
         } else if (info.compareTo(node.information) == 0) {
@@ -97,10 +91,9 @@ public class BTree<T extends Comparable<T>, V> {
                 min = store.get(min.parent);
                 store.updateMin(min);
             }
-
-
             deleteNode(node);
         }
+        store.finishModification();
     }
 
 
@@ -144,25 +137,24 @@ public class BTree<T extends Comparable<T>, V> {
         return getHeight(root);
     }
 
-    public V get(T info){
-        Node<T,V> res = find(info);
-        return res == null ? null : res.value;
+    public T get(T info){
+        Node<T> res = find(info);
+        return res == null ? null : res.information;
     }
 
 
      /**
       * Iterative Insertion
       * @param info
-      * @param value  
       */
-     private void insertIterative(T info, V value) {
+     private void insertIterative(T info) {
 
-         Node<T,V> ptr = root;
-         Node<T, V> res;
+         Node<T> ptr = root;
+         Node<T> res;
 
          if (ptr == null){
              size++;
-             root = new Node<T, V>(info, null, value);
+             root = new Node<T>(info, null);
              store.update(root);
              store.updateRoot(root);
              max = min = root;
@@ -176,7 +168,6 @@ public class BTree<T extends Comparable<T>, V> {
              int cmp = info.compareTo(ptr.information);
 
              if (cmp == 0){
-                 ptr.value = value;
                  store.update(ptr);
              } else if (cmp < 0) {
                  if (ptr.left != null){
@@ -184,7 +175,7 @@ public class BTree<T extends Comparable<T>, V> {
                  }else {
                      size++;
                      ptr.left = info;
-                     res = new Node<T, V>(info, ptr.information, value);
+                     res = new Node<T>(info, ptr.information);
                      store.update(res);
                      store.update(ptr);
                      restructInsert(res);
@@ -198,7 +189,7 @@ public class BTree<T extends Comparable<T>, V> {
                  }else {
                      size++;
                      ptr.right = info;
-                     res = new Node<T, V>(info, ptr.information, value);
+                     res = new Node<T>(info, ptr.information);
                      store.update(res);
                      store.update(ptr);
                      restructInsert(res);
@@ -217,8 +208,8 @@ public class BTree<T extends Comparable<T>, V> {
     }
 
 
-    private Node<T,V> find(T info){
-        Node<T, V> ptr = root;
+    private Node<T> find(T info){
+        Node<T> ptr = root;
 
         while (true){
             if (ptr == null) {
@@ -235,9 +226,9 @@ public class BTree<T extends Comparable<T>, V> {
 
 
 
-    private void deleteNode(Node<T, V> node) {
+    private void deleteNode(Node<T> node) {
         size --;
-        Node<T, V> eNode, minMaxNode, delNode = null, tmp;
+        Node<T> eNode, minMaxNode, delNode = null, tmp;
         boolean rightNode = false;
         T initialKey = node.information;
 
@@ -246,12 +237,12 @@ public class BTree<T extends Comparable<T>, V> {
                 root = null;
                 store.updateRoot(null);
             } else if (node.isRightNode(store)) {
-                Node<T,V> nd = store.get(node.parent);
+                Node<T> nd = store.get(node.parent);
                 nd.right = null;
                 store.update(nd);
                 rightNode = true;
             } else if (node.isLeftNode(store)) {
-                Node<T,V> nd = store.get(node.parent);
+                Node<T> nd = store.get(node.parent);
                 nd.left = null;
                 store.update(nd);
             }
@@ -264,7 +255,6 @@ public class BTree<T extends Comparable<T>, V> {
             }
             delNode = minMaxNode;
             node.information = minMaxNode.information;
-            node.value = minMaxNode.value;
 
             if (store.get(node.left).right != null) {
                 tmp = store.get(minMaxNode.parent);
@@ -289,7 +279,6 @@ public class BTree<T extends Comparable<T>, V> {
             rightNode = true;
 
             node.information = minMaxNode.information;
-            node.value = minMaxNode.value;
             node.right = minMaxNode.right;
             if (node.right != null) {
                 tmp = store.get(node.right);
@@ -311,7 +300,7 @@ public class BTree<T extends Comparable<T>, V> {
 
     }
 
-    private int getHeight(Node<T,V> node) {
+    private int getHeight(Node<T> node) {
         int height;
 
         if (node == null) {
@@ -322,7 +311,7 @@ public class BTree<T extends Comparable<T>, V> {
         return height;
     }
 
-    private String inOrder(Node<T,V> node) {
+    private String inOrder(Node<T> node) {
 
         String result = "";
         if (node != null) {
@@ -333,7 +322,7 @@ public class BTree<T extends Comparable<T>, V> {
         return result;
     }
 
-    private String preOrder(Node<T,V> node) {
+    private String preOrder(Node<T> node) {
 
         String result = "";
         if (node != null) {
@@ -344,7 +333,7 @@ public class BTree<T extends Comparable<T>, V> {
         return result;
     }
 
-    private String postOrder(Node<T,V> node) {
+    private String postOrder(Node<T> node) {
 
         String result = "";
         if (node != null) {
@@ -356,10 +345,10 @@ public class BTree<T extends Comparable<T>, V> {
     }
 
 
-    private void restructInsert(Node<T,V> node) {
+    private void restructInsert(Node<T> node) {
 
         boolean wasRight = false;
-        Node<T,V> parent;
+        Node<T> parent;
 
             // Update min and max if necessary
         if (node.information.compareTo(max.information) > 0){
@@ -429,9 +418,9 @@ public class BTree<T extends Comparable<T>, V> {
     }
 
 
-    private void restructDelete(Node<T,V> z, boolean wasRight) {
+    private void restructDelete(Node<T> z, boolean wasRight) {
 
-        Node<T,V> parent;
+        Node<T> parent;
         boolean isRight;
         boolean climb;
         boolean canClimb;
@@ -502,18 +491,18 @@ public class BTree<T extends Comparable<T>, V> {
         }
     }
 
-    private void rotateLeft(Node<T,V> a) {
+    private void rotateLeft(Node<T> a) {
 
-        Node<T,V> b = store.get(a.right);
+        Node<T> b = store.get(a.right);
 
         if (a.parent == null) {
 
             root = b;
             store.updateRoot(b);
         } else {
-            Node<T, V> parent = store.get(a.parent);
+            Node<T> parent = store.get(a.parent);
                     // isLeftNode
-            if (parent.left.equals(a.information)) {
+            if (a.information.equals(parent.left)) {
                 parent.left = b.information;
 
             } else {
@@ -524,7 +513,7 @@ public class BTree<T extends Comparable<T>, V> {
 
         a.right = b.left;
         if (a.right != null) {
-            Node<T, V> right = store.get(a.right);
+            Node<T> right = store.get(a.right);
             right.parent = a.information;
             store.update(right);
         }
@@ -544,17 +533,17 @@ public class BTree<T extends Comparable<T>, V> {
         store.update(b);
     }
 
-    private void rotateRight(Node<T,V> a) {
+    private void rotateRight(Node<T> a) {
 
-        Node<T,V> b = store.get(a.left);
+        Node<T> b = store.get(a.left);
 
         if (a.parent == null) {
             root = b;
             store.updateRoot(root);
         } else {
-            Node<T,V> parent = store.get(a.parent);
+            Node<T> parent = store.get(a.parent);
             // A is left of Parent
-            if (parent.left.equals(a.information)) {
+            if (a.information.equals(parent.left)) {
                 parent.left = b.information;
             } else {
                 parent.right = b.information;
@@ -564,7 +553,7 @@ public class BTree<T extends Comparable<T>, V> {
 
         a.left = b.right;
         if (a.left != null) {
-            Node<T, V> left = store.get(a.left);
+            Node<T> left = store.get(a.left);
             left.parent = a.information;
             store.update(left);
         }
@@ -584,16 +573,16 @@ public class BTree<T extends Comparable<T>, V> {
         store.update(b);
     }
 
-    private void doubleRotateLeft(Node<T,V> a) {
+    private void doubleRotateLeft(Node<T> a) {
 
-        Node<T,V> b = store.get(a.right);
-        Node<T,V> c = store.get(b.left);
+        Node<T> b = store.get(a.right);
+        Node<T> c = store.get(b.left);
 
         if (a.parent == null) {
             root = c;
             store.updateRoot(root);
         } else {
-            Node<T,V> parent = store.get(a.parent);
+            Node<T> parent = store.get(a.parent);
             if (parent.left.equals(a)) {
                 parent.left = c.information;
             } else {
@@ -606,13 +595,13 @@ public class BTree<T extends Comparable<T>, V> {
 
         a.right = c.left;
         if (a.right != null) {
-            Node<T, V> right = store.get(a.right);
+            Node<T> right = store.get(a.right);
             right.parent = a.information;
             store.update(right);
         }
         b.left = c.right;
         if (b.left != null) {
-            Node<T, V> left = store.get(a.left);
+            Node<T> left = store.get(a.left);
             left.parent = b.information;
             store.update(left);
         }
@@ -641,16 +630,16 @@ public class BTree<T extends Comparable<T>, V> {
         store.update(c);
     }
 
-    private void doubleRotateRight(Node<T,V> a) {
+    private void doubleRotateRight(Node<T> a) {
 
-        Node<T,V> b = store.get(a.left);
-        Node<T,V> c = store.get(b.right);
+        Node<T> b = store.get(a.left);
+        Node<T> c = store.get(b.right);
 
         if (a.parent == null) {
             root = c;
             store.updateRoot(root);
         } else {
-            Node<T,V> parent = store.get(a.parent);
+            Node<T> parent = store.get(a.parent);
             if (parent.left.equals(a.information)) {
                 parent.left = c.information;
             } else {
@@ -663,13 +652,13 @@ public class BTree<T extends Comparable<T>, V> {
 
         a.left = c.right;
         if (a.left != null) {
-            Node<T, V> left = store.get(a.left);
+            Node<T> left = store.get(a.left);
             left.parent = a.information;
             store.update(left);
         }
         b.right = c.left;
         if (b.right != null) {
-            Node<T, V> right = store.get(a.right);
+            Node<T> right = store.get(a.right);
             right.parent = b.information;
         }
 
@@ -716,20 +705,20 @@ public class BTree<T extends Comparable<T>, V> {
       * @param ptr
       * @return
       */
-     private Node<T, V> successor(Node<T,V> ptr){
+     private Node<T> successor(Node<T> ptr){
 
          if (ptr == null){
              return null;
          }
          else if (ptr.right !=null){
-             Node<T,V> node = store.get(ptr.right);
+             Node<T> node = store.get(ptr.right);
              while(node.left != null){
                  node = store.get(node.left);
              }
              return node;
          } else {
-             Node<T,V> node = store.get(ptr.parent);
-             Node<T,V> nch = ptr;
+             Node<T> node = store.get(ptr.parent);
+             Node<T> nch = ptr;
              while(node != null && nch.information.equals(node.right)){
                  nch = node;
                  node = store.get(node.parent);
@@ -744,20 +733,20 @@ public class BTree<T extends Comparable<T>, V> {
       * @param ptr
       * @return
       */
-     private Node<T, V> predecessor(Node<T,V> ptr){
+     private Node<T> predecessor(Node<T> ptr){
 
          if (ptr == null){
              return null;
          }
          else if (ptr.left !=null){
-             Node<T,V> node = store.get(ptr.left);
+             Node<T> node = store.get(ptr.left);
              while(node.right != null){
                  node = store.get(node.right);
              }
              return node;
          } else {
-             Node<T,V> node = store.get(ptr.parent);
-             Node<T,V> nch = ptr;
+             Node<T> node = store.get(ptr.parent);
+             Node<T> nch = ptr;
              while(node != null && nch.information.equals(node.left)){
                  nch = node;
                  node = store.get(node.parent);
@@ -767,15 +756,17 @@ public class BTree<T extends Comparable<T>, V> {
      }
 
 
-   private class DefaultNodeStore<T extends Comparable<T>,V> implements NodeStore<T,V>{
+   private class DefaultNodeStore<T extends Comparable<T>> implements NodeStore<T>{
 
        private final Map<T, Node> table;
 
-       private Node<T,V> max;
+       private Node<T> max;
 
-       private Node<T,V> min;
+       private Node<T> min;
 
-       private Node<T,V> root;
+       private Node<T> root;
+
+       private boolean modification = false;
 
 
        public DefaultNodeStore() {
@@ -783,27 +774,27 @@ public class BTree<T extends Comparable<T>, V> {
        }
 
        @Override
-       public Node<T,V> get(T key) {
+       public Node<T> get(T key) {
            return table.get(key);  //To change body of implemented methods use File | Settings | File Templates.
        }
 
        @Override
-       public void update(Node<T,V> node) {
+       public void update(Node<T> node) {
           table.put(node.information, node);
        }
 
        @Override
-       public void updateRoot(Node<T,V> node) {
+       public void updateRoot(Node<T> node) {
           root = node;
        }
 
        @Override
-       public void updateMax(Node<T, V> max) {
+       public void updateMax(Node<T> max) {
           this.max = max;
        }
 
        @Override
-       public void updateMin(Node<T, V> min) {
+       public void updateMin(Node<T> min) {
            this.min = min;
        }
 
@@ -814,52 +805,67 @@ public class BTree<T extends Comparable<T>, V> {
 
 
        @Override
-       public Node<T, V> getMax() {
+       public Node<T> getMax() {
            return max;
        }
 
        @Override
-       public Node<T, V> getMin() {
+       public Node<T> getMin() {
            return min; 
        }
 
        @Override
-       public Node<T,V> getRoot(){
+       public Node<T> getRoot(){
            return this.root;
+       }
+
+       @Override
+       public void startModification() {
+           modification = true;
+       }
+
+       @Override
+       public void finishModification() {
+           modification = false;
+       }
+
+       @Override
+       public boolean hasRunningModification() {
+           return modification;
        }
    }
 
 
 
-       private class DefaultNodeSet implements NodeSet<V>{
+       private class DefaultNodeSet implements NodeSet<T>{
 
-        private Node<T,V> node;
+        private Node<T> node;
         private boolean visited = false;
 
 
-        public DefaultNodeSet(Node<T,V> node){
+        public DefaultNodeSet(Node<T> node){
             this.node = node;
         }
 
 
         @Override
-        public V next() {
+        public T next() {
             if (!visited){
                 visited = true;
-                return node.value;
+                return node.information;
             }
             node = successor(node);
-            return node.value;
+            return node.information;
         }
 
         @Override
-        public V prev() {
+        public T prev() {
             if (!visited){
                 visited = true;
-                return node.value;
+                return node.information;
             }
             node = predecessor(node);
-            return node.value;
+            return node.information;
         }
     }
 }
