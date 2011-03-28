@@ -32,6 +32,10 @@ public interface NodeStore<T extends Comparable<T>, V> {
 
     void updateMin(Node<T,V> min);
 
+    void updateRoot(Node<T,V> root);
+
+    Node<T,V> getRoot();
+
     Node<T,V> getMax();
 
     Node<T,V> getMin();

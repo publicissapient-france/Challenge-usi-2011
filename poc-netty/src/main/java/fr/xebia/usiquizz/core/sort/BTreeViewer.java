@@ -49,7 +49,7 @@ public class BTreeViewer<T extends Comparable<T>, V> {
         else if (ptr.right !=null){
             Node<T,V> node = store.get(ptr.right);
             while(node.left != null){
-                node = store.get(ptr.left);
+                node = store.get(node.left);
             }
             return node;
         } else {
@@ -77,7 +77,7 @@ public class BTreeViewer<T extends Comparable<T>, V> {
         else if (ptr.left !=null){
             Node<T,V> node = store.get(ptr.left);
             while(node.right != null){
-                node = store.get(ptr.right);
+                node = store.get(node.right);
             }
             return node;
         } else {

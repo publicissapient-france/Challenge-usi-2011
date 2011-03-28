@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * Implements a simple BTree that stores its nodes in a NodeStore so each
+ * Implements a simple BTreeTest that stores its nodes in a NodeStore so each
  * node keeps the parent, the left and the right node store keys to be able to retrieve
  * these nodes inside the store.
  *
@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * Replaced recursion by iteration for insertion and deletion
  *
  *
- * Source code imported from BTree implementation found on jBixbe.com
+ * Source code imported from BTreeTest implementation found on jBixbe.com
  * jBixbe debuggee: test insert and delete operation of a balanced tree data
  * structure. Using integer values read from keyboard as tree elements.
  *
@@ -25,10 +25,6 @@ import java.util.NoSuchElementException;
  * @author slm
  */
 public class BTree<T extends Comparable<T>, V> {
-
-    public static final String MIN_KEY = "XXX_MIN_KEY_XXX";
-
-    public static final String MAX_KEY = "XXX_MIN_KEY_XXX";
     
     private Node<T, V> root;
 
@@ -52,9 +48,10 @@ public class BTree<T extends Comparable<T>, V> {
     /**
      * Creates a balances tree using the given node as tree root.
      */
-    public BTree(Node root) {
+    public BTree(Node<T,V> root) {
         this();
         this.root = root;
+        store.updateRoot(root);
     }
 
     public BTree(NodeStore<T,V> _store){
@@ -378,12 +375,16 @@ public class BTree<T extends Comparable<T>, V> {
                 return;
             }
 
+            if (node.information.equals(root.information)) {
+                return;
+            }
+
             parent = store.get(node.parent);
 
             switch (parent.balance){
                 case '_': {
                     boolean right = false;
-                    if (parent.left.equals(node.information)) {
+                    if (node.information.equals(parent.left)) {
                         parent.balance = '/';
                     } else {
                         parent.balance = '\\';
@@ -395,7 +396,7 @@ public class BTree<T extends Comparable<T>, V> {
                     break;
                 }
                 case '/' : {
-                    if (parent.right.equals(node.information)) {
+                    if (node.information.equals(parent.right)) {
                         parent.balance = '_';
                         store.update(parent);
                     } else {
@@ -409,7 +410,7 @@ public class BTree<T extends Comparable<T>, V> {
 
                 }
                 case '\\': {
-                    if (parent.left.equals(node.information)) {
+                    if (node.information.equals(parent.left)) {
                         parent.balance = '_';
                         store.update(parent);
                     } else {
@@ -688,6 +689,75 @@ public class BTree<T extends Comparable<T>, V> {
         store.update(c);
     }
 
+    public NodeSet getMaxSet(){
+         return new DefaultNodeSet(store.getMax());
+     }
+
+
+     public NodeSet getMinSet(){
+         return new DefaultNodeSet(store.getMin());
+     }
+
+
+
+     public NodeSet getSet(T info){
+         return new DefaultNodeSet(store.get(info));
+     }
+
+     /**
+      * Retrieves the next value in tree
+      * @param ptr
+      * @return
+      */
+     private Node<T, V> successor(Node<T,V> ptr){
+
+         if (ptr == null){
+             return null;
+         }
+         else if (ptr.right !=null){
+             Node<T,V> node = store.get(ptr.right);
+             while(node.left != null){
+                 node = store.get(node.left);
+             }
+             return node;
+         } else {
+             Node<T,V> node = store.get(ptr.parent);
+             Node<T,V> nch = ptr;
+             while(node != null && nch.information.equals(node.right)){
+                 nch = node;
+                 node = store.get(node.parent);
+             }
+             return node;
+         }
+     }
+
+
+     /**
+      * Retrieves the previous value in tree
+      * @param ptr
+      * @return
+      */
+     private Node<T, V> predecessor(Node<T,V> ptr){
+
+         if (ptr == null){
+             return null;
+         }
+         else if (ptr.left !=null){
+             Node<T,V> node = store.get(ptr.left);
+             while(node.right != null){
+                 node = store.get(node.right);
+             }
+             return node;
+         } else {
+             Node<T,V> node = store.get(ptr.parent);
+             Node<T,V> nch = ptr;
+             while(node != null && nch.information.equals(node.left)){
+                 nch = node;
+                 node = store.get(node.parent);
+             }
+             return node;
+         }
+     }
 
 
    private class DefaultNodeStore<T extends Comparable<T>,V> implements NodeStore<T,V>{
@@ -697,6 +767,8 @@ public class BTree<T extends Comparable<T>, V> {
        private Node<T,V> max;
 
        private Node<T,V> min;
+
+       private Node<T,V> root;
 
 
        public DefaultNodeStore() {
@@ -709,8 +781,13 @@ public class BTree<T extends Comparable<T>, V> {
        }
 
        @Override
-       public void update( Node<T,V> node) {
+       public void update(Node<T,V> node) {
           table.put(node.information, node);
+       }
+
+       @Override
+       public void updateRoot(Node<T,V> node) {
+          root = node;
        }
 
        @Override
@@ -738,5 +815,44 @@ public class BTree<T extends Comparable<T>, V> {
        public Node<T, V> getMin() {
            return min; 
        }
+
+       @Override
+       public Node<T,V> getRoot(){
+           return this.root;
+       }
    }
+
+
+
+       private class DefaultNodeSet implements NodeSet<V>{
+
+        private Node<T,V> node;
+        private boolean visited = false;
+
+
+        public DefaultNodeSet(Node<T,V> node){
+            this.node = node;
+        }
+
+
+        @Override
+        public V next() {
+            if (!visited){
+                visited = true;
+                return node.value;
+            }
+            node = successor(node);
+            return node.value;
+        }
+
+        @Override
+        public V prev() {
+            if (!visited){
+                visited = true;
+                return node.value;
+            }
+            node = predecessor(node);
+            return node.value;
+        }
+    }
 }
