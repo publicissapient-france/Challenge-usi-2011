@@ -1,15 +1,8 @@
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 import com.usi.Question;
-import com.usi.Sessiontype;
-import fr.xebia.usiquizz.core.authentication.AdminAuthentication;
-import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
-import fr.xebia.usiquizz.core.xml.GameParameterParser;
-import fr.xebia.usiquizz.core.xml.InvalidParameterFileException;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -23,9 +16,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
@@ -100,9 +91,13 @@ public class JsonAnswerRestService extends RestService {
                 }
             }
 
-            int answerNumber = Integer.parseInt(answer);
+            byte answerNumber = Byte.parseByte(answer);
             Question question = game.getQuestion(1);
-            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerNumber == question.getGoodchoice(), question.getChoice().get(question.getGoodchoice() - 1), 0), HttpResponseStatus.OK, ctx, e, sessionKey);
+            // Verify is answerd is correction
+            boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
+            // update score
+            byte newScore = scoring.addScore(sessionKey, answerNumber, answerIsCorrect, questionNbr);
+            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerNumber == question.getGoodchoice(), question.getGoodAnswer(), newScore), HttpResponseStatus.OK, ctx, e, sessionKey);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);
@@ -122,20 +117,13 @@ public class JsonAnswerRestService extends RestService {
         private final static byte[] FALSE_BA = Boolean.FALSE.toString().getBytes();
 
 
-        private static ChannelBuffer createJsonResponse(boolean isResponseGood, String goodAnswer, int currentScore) {
-            ChannelBuffer cb = ChannelBuffers.dynamicBuffer(512);
-            cb.writeBytes(ARE_U_RIGHT_BA);
+        private static ChannelBuffer createJsonResponse(boolean isResponseGood, byte[] goodAnswer, int currentScore) {
+            
             if (isResponseGood) {
-                cb.writeBytes(TRUE_BA);
+                return ChannelBuffers.wrappedBuffer(ARE_U_RIGHT_BA, TRUE_BA, GOOD_ANSWER_BA, goodAnswer, SCORE_BA, Integer.toString(currentScore).getBytes(), END_BA);
             } else {
-                cb.writeBytes(FALSE_BA);
+                return ChannelBuffers.wrappedBuffer(ARE_U_RIGHT_BA, FALSE_BA, GOOD_ANSWER_BA, goodAnswer, SCORE_BA, Integer.toString(currentScore).getBytes(), END_BA);
             }
-            cb.writeBytes(GOOD_ANSWER_BA);
-            cb.writeBytes(goodAnswer.getBytes());
-            cb.writeBytes(SCORE_BA);
-            cb.writeBytes(Integer.toString(currentScore).getBytes());
-            cb.writeBytes(END_BA);
-            return cb;
 
         }
     }

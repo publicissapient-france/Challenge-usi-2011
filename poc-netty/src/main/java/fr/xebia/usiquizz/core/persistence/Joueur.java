@@ -1,9 +1,10 @@
 package fr.xebia.usiquizz.core.persistence;
 
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class Joueur {
+public class Joueur implements Serializable {
     private int score;
     private String lastName;
     private String firstName;

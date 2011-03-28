@@ -4,15 +4,20 @@ import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
 
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
+import org.jboss.netty.util.internal.ConcurrentHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DistributedScoring implements Scoring {
 
     private GemfireRepository gemfireRepository;
+
+    // Uniquement pour debug... Nombre de reponse recu sur l'instance
+    private ConcurrentHashMap<Byte, AtomicInteger> nbReponse = new ConcurrentHashMap<Byte, AtomicInteger>();
 
     public DistributedScoring(GemfireRepository gemfireRepository) {
         this.gemfireRepository = gemfireRepository;
@@ -38,6 +43,15 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public byte addScore(String sessionId, byte choice, boolean good, byte index) {
+        // FIXME Pour debugage doit pouvoir être deactiver
+        AtomicInteger resp = nbReponse.get(index);
+        if (resp == null) {
+            resp = new AtomicInteger(0);
+        }
+        resp.incrementAndGet();
+        nbReponse.put(index, resp);
+        //
+
         String email = gemfireRepository.getPlayerRegion().get(sessionId);
         Score score = gemfireRepository.getScoreRegion().get(email);
         score.addResponse(choice, good, index);
@@ -48,6 +62,11 @@ public class DistributedScoring implements Scoring {
     @Override
     public boolean isPlayerAlreadyAnswered(String sessionKey, byte currentQuestion) {
         return getCurrentScore(sessionKey).isAlreadyAnswer(currentQuestion);
+    }
+
+    @Override
+    public int nbLocalResponseForIndex(byte index) {
+        return nbReponse.get(index).get();
     }
 
     @Override
@@ -111,7 +130,7 @@ public class DistributedScoring implements Scoring {
         return res;
     }
 
-    public byte[] getAnswers(String email){
+    public byte[] getAnswers(String email) {
         return getCurrentScoreByEmail(email).getReponse();
     }
 

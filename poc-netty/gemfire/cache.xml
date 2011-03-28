@@ -1,4 +1,3 @@
-
 <!DOCTYPE cache PUBLIC
         "-//GemStone Systems, Inc.//GemFire Declarative Caching 6.5//EN"
         "http://www.gemstone.com/dtd/cache6_5.dtd">
@@ -21,14 +20,30 @@
         </region-attributes>
     </region>
 
-    <region name="game-region" refid="REPLICATE"/>
-    <region name="question-region" refid="REPLICATE"/>
-    <region name="player-region" refid="REPLICATE"/>
-    <region name="score-region" refid="REPLICATE"/>
-    <region name="current-question-region" refid="REPLICATE"/>
-    <region name="inverse-score-region" refid="REPLICATE"/>
-    <region name="ranking-region" refid="REPLICATE"/>
-    <region name="final-ranking-region" refid="REPLICATE"/>
+    <region name="game-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
+    <region name="question-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
+    <region name="player-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
+    <region name="score-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
+    <region name="current-question-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
+    <region name="inverse-score-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
+    <region name="ranking-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
+    <region name="final-ranking-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
     <!-- Created by API -->
     <!--
     <region name="question-status" refid="REPLICATE">

@@ -1,8 +1,9 @@
 package fr.xebia.usiquizz.core.game;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class Score {
+public class Score implements Serializable {
 
     private byte currentScore;
     private byte[] reponse;

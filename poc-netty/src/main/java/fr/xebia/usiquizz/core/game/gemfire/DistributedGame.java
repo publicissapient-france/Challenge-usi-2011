@@ -250,15 +250,13 @@ public class DistributedGame implements Game {
 
     @Override
     public void startQuestionTimeframe(final byte currentQuestionIndex) {
-        logger.info("Start question timeframe");
+        logger.info("Start question timeframe for question {}", currentQuestionIndex);
         longpollingCallback.initNewQuestion((byte) (currentQuestionIndex + 1));
 
         scheduleExecutor.schedule((new Runnable() {
             @Override
             public void run() {
-                logger.info("end question timeframe");
-                // On met le status de la question en QUESTION_JOUEE
-                gemfireRepository.getQuestionStatusRegion().put(currentQuestionIndex, QuestionStatus.QUESTION_JOUEE);
+                logger.info("end question timeframe for question {}", currentQuestionIndex);
 
                 // Si c'est la dernière question fin du jeu
                 if (currentQuestionIndex >= getNbquestions()) {
@@ -270,9 +268,6 @@ public class DistributedGame implements Game {
                 } else {
                     // Sinon On déclenche le synchrotime...
                     startSynchroTime();
-
-                    // Et on incremente la réponse attendu courante
-                    setCurrentAnswerIndex((byte) (currentQuestionIndex + 1));
                 }
             }
         }), getQuestiontimeframe(), TimeUnit.MILLISECONDS);
@@ -297,10 +292,13 @@ public class DistributedGame implements Game {
             @Override
             public void run() {
                 logger.info("end synchro time");
+                // Fin de la fenetre de reponse de la question prec
+                // On met le status de la question en QUESTION_JOUEE
+                logger.info("fin REPONSE {}", gemfireRepository.getGameRegion().get(CURRENT_ANSWER_INDEX));
+                logger.info("{} reponse recu sur l'instance", scoring.nbLocalResponseForIndex((Byte) gemfireRepository.getGameRegion().get(CURRENT_ANSWER_INDEX)));
+                gemfireRepository.getQuestionStatusRegion().put((Byte) gemfireRepository.getGameRegion().get(CURRENT_ANSWER_INDEX), QuestionStatus.QUESTION_JOUEE);
                 // On change le statut de la question
                 gemfireRepository.getQuestionStatusRegion().put((Byte) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX), QuestionStatus.QUESTION_EN_COURS);
-                // Le listener doit déclenchee l'envoie des questions
-                //startCurrentLongPolling();
             }
         }), getSynchrotime(), TimeUnit.MILLISECONDS);
     }
@@ -321,7 +319,6 @@ public class DistributedGame implements Game {
         private Map<Byte, byte[]> questionCache = new ConcurrentHashMap<Byte, byte[]>();
 
         public ChannelBuffer createQuestionInJson(byte currentQuestionIndex, byte currentScore) {
-            ChannelBuffer cb = ChannelBuffers.dynamicBuffer(1024);
             byte[] questionBa = questionCache.get(currentQuestionIndex);
             if (questionBa == null) {
                 synchronized (this) {
@@ -346,11 +343,7 @@ public class DistributedGame implements Game {
                     }
                 }
             }
-            cb.writeBytes(questionBa);
-            cb.writeBytes(Byte.toString(currentScore).getBytes());
-            cb.writeBytes(END_BA);
-
-            return cb;
+            return ChannelBuffers.wrappedBuffer(questionBa, Byte.toString(currentScore).getBytes(), END_BA);
         }
 
     }

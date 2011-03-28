@@ -22,6 +22,7 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+            <!--
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
@@ -33,13 +34,32 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <addCompileSourceRoot>false</addCompileSourceRoot>
                     <schemaDirectory>src/main/resources/schemas</schemaDirectory>
-                    <readOnly>true</readOnly>
-                    <removeOldOutput>true</removeOldOutput>
-                    <verbose>false</verbose>
+                    <readOnly>false</readOnly>
+                    <removeOldOutput>false</removeOldOutput>
+                    <verbose>true</verbose>
                     <extension>true</extension>
                     <generateDirectory>src/main/generated-java</generateDirectory>
                 </configuration>
+            </plugin>
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <sources>
+                                <source>src/main/generated-java/</source>
+                            </sources>
+                        </configuration>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

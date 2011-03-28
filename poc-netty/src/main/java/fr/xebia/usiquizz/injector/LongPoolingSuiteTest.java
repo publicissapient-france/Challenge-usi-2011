@@ -1,10 +1,6 @@
 package fr.xebia.usiquizz.injector;
 
 import com.ning.http.client.*;
-import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig;
-import com.usi.Parametertype;
-import com.usi.Question;
-import com.usi.Questiontype;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.codehaus.jackson.JsonFactory;

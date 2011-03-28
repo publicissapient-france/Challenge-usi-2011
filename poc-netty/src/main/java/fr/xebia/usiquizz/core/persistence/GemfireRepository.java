@@ -1,13 +1,9 @@
 package fr.xebia.usiquizz.core.persistence;
 
-import com.esotericsoftware.kryo.util.IntHashMap;
 import com.gemstone.gemfire.cache.*;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class GemfireRepository {

@@ -1,8 +1,5 @@
 package com.usi;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MockSessionType extends Sessiontype {
 
     private Questiontype qt;

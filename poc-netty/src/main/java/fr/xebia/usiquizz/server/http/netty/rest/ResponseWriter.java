@@ -96,7 +96,7 @@ public class ResponseWriter {
     }
 
 
-    public void endWritingResponseWithoutClose(final ChannelBuffer content, final String sessionKey, final ChannelHandlerContext ctx) {
+    public ChannelFuture endWritingResponseWithoutClose(final ChannelBuffer content, final String sessionKey, final ChannelHandlerContext ctx) {
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
         response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
@@ -115,6 +115,6 @@ public class ResponseWriter {
         // Write the response.
         //ChannelFuture future = ctx.getChannel().write(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
         future.addListener(ChannelFutureListener.CLOSE);
-
+        return future;
     }
 }

@@ -1,14 +1,11 @@
 package fr.xebia.usiquizz.core.game;
 
 import com.usi.Question;
-import com.usi.Questiontype;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
-import fr.xebia.usiquizz.server.http.netty.rest.LongPollingQuestionManager;
 import org.jboss.netty.buffer.ChannelBuffer;
 
 import java.util.Collection;
-import java.util.List;
 
 public interface Game {
 

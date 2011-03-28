@@ -20,6 +20,8 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.logging.Slf4JLoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
@@ -37,11 +39,20 @@ import java.util.concurrent.ThreadFactory;
  */
 public class HttpServer {
 
+    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
+
     static {
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
     }
 
     public static void main(String[] args) {
+        // Si args[0] present. on considere que c'est le nombre de I/O server worker
+        int nbThread = 4;
+        if(args.length>0){
+            nbThread = Integer.parseInt(args[0]);
+        }
+
+
         ThreadFactory threadFactory = new ThreadFactory() {
 
             private int i = 1;
@@ -58,8 +69,9 @@ public class HttpServer {
         ExecutorService bossExec = Executors.newCachedThreadPool();
         ExecutorService ioExec = Executors.newCachedThreadPool();
 
+        logger.info("Start with {} thread worker", nbThread);
         ServerBootstrap bootstrap = new ServerBootstrap(
-                new NioServerSocketChannelFactory(bossExec, ioExec, 4));
+                new NioServerSocketChannelFactory(bossExec, ioExec, nbThread));
 
 
         // Set up the event pipeline factory.
