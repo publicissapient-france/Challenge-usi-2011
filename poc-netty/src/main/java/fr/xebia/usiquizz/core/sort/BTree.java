@@ -90,10 +90,8 @@ public class BTree<T extends Comparable<T>, V> {
 
                 // Fix Min and Max if necessary
             if (info.equals(max.information)){
-
                 max = store.get(max.parent);
                 store.updateMax(max);
-
             }
             if (info.equals(min.information)){
                 min = store.get(min.parent);
@@ -166,7 +164,10 @@ public class BTree<T extends Comparable<T>, V> {
              size++;
              root = new Node<T, V>(info, null, value);
              store.update(root);
+             store.updateRoot(root);
              max = min = root;
+             store.updateMin(min);
+             store.updateMax(max);
              return;
          }
 
@@ -243,6 +244,7 @@ public class BTree<T extends Comparable<T>, V> {
         if (node.isLeaf()) {
             if (node.parent == null) {
                 root = null;
+                store.updateRoot(null);
             } else if (node.isRightNode(store)) {
                 Node<T,V> nd = store.get(node.parent);
                 nd.right = null;
@@ -505,7 +507,9 @@ public class BTree<T extends Comparable<T>, V> {
         Node<T,V> b = store.get(a.right);
 
         if (a.parent == null) {
+
             root = b;
+            store.updateRoot(b);
         } else {
             Node<T, V> parent = store.get(a.parent);
                     // isLeftNode
@@ -546,6 +550,7 @@ public class BTree<T extends Comparable<T>, V> {
 
         if (a.parent == null) {
             root = b;
+            store.updateRoot(root);
         } else {
             Node<T,V> parent = store.get(a.parent);
             // A is left of Parent
@@ -586,6 +591,7 @@ public class BTree<T extends Comparable<T>, V> {
 
         if (a.parent == null) {
             root = c;
+            store.updateRoot(root);
         } else {
             Node<T,V> parent = store.get(a.parent);
             if (parent.left.equals(a)) {
@@ -642,6 +648,7 @@ public class BTree<T extends Comparable<T>, V> {
 
         if (a.parent == null) {
             root = c;
+            store.updateRoot(root);
         } else {
             Node<T,V> parent = store.get(a.parent);
             if (parent.left.equals(a.information)) {
