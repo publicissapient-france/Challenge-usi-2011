@@ -22,6 +22,12 @@ public class Score implements Serializable {
         // Manage first question = 0 internal
         index = (byte) (index - 1);
         byte newScore = currentScore;
+
+        // Reset responseCount if user did not answer last question
+        if (index > 0 && reponse[index - 1] == 0){
+            goodResponseCount = 0;
+        }
+
         if (good) {
             // Selon l'index on ajoute le bon score
             if (index < 5) {
