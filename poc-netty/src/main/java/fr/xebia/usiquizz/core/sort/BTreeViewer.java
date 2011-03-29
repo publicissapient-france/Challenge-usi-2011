@@ -95,6 +95,7 @@ public class BTreeViewer<T extends Comparable<T>> {
     private class DefaultNodeSet implements NodeSet<T>{
 
         private Node<T> node;
+        private boolean visited = false;
 
         public DefaultNodeSet(Node<T> node){
             this.node = node;
@@ -103,15 +104,22 @@ public class BTreeViewer<T extends Comparable<T>> {
 
         @Override
         public T next() {
-
+            if (!visited){
+                visited = true;
+                return node.information;
+            }
             node = successor(node);
-            return node.information;
+            return node != null ? node.information: null;
         }
 
         @Override
         public T prev() {
+            if (!visited){
+                visited = true;
+                return node.information;
+            }
             node = predecessor(node);
-            return node.information;
+            return node != null ? node.information: null;
         }
     }
 

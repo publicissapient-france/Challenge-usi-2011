@@ -770,7 +770,7 @@ public class BTree<T extends Comparable<T>> {
 
 
        public DefaultNodeStore() {
-           this.table = new HashMap<T,Node>();
+           this.table = new HashMap<T,Node>(10000);
        }
 
        @Override
@@ -855,7 +855,7 @@ public class BTree<T extends Comparable<T>> {
                 return node.information;
             }
             node = successor(node);
-            return node.information;
+            return node != null ? node.information: null;
         }
 
         @Override
@@ -865,7 +865,7 @@ public class BTree<T extends Comparable<T>> {
                 return node.information;
             }
             node = predecessor(node);
-            return node.information;
+            return node != null ? node.information: null;
         }
     }
 }

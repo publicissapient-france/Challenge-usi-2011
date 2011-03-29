@@ -5,7 +5,7 @@ import org.junit.Test;
 
 /**
  *
- * Test the Bt
+ * Test the Btree
  *
  * User: slm
  * Date: 28/03/11
@@ -62,7 +62,7 @@ public class BTreeTest {
         Assert.assertEquals("10", ""+set.prev());
 
         Assert.assertEquals("1", ""+set.prev());
-
+        Assert.assertNull(set.prev());
 
         tree.insert(13);
         tree.insert(5);
@@ -85,7 +85,7 @@ public class BTreeTest {
         Assert.assertEquals("14", ""+set.next());
         Assert.assertEquals("42", ""+set.next());
         Assert.assertEquals("45", ""+set.next());
-
+        Assert.assertNull(set.next());
     }
 
     /**
@@ -100,7 +100,7 @@ public class BTreeTest {
             tree.insert(i);
             tree.insert(j);
             i++;
-            i--;
+            j--;
         }
 
         // check from max
