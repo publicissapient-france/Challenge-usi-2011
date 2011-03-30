@@ -14,6 +14,6 @@ public interface UserRepository {
 
     boolean checkUserWithEmailExist(String email);
 
-    boolean logUser(String mail, String password);
+    User logUser(String mail, String password);
 
 }

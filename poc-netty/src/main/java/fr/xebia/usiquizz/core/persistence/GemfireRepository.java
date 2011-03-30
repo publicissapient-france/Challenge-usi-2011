@@ -3,6 +3,7 @@ package fr.xebia.usiquizz.core.persistence;
 import com.gemstone.gemfire.cache.*;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
+import fr.xebia.usiquizz.core.sort.Node;
 import fr.xebia.usiquizz.core.sort.NodeStore;
 
 import java.util.TreeSet;
@@ -45,7 +46,7 @@ public class GemfireRepository {
     private Region<String, String> currentQuestionRegion = cache.getRegion("current-question-region");
 
     // TODO : This is a simple stupid region test to implement Ranking tree NodeStore
-    private Region<Joueur, NodeStore<Joueur>> scoreStoreRegion = cache.getRegion("score-store-region");
+    private Region<Joueur, Node<Joueur>> scoreStoreRegion = cache.getRegion("score-store-region");
     private Region<Byte, Byte> questionStatusRegion;
 
     // Region for score
@@ -119,7 +120,7 @@ public class GemfireRepository {
         return finalRankingRegion;
     }
 
-    public Region<Joueur, NodeStore<Joueur>> getScoreStoreRegion(){
+    public Region<Joueur, Node<Joueur>> getScoreStoreRegion(){
         return scoreStoreRegion;
     }
 }

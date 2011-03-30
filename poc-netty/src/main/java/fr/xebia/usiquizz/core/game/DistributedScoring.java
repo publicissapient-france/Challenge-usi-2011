@@ -2,32 +2,46 @@ package fr.xebia.usiquizz.core.game;
 
 import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
 
+import fr.xebia.usiquizz.core.game.gemfire.DistributedNodeScoreStore;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
+import fr.xebia.usiquizz.core.persistence.User;
+import fr.xebia.usiquizz.core.sort.NodeSet;
+import fr.xebia.usiquizz.core.sort.RBTree;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DistributedScoring implements Scoring {
 
     private GemfireRepository gemfireRepository;
 
+    private DistributedNodeScoreStore nodeStore;
+
+    private RBTree<Joueur> tree;
+
+    private List<Joueur> top100;
+
     // Uniquement pour debug... Nombre de reponse recu sur l'instance
     private ConcurrentHashMap<Byte, AtomicInteger> nbReponse = new ConcurrentHashMap<Byte, AtomicInteger>();
 
     public DistributedScoring(GemfireRepository gemfireRepository) {
         this.gemfireRepository = gemfireRepository;
+        this.nodeStore = new DistributedNodeScoreStore(this.gemfireRepository.getScoreStoreRegion());
+        this.tree = new RBTree<Joueur>(this.nodeStore);
     }
 
     @Override
-    public void createScore(String sessionKey) {
+    public void createScore(String sessionKey, User user) {
         // FIXME pass nb question
-        String email = gemfireRepository.getPlayerRegion().get(sessionKey);
-        gemfireRepository.getScoreRegion().put(email, new Score(((Integer) gemfireRepository.getGameRegion().get(NB_QUESTIONS)).byteValue()));
+        String email = user.getMail();
+       // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
+        gemfireRepository.getScoreRegion().put(email, new Score(((Integer) gemfireRepository.getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
+        if (top100 != null){
+            top100 = null;
+        }
     }
 
     @Override
@@ -52,7 +66,7 @@ public class DistributedScoring implements Scoring {
         nbReponse.put(index, resp);
         //
 
-        String email = gemfireRepository.getPlayerRegion().get(sessionId);
+        String email = sessionId.split("|")[1];
         Score score = gemfireRepository.getScoreRegion().get(email);
         score.addResponse(choice, good, index);
         gemfireRepository.getScoreRegion().put(email, score);
@@ -70,62 +84,68 @@ public class DistributedScoring implements Scoring {
     }
 
     @Override
-    public void calculRanking() {
-        TreeSet<Joueur> set = new TreeSet<Joueur>();
-        for (String email : gemfireRepository.getScoreRegion().keySet()) {
+    public void calculRanking(){
+         for (String email : gemfireRepository.getScoreRegion().keySet()) {
             Score score = gemfireRepository.getScoreRegion().get(email);
-            set.add(new Joueur(score.getCurrentScore(), "", "", email));
-        }
-
-        int i = 1;
-        for (Joueur j : set) {
-            gemfireRepository.getFinalRankingRegion().put(i, j);
-            gemfireRepository.getRanking().put(j.getEmail(), i);
-            i++;
+            tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, email));
         }
     }
 
+
+
     @Override
     public List<Joueur> getTop100() {
-        List<Joueur> res = new ArrayList<Joueur>();
-        for (int i = 1; i <= 100; i++) {
-            Joueur j = gemfireRepository.getFinalRankingRegion().get(i);
-            if (j != null) {
-                res.add(j);
-            } else {
-                break;
+
+        if (top100 == null) {
+            List<Joueur> res = new ArrayList<Joueur>();
+            NodeSet<Joueur> set = tree.getMaxSet();
+            Joueur joueur = null;
+            int i = 0;
+            while (i < 100 ){
+                joueur = set.prev();
+                if (joueur == null)
+                    break;
+                res.add(joueur);
+                i++;
             }
+            top100 = res;
         }
-        return res;
+        return top100;
     }
 
     @Override
     public List<Joueur> get50Prec(String email) {
 
-        int ranking = gemfireRepository.getRanking().get(email);
-        List<Joueur> res = new ArrayList<Joueur>();
+        Score score = gemfireRepository.getScoreRegion().get(email);
+        Joueur joueur = new Joueur(score.getCurrentScore(), score.lname, score.fname, email);
 
-        for (int i = ranking - 1; i >= ranking - 50; i--) {
-            Joueur j = gemfireRepository.getFinalRankingRegion().get(i);
-            if (j == null) {
+        List<Joueur> res = new ArrayList<Joueur>();
+        NodeSet<Joueur> set = tree.getSet(joueur);
+        int i = 0;
+        while (i < 50 ){
+            joueur = set.prev();
+            if (joueur == null)
                 break;
-            }
-            res.add(j);
+            res.add(joueur);
+            i++;
         }
         return res;
     }
 
     @Override
     public List<Joueur> get50Suiv(String email) {
-        int ranking = gemfireRepository.getRanking().get(email);
-        List<Joueur> res = new ArrayList<Joueur>();
+        Score score = gemfireRepository.getScoreRegion().get(email);
+        Joueur joueur = new Joueur(score.getCurrentScore(), score.lname, score.fname, email);
 
-        for (int i = ranking + 1; i <= ranking + 50; i++) {
-            Joueur j = gemfireRepository.getFinalRankingRegion().get(i);
-            if (j == null) {
+        List<Joueur> res = new ArrayList<Joueur>();
+        NodeSet<Joueur> set = tree.getSet(joueur);
+        int i = 0;
+        while (i < 50 ){
+            joueur = set.next();
+            if (joueur == null)
                 break;
-            }
-            res.add(j);
+            res.add(joueur);
+            i++;
         }
         return res;
     }

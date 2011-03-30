@@ -2,12 +2,13 @@ package fr.xebia.usiquizz.core.game;
 
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
+import fr.xebia.usiquizz.core.persistence.User;
 
 import java.util.List;
 
 public interface Scoring {
 
-    void createScore(String sessionKey);
+    void createScore(String sessionKey, User user);
 
     Score getCurrentScore(String sessionId);
 

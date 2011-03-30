@@ -85,10 +85,13 @@ public class MongoUserRepository extends AbstractRepository implements UserRepos
     }
 
     @Override
-    public boolean logUser(String mail, String password) {
+    public User logUser(String mail, String password) {
         BasicDBObject searchedUser = new BasicDBObject();
         searchedUser.put(EMAIL_FIELD, mail);
         searchedUser.put(PASSWORD_FIELD, password);
-        return getDb().getCollection(USER_COLLECTION_NAME).count(searchedUser) > 0;
+        if(getDb().getCollection(USER_COLLECTION_NAME).count(searchedUser) > 0)
+            return new User();
+
+        return null;
     }
 }

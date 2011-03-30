@@ -1,5 +1,7 @@
 package fr.xebia.usiquizz.core.game;
 
+import fr.xebia.usiquizz.core.persistence.User;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -9,13 +11,20 @@ public class Score implements Serializable {
     private byte[] reponse;
     private byte goodResponseCount;
 
-    public Score(byte nbQuestion) {
+    public final String email;
+    public final String lname;
+    public final String fname;
+
+    public Score(byte nbQuestion, User user) {
         currentScore = 0;
         goodResponseCount = 0;
         reponse = new byte[nbQuestion];
 
         // init array
         Arrays.fill(reponse, (byte)0);
+        this.email = user.getMail();
+        this.lname = user.getLastname();
+        this.fname = user.getFirstname();
     }
 
     public byte addResponse(int choice, boolean good, byte index) {
