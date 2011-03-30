@@ -32,7 +32,7 @@ public class DistributedNodeScoreStore implements NodeStore<Joueur>{
 
     @Override
     public void update(Node<Joueur> joueurNode) {
-        region.put(joueurNode.information, joueurNode);
+        region.put(joueurNode.key, joueurNode);
     }
 
     @Override
@@ -83,5 +83,10 @@ public class DistributedNodeScoreStore implements NodeStore<Joueur>{
     @Override
     public boolean hasRunningModification() {
         return false;  //Todo implement this
+    }
+
+    @Override
+    public void clear() {
+        region.clear();
     }
 }

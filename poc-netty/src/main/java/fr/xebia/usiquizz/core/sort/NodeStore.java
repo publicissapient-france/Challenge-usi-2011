@@ -28,6 +28,12 @@ public interface NodeStore<T extends Comparable<T>> {
      */
     void delete(T key);
 
+    /**
+     * clear all nodes in the store
+     */
+    void clear();
+
+
     void updateMax(Node<T> max);
 
     void updateMin(Node<T> min);

@@ -9,7 +9,7 @@ package fr.xebia.usiquizz.core.sort;
  */
 public class Node<T extends Comparable<T>> {
 
-    public T information;
+    public T key;
 
     T parent;
 
@@ -17,15 +17,33 @@ public class Node<T extends Comparable<T>> {
 
     T right;
 
-    char balance;
+    public int color;
 
     public Node(T information, T parent) {
-        this.information = information;
+        this.key = information;
         this.parent = parent;
         this.left = null;
         this.right = null;
-        this.balance = '_';
     }
+
+    public Node(T key, int nodeColor, T left, T right, NodeStore<T> store) {
+        this.key = key;
+        this.color = nodeColor;
+        this.left = left;
+        this.right = right;
+        if (left  != null){
+            Node<T> nLeft = store.get(left);
+            nLeft.parent = this.key;
+            store.update(nLeft);
+        }
+        if (right != null){
+            Node<T> nRight = store.get(right);
+            nRight.parent = this.key;
+            store.update(nRight);
+        }
+        this.parent = null;
+    }
+
 
     boolean isLeaf() {
         return ((left == null) && (right == null));
@@ -44,11 +62,34 @@ public class Node<T extends Comparable<T>> {
     }
 
     boolean isLeftNode(NodeStore<T> ns) {
-        return (information.equals(ns.get(parent).left));
+        return (key.equals(ns.get(parent).left));
     }
 
     boolean isRightNode(NodeStore<T> ns) {
-        return (information.equals(ns.get(parent).right));
+        return (key.equals(ns.get(parent).right));
     }
 
+
+    public Node<T> grandparent(NodeStore<T> store) {
+        assert parent != null; // Not the root node
+        Node<T> nParent = store.get(parent);
+        assert nParent.parent != null; // Not child of root
+        return store.get(nParent.parent);
+    }
+
+    public Node<T> sibling(NodeStore<T> store) {
+        assert parent != null; // Root node has no sibling
+        Node<T> nParent = store.get(parent);
+        if (this.key.equals(nParent.left))
+            return store.get(nParent.right);
+        else
+            return store.get(nParent.left);
+    }
+
+    public Node<T> uncle(NodeStore<T> store) {
+        assert parent != null; // Root node has no uncle
+         Node<T> nParent = store.get(parent);
+        assert nParent.parent != null; // Children of root have no uncle
+        return nParent.sibling(store);
+    }
 }

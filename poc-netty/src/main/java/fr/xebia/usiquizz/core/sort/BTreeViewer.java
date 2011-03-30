@@ -1,9 +1,5 @@
 package fr.xebia.usiquizz.core.sort;
 
-import com.sun.xml.internal.ws.api.streaming.XMLStreamWriterFactory;
-
-import java.lang.annotation.Target;
-
 /**
  *
  * This class allows to retrieve data stored in the tree and Navigate over it
@@ -55,7 +51,7 @@ public class BTreeViewer<T extends Comparable<T>> {
         } else {
             Node<T> node = store.get(ptr.parent);
             Node<T> nch = ptr;
-            while(node != null && nch.information.equals(node.right)){
+            while(node != null && nch.key.equals(node.right)){
                 nch = node;
                 node = store.get(node.parent);
             }
@@ -83,7 +79,7 @@ public class BTreeViewer<T extends Comparable<T>> {
         } else {
             Node<T> node = store.get(ptr.parent);
             Node<T> nch = ptr;
-            while(node != null && nch.information.equals(node.left)){
+            while(node != null && nch.key.equals(node.left)){
                 nch = node;
                 node = store.get(node.parent);
             }
@@ -92,7 +88,7 @@ public class BTreeViewer<T extends Comparable<T>> {
     }
 
 
-    private class DefaultNodeSet implements NodeSet<T>{
+    private class DefaultNodeSet implements NodeSet<T> {
 
         private Node<T> node;
         private boolean visited = false;
@@ -106,20 +102,20 @@ public class BTreeViewer<T extends Comparable<T>> {
         public T next() {
             if (!visited){
                 visited = true;
-                return node.information;
+                return node.key;
             }
             node = successor(node);
-            return node != null ? node.information: null;
+            return node != null ? node.key : null;
         }
 
         @Override
         public T prev() {
             if (!visited){
                 visited = true;
-                return node.information;
+                return node.key;
             }
             node = predecessor(node);
-            return node != null ? node.information: null;
+            return node != null ? node.key : null;
         }
     }
 
