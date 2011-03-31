@@ -30,10 +30,10 @@
         <region-attributes data-policy="replicate" scope="distributed-ack"/>
     </region>
     <region name="score-region">
-        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+        <region-attributes data-policy="replicate" scope="distributed-no-ack"/>
     </region>
     <region name="current-question-region">
-        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+        <region-attributes data-policy="replicate" scope="distributed-no-ack"/>
     </region>
     <region name="inverse-score-region">
         <region-attributes data-policy="replicate" scope="distributed-ack"/>

@@ -54,13 +54,16 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
         List<ChannelFuture> channels = new ArrayList<ChannelFuture>();
         if (!sendQuestionStarted.getAndSet(true)) {
             logger.info("Send all question to player");
-            //On incremente la réponse attendu courante
-            logger.info("DEBUT REPONSE {}", currentQuestionIndex);
-            game.setCurrentAnswerIndex((byte) (currentQuestionIndex));
             // On incrémente l'index de question attendu
             logger.info("FIN QUESTION {}", currentQuestionIndex);
             logger.info("DEBUT QUESTION {}", currentQuestionIndex + 1);
+            logger.info("{} player asked the question {}", longPollingResponse.size(), currentQuestionIndex);
             game.setCurrentQuestionIndex((byte) (currentQuestionIndex + 1));
+
+            //On incremente la réponse attendu courante
+            logger.info("DEBUT REPONSE {}", currentQuestionIndex);
+            game.setCurrentAnswerIndex((byte) (currentQuestionIndex));
+
 
             // On demande la réinitialisation
             game.resetPlayerAskedQuestion();

@@ -20,9 +20,6 @@ public interface Scoring {
 
     boolean isPlayerAlreadyAnswered(String sessionKey, byte currentQuestion);
 
-    // DEBUG
-    int nbLocalResponseForIndex(byte index);
-
     // temporary Called at the end of game 
     void calculRanking();
 

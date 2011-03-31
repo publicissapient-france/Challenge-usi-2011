@@ -16,9 +16,6 @@ public class DistributedScoring implements Scoring {
 
     private GemfireRepository gemfireRepository;
 
-    // Uniquement pour debug... Nombre de reponse recu sur l'instance
-    private ConcurrentHashMap<Byte, AtomicInteger> nbReponse = new ConcurrentHashMap<Byte, AtomicInteger>();
-
     public DistributedScoring(GemfireRepository gemfireRepository) {
         this.gemfireRepository = gemfireRepository;
     }
@@ -43,19 +40,11 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public byte addScore(String sessionId, byte choice, boolean good, byte index) {
-        // FIXME Pour debugage doit pouvoir être deactiver
-        AtomicInteger resp = nbReponse.get(index);
-        if (resp == null) {
-            resp = new AtomicInteger(0);
-        }
-        resp.incrementAndGet();
-        nbReponse.put(index, resp);
-        //
 
         String email = gemfireRepository.getPlayerRegion().get(sessionId);
         Score score = gemfireRepository.getScoreRegion().get(email);
         score.addResponse(choice, good, index);
-        gemfireRepository.getScoreRegion().put(email, score);
+        gemfireRepository.writeAsyncScore(email, score);
         return score.getCurrentScore();
     }
 
@@ -64,10 +53,6 @@ public class DistributedScoring implements Scoring {
         return getCurrentScore(sessionKey).isAlreadyAnswer(currentQuestion);
     }
 
-    @Override
-    public int nbLocalResponseForIndex(byte index) {
-        return nbReponse.get(index).get();
-    }
 
     @Override
     public void calculRanking() {

@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.SET_COOKIE;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -29,7 +30,9 @@ public class ResponseWriter {
     }
 
     public void writeResponse(final ChannelBuffer buffer, final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx, final MessageEvent e, final String sessionKey) {
+        boolean keepAlive = isKeepAlive((HttpMessage) e.getMessage());
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, httpResponseStatus);
+        response.setHeader(CONTENT_LENGTH, response.getContent().readableBytes());
 
         response.setContent(buffer);
         response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
@@ -100,6 +103,8 @@ public class ResponseWriter {
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
         response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
+        response.setHeader(CONTENT_LENGTH, response.getContent().readableBytes());
+
         // Encode the cookie.
         CookieEncoder cookieEncoder = new CookieEncoder(true);
         cookieEncoder.addCookie(SESSION_KEY, sessionKey);

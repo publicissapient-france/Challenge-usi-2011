@@ -143,10 +143,10 @@
     </usi:question>
   </usi:questions>
   <usi:parameters>
-    <usi:logintimeout>5000</usi:logintimeout>
-    <usi:synchrotime>5000</usi:synchrotime>
-    <usi:nbusersthreshold>200</usi:nbusersthreshold>
-    <usi:questiontimeframe>5000</usi:questiontimeframe>
+    <usi:logintimeout>500</usi:logintimeout>
+    <usi:synchrotime>500</usi:synchrotime>
+    <usi:nbusersthreshold>50</usi:nbusersthreshold>
+    <usi:questiontimeframe>500</usi:questiontimeframe>
     <usi:nbquestions>20</usi:nbquestions>
     <usi:flushusertable>false</usi:flushusertable>
     <usi:trackeduseridmail>usi:trackeduseridmail</usi:trackeduseridmail>

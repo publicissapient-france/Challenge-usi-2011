@@ -41,15 +41,26 @@ public class HttpServer {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
+    private static final int firstPort = 8080;
+
     static {
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
     }
 
     public static void main(String[] args) {
         // Si args[0] present. on considere que c'est le nombre de I/O server worker
-        int nbThread = 4;
-        if(args.length>0){
-            nbThread = Integer.parseInt(args[0]);
+        int nbThread = 50;
+        int nbListeningPort = 2;
+
+        if (args.length > 0) {
+            nbListeningPort = Integer.parseInt(args[0]);
+            if (nbListeningPort > 8) {
+                nbListeningPort = 8;
+            }
+        }
+
+        if (args.length > 1) {
+            nbThread = Integer.parseInt(args[1]);
         }
 
 
@@ -69,6 +80,7 @@ public class HttpServer {
         ExecutorService bossExec = Executors.newCachedThreadPool();
         ExecutorService ioExec = Executors.newCachedThreadPool();
 
+        logger.info("start server with {} listning port", nbListeningPort);
         logger.info("Start with {} thread worker", nbThread);
         ServerBootstrap bootstrap = new ServerBootstrap(
                 new NioServerSocketChannelFactory(bossExec, ioExec, nbThread));
@@ -81,9 +93,10 @@ public class HttpServer {
 
         // A priori beaucoup de pb de connection reset by peer sous macos sans ces options
         bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("keepAlive", true);
-        bootstrap.bind(new InetSocketAddress(8080));
-
+        bootstrap.setOption("backlog", 1000);
+        for (int i = 0; i < nbListeningPort; i++) {
+            bootstrap.bind(new InetSocketAddress(firstPort + i));
+        }
 
     }
 }

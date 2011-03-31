@@ -5,8 +5,43 @@ import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
 
 import java.util.TreeSet;
+import java.util.concurrent.*;
 
 public class GemfireRepository {
+
+    private final ExecutorService asyncScoreWritingOperation = new ThreadPoolExecutor(2, 2, 1, TimeUnit.MINUTES,
+            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+
+                private int counter = 0;
+
+                @Override
+                public Thread newThread
+                        (Runnable
+                                 r) {
+                    Thread t = new Thread(r);
+                    t.setName("Async score gemfire writing : " + counter++);
+                    return t;
+                }
+            }
+
+    );
+
+    private final ExecutorService asyncPlayerWritingOperation = new ThreadPoolExecutor(2, 2, 5, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+
+                private int counter = 0;
+
+                @Override
+                public Thread newThread
+                        (Runnable
+                                 r) {
+                    Thread t = new Thread(r);
+                    t.setName("Async score gemfire writing : " + counter++);
+                    return t;
+                }
+            }
+
+    );
 
     // PARAMETRE DU JEU
     public static final String LOGIN_TIMEOUT = "login-timeout";
@@ -63,6 +98,9 @@ public class GemfireRepository {
     // La difficulté est de le remplir
     private Region<Integer, Joueur> finalRankingRegion = cache.getRegion("final-ranking-region");
 
+    public GemfireRepository() {
+    }
+
     public void initQestionStatusResgion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();
         questionStatusAttribute.setDataPolicy(DataPolicy.REPLICATE);
@@ -113,5 +151,26 @@ public class GemfireRepository {
 
     public Region<Integer, Joueur> getFinalRankingRegion() {
         return finalRankingRegion;
+    }
+
+    // put to score region in other thread
+    public void writeAsyncScore(final String email, final Score score) {
+        asyncScoreWritingOperation.submit(new Runnable() {
+            @Override
+            public void run() {
+                getScoreRegion().put(email, score);
+            }
+        });
+
+    }
+
+    public void writeAsyncPlayerForQuestion(final String sessionId) {
+        asyncPlayerWritingOperation.submit(new Runnable() {
+            @Override
+            public void run() {
+                getCurrentQuestionRegion().put(sessionId, "");
+            }
+        });
+
     }
 }

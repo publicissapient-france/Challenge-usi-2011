@@ -16,7 +16,10 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
@@ -30,6 +33,8 @@ public class JsonAnswerRestService extends RestService {
     private static final String JSON_ANSWER_ATTRIBUTE = "answer";
 
     private static final CookieDecoder cookieDecoder = new CookieDecoder();
+
+    private final Map<Byte, Question> questionLocalCache = new HashMap<Byte, Question>();
 
     public JsonAnswerRestService(Game game, Scoring scoring, ExecutorService executorService) {
         super(game, scoring, executorService);
@@ -64,7 +69,7 @@ public class JsonAnswerRestService extends RestService {
 
             // Verifie que l'on est encore dans la bonne fenetre de réponse.
             if (!game.isPlayerCanAnswer(sessionKey, questionNbr)) {
-                logger.info("Player {} outside windows answer of question {}", sessionKey, questionNbr);
+                //logger.info("Player {} outside windows answer of question {}", sessionKey, questionNbr);
                 responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                 return;
             }
@@ -92,7 +97,7 @@ public class JsonAnswerRestService extends RestService {
             }
 
             byte answerNumber = Byte.parseByte(answer);
-            Question question = game.getQuestion(1);
+            Question question = getQuestion(questionNbr);
             // Verify is answerd is correction
             boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
             // update score
@@ -104,6 +109,20 @@ public class JsonAnswerRestService extends RestService {
             responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
             return;
         }
+    }
+
+    private Question getQuestion(byte questionNbr) {
+        Question q = questionLocalCache.get(questionNbr);
+        if (q == null) {
+            synchronized (this) {
+                q = questionLocalCache.get(questionNbr);
+                if (q == null){
+                    q = game.getQuestion(questionNbr);
+                    questionLocalCache.put(questionNbr, q);
+                }
+            }
+        }
+        return q;
     }
 
 
@@ -118,7 +137,7 @@ public class JsonAnswerRestService extends RestService {
 
 
         private static ChannelBuffer createJsonResponse(boolean isResponseGood, byte[] goodAnswer, int currentScore) {
-            
+
             if (isResponseGood) {
                 return ChannelBuffers.wrappedBuffer(ARE_U_RIGHT_BA, TRUE_BA, GOOD_ANSWER_BA, goodAnswer, SCORE_BA, Integer.toString(currentScore).getBytes(), END_BA);
             } else {
