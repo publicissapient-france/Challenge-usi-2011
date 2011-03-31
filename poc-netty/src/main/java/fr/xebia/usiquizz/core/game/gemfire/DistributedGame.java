@@ -265,9 +265,11 @@ public class DistributedGame implements Game {
                 if (currentQuestionIndex >= getNbquestions()) {
                     // End of game
                     logger.info("END OF GAME");
-                    // FIXME Il faut vraiment trouver un moyen de le faire au fur et à mesure....
-                    // On déclenche la creation du ranking
-                    scoring.calculRanking();
+
+                    // Create final ranking only when we own the score lock
+                    if (gemfireRepository.hasFinalScoreLock()){
+                        scoring.calculRanking();
+                    }
                 } else {
                     // Sinon On déclenche le synchrotime...
                     startSynchroTime();

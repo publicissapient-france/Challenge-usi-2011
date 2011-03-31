@@ -8,10 +8,11 @@ import fr.xebia.usiquizz.core.persistence.Joueur;
 import fr.xebia.usiquizz.core.persistence.User;
 import fr.xebia.usiquizz.core.sort.NodeSet;
 import fr.xebia.usiquizz.core.sort.RBTree;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
+
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DistributedScoring implements Scoring {
@@ -47,12 +48,16 @@ public class DistributedScoring implements Scoring {
     @Override
     public Score getCurrentScore(String sessionId) {
         String email = gemfireRepository.getPlayerRegion().get(sessionId);
-        return gemfireRepository.getScoreRegion().get(email);
+        return getCurrentScoreByEmail(email);
     }
 
     @Override
     public Score getCurrentScoreByEmail(String email) {
-        return gemfireRepository.getScoreRegion().get(email);
+        Score tmp = gemfireRepository.getScoreRegion().get(email);
+        if (tmp == null) {
+            tmp = gemfireRepository.getScoreFinalRegion().get(email);
+        }
+        return tmp;
     }
 
     @Override

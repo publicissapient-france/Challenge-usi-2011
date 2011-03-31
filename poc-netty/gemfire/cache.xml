@@ -49,12 +49,22 @@
     <region name="score-store-region">
         <region-attributes data-policy="replicate" scope="distributed-ack"/>
     </region>
+
+        <!-- Temporary final score map -->
+    <region name="final-score-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack">
+            <cache-listener>
+                <class-name>fr.xebia.usiquizz.core.game.gemfire.ScoreCacheListener</class-name>
+            </cache-listener>
+        </region-attributes>
+    </region>
+
     <!-- Created by API -->
     <!--
     <region name="question-status" refid="REPLICATE">
         <region-attributes>
             <cache-listener>
-                <class-name></class-name>
+                <class-name>fr.xebia.usiquizz.core.game.gemfire.ScoreCacheListener</class-name>
             </cache-listener>
         </region-attributes>
     </region>
