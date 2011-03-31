@@ -7,20 +7,20 @@ package fr.xebia.usiquizz.core.sort;
  * Time: 19:42
  * To change this template use File | Settings | File Templates.
  */
-public interface NodeStore<T extends Comparable<T>, V> {
+public interface NodeStore<T extends Comparable<T>> {
 
     /**
      * Retrieves the node in the Store from it's key
      * @param key
      * @return
      */
-    Node<T,V> get(T key);
+    Node<T> get(T key);
 
     /**
      * Update the node in the store
      * @param node
      */
-    void update(Node<T,V> node);
+    void update(Node<T> node);
 
     /**
      * deletes node from the store
@@ -28,12 +28,38 @@ public interface NodeStore<T extends Comparable<T>, V> {
      */
     void delete(T key);
 
-    void updateMax(Node<T,V> max);
+    /**
+     * clear all nodes in the store
+     */
+    void clear();
 
-    void updateMin(Node<T,V> min);
 
-    Node<T,V> getMax();
+    void updateMax(Node<T> max);
 
-    Node<T,V> getMin();
+    void updateMin(Node<T> min);
+
+    void updateRoot(Node<T> root);
+
+    Node<T> getRoot();
+
+    Node<T> getMax();
+
+    Node<T> getMin();
+
+    /**
+     * Flags the dataStore to mark running Tree modification
+     */
+    void startModification();
+
+    /**
+     * Flags the dataStore so the started modification is known to be finished correctly
+     */
+    void finishModification();
+
+    /**
+     * Tells wether the tree is currently in modification
+     * @return
+     */
+    boolean hasRunningModification();
     
 }

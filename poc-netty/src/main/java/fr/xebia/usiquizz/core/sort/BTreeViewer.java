@@ -1,9 +1,5 @@
 package fr.xebia.usiquizz.core.sort;
 
-import com.sun.xml.internal.ws.api.streaming.XMLStreamWriterFactory;
-
-import java.lang.annotation.Target;
-
 /**
  *
  * This class allows to retrieve data stored in the tree and Navigate over it
@@ -12,11 +8,11 @@ import java.lang.annotation.Target;
  * Date: 28/03/11
  * Time: 01:23
  */
-public class BTreeViewer<T extends Comparable<T>, V> {
+public class BTreeViewer<T extends Comparable<T>> {
 
-    private final NodeStore<T,V> store;
+    private final NodeStore<T> store;
 
-    public BTreeViewer(NodeStore<T,V> _store){
+    public BTreeViewer(NodeStore<T> _store){
         store = _store;
     }
 
@@ -41,21 +37,21 @@ public class BTreeViewer<T extends Comparable<T>, V> {
      * @param ptr
      * @return
      */
-    private Node<T, V> successor(Node<T,V> ptr){
+    private Node<T> successor(Node<T> ptr){
         
         if (ptr == null){
             return null;
         }
         else if (ptr.right !=null){
-            Node<T,V> node = store.get(ptr.right);
+            Node<T> node = store.get(ptr.right);
             while(node.left != null){
-                node = store.get(ptr.left);
+                node = store.get(node.left);
             }
             return node;
         } else {
-            Node<T,V> node = store.get(ptr.parent);
-            Node<T,V> nch = ptr;
-            while(node != null && nch.information.equals(node.right)){
+            Node<T> node = store.get(ptr.parent);
+            Node<T> nch = ptr;
+            while(node != null && nch.key.equals(node.right)){
                 nch = node;
                 node = store.get(node.parent);
             }
@@ -69,21 +65,21 @@ public class BTreeViewer<T extends Comparable<T>, V> {
      * @param ptr
      * @return
      */
-    private Node<T, V> predecessor(Node<T,V> ptr){
+    private Node<T> predecessor(Node<T> ptr){
 
         if (ptr == null){
             return null;
         }
         else if (ptr.left !=null){
-            Node<T,V> node = store.get(ptr.left);
+            Node<T> node = store.get(ptr.left);
             while(node.right != null){
-                node = store.get(ptr.right);
+                node = store.get(node.right);
             }
             return node;
         } else {
-            Node<T,V> node = store.get(ptr.parent);
-            Node<T,V> nch = ptr;
-            while(node != null && nch.information.equals(node.left)){
+            Node<T> node = store.get(ptr.parent);
+            Node<T> nch = ptr;
+            while(node != null && nch.key.equals(node.left)){
                 nch = node;
                 node = store.get(node.parent);
             }
@@ -92,26 +88,34 @@ public class BTreeViewer<T extends Comparable<T>, V> {
     }
 
 
-    private class DefaultNodeSet implements NodeSet<V>{
+    private class DefaultNodeSet implements NodeSet<T> {
 
-        private Node<T,V> node;
+        private Node<T> node;
+        private boolean visited = false;
 
-        public DefaultNodeSet(Node<T,V> node){
+        public DefaultNodeSet(Node<T> node){
             this.node = node;
         }
 
 
         @Override
-        public V next() {
-
+        public T next() {
+            if (!visited){
+                visited = true;
+                return node.key;
+            }
             node = successor(node);
-            return node.value;
+            return node != null ? node.key : null;
         }
 
         @Override
-        public V prev() {
+        public T prev() {
+            if (!visited){
+                visited = true;
+                return node.key;
+            }
             node = predecessor(node);
-            return node.value;  
+            return node != null ? node.key : null;
         }
     }
 

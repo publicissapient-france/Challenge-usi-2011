@@ -4,7 +4,7 @@ package fr.xebia.usiquizz.core.persistence;
 import java.io.Serializable;
 import java.util.Comparator;
 
-public class Joueur implements Serializable {
+public class Joueur implements Serializable, Comparable<Joueur> {
     private int score;
     private String lastName;
     private String firstName;
@@ -33,21 +33,17 @@ public class Joueur implements Serializable {
         return score;
     }
 
-    public static class JoueurComparator implements Comparator<Joueur> {
-
-        @Override
-        public int compare(Joueur o1, Joueur o2) {
-            int comp;
-            if ((comp = o2.getScore() - o1.getScore()) == 0) {
-                if ((comp = o1.getEmail().compareTo(o2.getEmail())) == 0) {
-                    if ((comp = o1.getLastName().compareTo(o2.getLastName())) == 0) {
-                        return o1.getFirstName().compareTo(o2.getFirstName());
-                    }
+    @Override
+    public int compareTo(Joueur o1) {
+        int comp;
+        if ((comp = this.getScore() - o1.getScore()) == 0) {
+            if ((comp = this.getEmail().compareTo(o1.getEmail())) == 0) {
+                if ((comp = this.getLastName().compareTo(o1.getLastName())) == 0) {
+                    return this.getFirstName().compareTo(o1.getFirstName());
                 }
             }
-            return comp;
         }
+        return comp;
     }
-
 
 }

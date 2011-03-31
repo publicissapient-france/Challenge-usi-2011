@@ -3,7 +3,9 @@ package fr.xebia.usiquizz.server.http.netty.rest;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
+import fr.xebia.usiquizz.core.persistence.User;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
+import fr.xebia.usiquizz.core.persistence.serialization.UserSerializer;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -61,8 +63,9 @@ public class JsonLoginRestService extends RestService {
                 }
             }
             if (mail != null && password != null) {
-                if ((userRepository.logUser(mail, password))) {
-                    String sessionKey = Integer.toString(mail.hashCode());
+                User user = userRepository.logUser(mail, password);
+                if (user !=null) {
+                    String sessionKey = new StringBuilder(Integer.toString(mail.hashCode())).append("|").append(mail).toString();
                     if (game.isAlreadyLogged(sessionKey)) {
                         logger.info("user already logged");
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
@@ -76,7 +79,7 @@ public class JsonLoginRestService extends RestService {
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                     }
                     // Add a score object to player
-                    scoring.createScore(sessionKey);
+                    scoring.createScore(sessionKey, user);
 
                     responseWriter.writeResponse(null, HttpResponseStatus.OK, ctx, e, sessionKey);
                     return;
