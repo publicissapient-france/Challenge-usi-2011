@@ -44,6 +44,10 @@
     <region name="final-ranking-region">
         <region-attributes data-policy="replicate" scope="distributed-ack"/>
     </region>
+    <!-- Ranking NodeStore -->
+    <region name="score-store-region">
+        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+    </region>
     <!-- Created by API -->
     <!--
     <region name="question-status" refid="REPLICATE">
