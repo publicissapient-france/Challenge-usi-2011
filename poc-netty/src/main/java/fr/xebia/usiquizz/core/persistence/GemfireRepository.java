@@ -122,6 +122,7 @@ public class GemfireRepository {
 
         // Try to get the lock indefinitely
         // if server owning the lock crash we can recover
+        /*
         asyncScore.execute(new Runnable() {
             @Override
             public void run() {
@@ -140,6 +141,8 @@ public class GemfireRepository {
                 ownScoreLock = false;
             }
         });
+        */
+        ownScoreLock = dls.lock("finalScoring", -1, -1);
 
     }
 

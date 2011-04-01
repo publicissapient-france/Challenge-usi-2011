@@ -136,19 +136,25 @@ public class DistributedGame implements Game {
         // FIXME Le status doit bien être synchrone entre tous les serveurs.. Bien verifier la conf de cette région
         if ((Byte) gemfireRepository.getGameRegion().get(LOGIN_PHASE_STATUS) == LOGIN_PHASE_TERMINER) {
             throw new LoginPhaseEndedException();
-        } else if ((Byte) gemfireRepository.getGameRegion().get(LOGIN_PHASE_STATUS) == LOGIN_PHASE_NON_COMMENCER) {
-            logger.info("Start timers login timeout");
-            gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_EN_COURS);
-            scheduleExecutor.schedule((new Runnable() {
-                @Override
-                public void run() {
-                    logger.info("Login timer ended");
-                    gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_TERMINER);
-                    logger.info("{} player logged for game", gemfireRepository.getPlayerRegion().size());
+        } else {
+            if ((Byte) gemfireRepository.getGameRegion().get(LOGIN_PHASE_STATUS) == LOGIN_PHASE_NON_COMMENCER) {
+                synchronized (this) {
+                    if ((Byte) gemfireRepository.getGameRegion().get(LOGIN_PHASE_STATUS) == LOGIN_PHASE_NON_COMMENCER) {
+                        logger.info("Start timers login timeout");
+                        gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_EN_COURS);
+                        scheduleExecutor.schedule((new Runnable() {
+                            @Override
+                            public void run() {
+                                logger.info("Login timer ended");
+                                gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_TERMINER);
+                                logger.info("{} player logged for game", gemfireRepository.getPlayerRegion().size());
 
-                    startGame();
+                                startGame();
+                            }
+                        }), getLoginTimeout(), TimeUnit.MILLISECONDS);
+                    }
                 }
-            }), getLoginTimeout(), TimeUnit.MILLISECONDS);
+            }
         }
         gemfireRepository.getPlayerRegion().put(sessionId, email);
     }
