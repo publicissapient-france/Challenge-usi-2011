@@ -4,13 +4,19 @@ import com.gemstone.gemfire.cache.*;
 import com.gemstone.gemfire.distributed.DistributedLockService;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
+import fr.xebia.usiquizz.core.game.gemfire.ScoreCacheListener;
 import fr.xebia.usiquizz.core.sort.Node;
 import fr.xebia.usiquizz.core.sort.NodeStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.TreeSet;
 import java.util.concurrent.*;
 
 public class GemfireRepository {
+
+
+    private static final Logger LOG = LoggerFactory.getLogger(GemfireRepository.class);
 
     private final ExecutorService asyncScoreWritingOperation = new ThreadPoolExecutor(2, 2, 1, TimeUnit.MINUTES,
             new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
@@ -109,7 +115,7 @@ public class GemfireRepository {
 
     // cette region contient les score finaux des utilisateurs qui ont répondus
     // Elle associe email -> Score
-    private Region<String, Score> scoreFinalRegion = cache.getRegion("final-score-region");
+    private Region<String, Score> scoreFinalRegion;
 
 
     DistributedLockService dls = DistributedLockService.create("ScoreLockService", cache.getDistributedSystem());
@@ -119,27 +125,39 @@ public class GemfireRepository {
 
     public GemfireRepository() {
 
+       
+        AttributesFactory scoreFinalRegionAttribute = new AttributesFactory();
+        scoreFinalRegionAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        scoreFinalRegionAttribute.addCacheListener(new ScoreCacheListener(this));
+        RegionFactory rf = cache.createRegionFactory(scoreFinalRegionAttribute.create());
+        scoreFinalRegion = rf.create("final-score-region");
 
         // Try to get the lock indefinitely
         // if server owning the lock crash we can recover
         asyncScore.execute(new Runnable() {
             @Override
             public void run() {
-                boolean locked = dls.lock("finalScoring", -1, -1);
-                while (!locked){
-                    locked = dls.lock("finalScoring", -1, -1);
-                }
-                ownScoreLock =true;
-
-                try {
-                    Thread.currentThread().wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                }
-                dls.freeResources("finalScoring");
-                ownScoreLock = false;
+                while (true){
+                    boolean locked = dls.lock("finalScoring", -1, -1);
+                    LOG.info("Granted to final scoring distributed lock {}", locked);
+                    ownScoreLock =locked ;
+                    while (locked){
+                        try {
+                            Thread.currentThread().sleep(500);
+                        } catch (InterruptedException e) {
+                            LOG.warn("Interruption while sleeping before lock access", e);
+                           locked = false;
+                        }
+                    }
+                    dls.freeResources("finalScoring");
+                 }
             }
         });
+
+    }
+
+
+    public void initFinalScoreRegion(){
 
     }
 
