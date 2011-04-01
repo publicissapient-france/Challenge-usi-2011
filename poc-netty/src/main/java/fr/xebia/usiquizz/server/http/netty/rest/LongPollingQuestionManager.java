@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LongPollingQuestionManager implements QuestionLongpollingCallback {
@@ -26,16 +24,30 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
 
     private ResponseWriter responseWriter;
 
-    private ExecutorService executorService;
+    private ExecutorService executorService = new ThreadPoolExecutor(2, 2, 5, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+
+                private int counter = 0;
+
+                @Override
+                public Thread newThread
+                        (Runnable
+                                 r) {
+                    Thread t = new Thread(r);
+                    t.setName("Longpolling player register " + counter++);
+                    return t;
+                }
+            }
+    );
+
 
     private AtomicBoolean sendQuestionStarted = new AtomicBoolean(false);
 
     private byte currentQuestionIndex = 1;
 
-    public LongPollingQuestionManager(Game game, ResponseWriter responseWriter, ExecutorService executorService) {
+    public LongPollingQuestionManager(Game game, ResponseWriter responseWriter) {
         this.game = game;
         this.responseWriter = responseWriter;
-        this.executorService = executorService;
         this.game.registerLongpollingCallback(this);
     }
 
@@ -45,9 +57,14 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
         sendQuestionStarted.set(false);
     }
 
-    public void addPlayer(String sessionKey, ChannelHandlerContext ctx, byte questionNbr) {
-        longPollingResponse.put(sessionKey, ctx);
-        game.addPlayerForQuestion(sessionKey, questionNbr);
+    public void addPlayer(final String sessionKey, final ChannelHandlerContext ctx, final String questionNbr) {
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                longPollingResponse.put(sessionKey, ctx);
+                game.addPlayerForQuestion(sessionKey, questionNbr);
+            }
+        });
     }
 
     public void sendQuestionToAllPlayer() {
@@ -58,11 +75,11 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
             logger.info("FIN QUESTION {}", currentQuestionIndex);
             logger.info("DEBUT QUESTION {}", currentQuestionIndex + 1);
             logger.info("{} player asked the question {}", longPollingResponse.size(), currentQuestionIndex);
-            game.setCurrentQuestionIndex((byte) (currentQuestionIndex + 1));
+            game.setCurrentQuestionIndex(Byte.toString((byte) (currentQuestionIndex + 1)));
 
             //On incremente la réponse attendu courante
             logger.info("DEBUT REPONSE {}", currentQuestionIndex);
-            game.setCurrentAnswerIndex((byte) (currentQuestionIndex));
+            game.setCurrentAnswerIndex(Byte.toString((byte) (currentQuestionIndex)));
 
 
             // On demande la réinitialisation

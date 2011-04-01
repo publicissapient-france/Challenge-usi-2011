@@ -35,10 +35,9 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public void createScore(String sessionKey, User user) {
-        // FIXME pass nb question
-        String email = user.getMail();
+
        // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
-        gemfireRepository.getScoreRegion().put(email, new Score(((Integer) gemfireRepository.getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
+        gemfireRepository.createScore(sessionKey, user);
         if (top100 != null){
             top100 = null;
         }
@@ -46,36 +45,33 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public Score getCurrentScore(String sessionId) {
-        String email = gemfireRepository.getPlayerRegion().get(sessionId);
-        return gemfireRepository.getScoreRegion().get(email);
+        return gemfireRepository.getScoreRegion().get(sessionId);
     }
 
     @Override
     public Score getCurrentScoreByEmail(String email) {
-        return gemfireRepository.getScoreRegion().get(email);
+        return gemfireRepository.getScoreRegion().get(email.hashCode());
     }
 
     @Override
     public byte addScore(String sessionId, byte choice, boolean good, byte index) {
-
-        String email = sessionId.split("|")[1];
-        Score score = gemfireRepository.getScoreRegion().get(email);
+        Score score = gemfireRepository.getScoreRegion().get(sessionId);
         score.addResponse(choice, good, index);
-        gemfireRepository.writeAsyncScore(email, score);
+        gemfireRepository.writeAsyncScore(sessionId, score);
         return score.getCurrentScore();
     }
 
     @Override
-    public boolean isPlayerAlreadyAnswered(String sessionKey, byte currentQuestion) {
+    public boolean isPlayerAlreadyAnswered(String sessionKey, String currentQuestion) {
         return getCurrentScore(sessionKey).isAlreadyAnswer(currentQuestion);
     }
 
 
     @Override
     public void calculRanking(){
-         for (String email : gemfireRepository.getScoreRegion().keySet()) {
-            Score score = gemfireRepository.getScoreRegion().get(email);
-            tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, email));
+         for (String sessionKey : gemfireRepository.getScoreRegion().keySet()) {
+            Score score = gemfireRepository.getScoreRegion().get(sessionKey);
+            tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, sessionKey));
         }
     }
 

@@ -21,7 +21,7 @@ public class Score implements Serializable {
         reponse = new byte[nbQuestion];
 
         // init array
-        Arrays.fill(reponse, (byte)0);
+        Arrays.fill(reponse, (byte) 0);
         this.email = user.getMail();
         this.lname = user.getLastname();
         this.fname = user.getFirstname();
@@ -33,7 +33,7 @@ public class Score implements Serializable {
         byte newScore = currentScore;
 
         // Reset responseCount if user did not answer last question
-        if (index > 0 && reponse[index - 1] == 0){
+        if (index > 0 && reponse[index - 1] == 0) {
             goodResponseCount = 0;
         }
 
@@ -50,11 +50,11 @@ public class Score implements Serializable {
 
             goodResponseCount++;
 
-        }else {
+        } else {
             goodResponseCount = 0;
         }
 
-        reponse[index] = (byte)choice;
+        reponse[index] = (byte) choice;
 
         this.currentScore = newScore;
         return newScore;
@@ -69,8 +69,8 @@ public class Score implements Serializable {
     }
 
 
-    public boolean isAlreadyAnswer(byte currentQuestion) {
+    public boolean isAlreadyAnswer(String currentQuestion) {
         // Manage difference between question index
-        return reponse[currentQuestion - 1] != 0;
+        return reponse[Byte.parseByte(currentQuestion) - 1] != 0;
     }
 }

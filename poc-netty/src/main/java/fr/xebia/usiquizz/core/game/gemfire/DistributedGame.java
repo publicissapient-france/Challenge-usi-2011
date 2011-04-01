@@ -14,7 +14,6 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -63,7 +62,10 @@ public class DistributedGame implements Game {
     public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
         this.scoring = scoring;
-        gemfireRepository.initQestionStatusResgion(new QuestionStatusCacheListener(this, eventTaskExector));
+        gemfireRepository.initQuestionStatusRegion(new QuestionStatusCacheListener(this, eventTaskExector));
+        gemfireRepository.initCurrentQuestionRegion();
+        gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
+
     }
 
     @Override
@@ -76,8 +78,8 @@ public class DistributedGame implements Game {
         gemfireRepository.getGameRegion().put(NB_QUESTIONS, st.getParameters().getNbquestions());
         gemfireRepository.getGameRegion().put(FLUSH_USER_TABLE, st.getParameters().isFlushusertable());
         gemfireRepository.getGameRegion().put(TRACKED_USER_IDMAIL, st.getParameters().getTrackeduseridmail());
-        gemfireRepository.getGameRegion().put(CURRENT_QUESTION_INDEX, (byte) 1);
-        gemfireRepository.getGameRegion().put(CURRENT_ANSWER_INDEX, (byte) 1);
+        gemfireRepository.getGameRegion().put(CURRENT_QUESTION_INDEX, "1");
+        gemfireRepository.getGameRegion().put(CURRENT_ANSWER_INDEX, "1");
 
         // Status du jeux
         gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_NON_COMMENCER);
@@ -87,7 +89,7 @@ public class DistributedGame implements Game {
 
         // Les status de chaque question (non jouée, en cours, jouée)
         for (byte currentIndex = 1; currentIndex <= st.getParameters().getNbquestions(); currentIndex++) {
-            gemfireRepository.getQuestionStatusRegion().put(currentIndex, QuestionStatus.QUESTION_NON_JOUEE);
+            gemfireRepository.getQuestionStatusRegion().put(Byte.toString(currentIndex), QuestionStatus.QUESTION_NON_JOUEE);
         }
     }
 
@@ -142,13 +144,27 @@ public class DistributedGame implements Game {
                     gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_TERMINER);
                     logger.info("{} player logged for game", gemfireRepository.getPlayerRegion().size());
 
-                    // On change le status de la première question.
-                    // Un listener permet, si nécessaire (pas tous les joueurs de loggué) de démarrer l'envoie de la premiere question
-                    gemfireRepository.getQuestionStatusRegion().put((Byte) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX), QuestionStatus.QUESTION_EN_COURS);
+                    startGame();
                 }
             }), getLoginTimeout(), TimeUnit.MILLISECONDS);
         }
         gemfireRepository.getPlayerRegion().put(sessionId, email);
+    }
+
+    @Override
+    public void startGame() {
+        // On change le status de la première question.
+        // Un listener permet, si nécessaire (pas tous les joueurs de loggué) de démarrer l'envoie de la premiere question
+        // Si la question n'est pas encore en cours on la passe en cours. (cas de tous les joueurs loggué avant la fin du timer)
+        logger.warn("Start game");
+        if (gemfireRepository.getQuestionStatusRegion().get(gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX)).intValue() == QuestionStatus.QUESTION_NON_JOUEE) {
+            gemfireRepository.getQuestionStatusRegion().put((String) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX), QuestionStatus.QUESTION_EN_COURS);
+        }
+    }
+
+    @Override
+    public boolean isAllPlayerLogged() {
+        return gemfireRepository.getPlayerRegion().size() == ((Integer) gemfireRepository.getGameRegion().get(NB_USERS_THRESOLD)).intValue();
     }
 
     @Override
@@ -172,12 +188,12 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public void addPlayerForQuestion(final String sessionId, final byte questionIndex) {
+    public void addPlayerForQuestion(final String sessionId, final String questionIndex) {
         gemfireRepository.writeAsyncPlayerForQuestion(sessionId);
     }
 
     @Override
-    public int countUserForQuestion(int questionIndex) {
+    public int countUserForQuestion(String questionIndex) {
         return gemfireRepository.getCurrentQuestionRegion().size();
     }
 
@@ -188,24 +204,22 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public byte getCurrentQuestionIndex() {
-        Byte i = (Byte) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX);
-        return i;
+    public String getCurrentQuestionIndex() {
+        return (String) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX);
     }
 
     @Override
-    public byte getCurrentAnswerIndex() {
-        Byte i = (Byte) gemfireRepository.getGameRegion().get(CURRENT_ANSWER_INDEX);
-        return i;
+    public String getCurrentAnswerIndex() {
+        return (String) gemfireRepository.getGameRegion().get(CURRENT_ANSWER_INDEX);
     }
 
     @Override
-    public void setCurrentQuestionIndex(byte newIndex) {
+    public void setCurrentQuestionIndex(String newIndex) {
         gemfireRepository.getGameRegion().put(CURRENT_QUESTION_INDEX, newIndex);
     }
 
     @Override
-    public void setCurrentAnswerIndex(byte newIndex) {
+    public void setCurrentAnswerIndex(String newIndex) {
         gemfireRepository.getGameRegion().put(CURRENT_ANSWER_INDEX, newIndex);
     }
 
@@ -215,9 +229,9 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public boolean isPlayerCanAnswer(String sessionKey, byte currentQuestion) {
+    public boolean isPlayerCanAnswer(String sessionKey, String currentQuestion) {
         // L'index de la question doit correspondre au reponse que l'on attend
-        if (currentQuestion != getCurrentAnswerIndex()) {
+        if (!currentQuestion.equals(getCurrentAnswerIndex())) {
             logger.info("Player {} outside windows answer of question {} current answer {}", new Object[]{sessionKey, currentQuestion, getCurrentAnswerIndex()});
             return false;
         }
@@ -236,9 +250,9 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public boolean isPlayerCanAskQuestion(String sessionKey, byte questionNbr) {
+    public boolean isPlayerCanAskQuestion(String sessionKey, String questionNbr) {
         // L'index de la question doit être la question courante.
-        if (questionNbr != getCurrentQuestionIndex()) {
+        if (!questionNbr.equals(getCurrentQuestionIndex())) {
             return false;
         }
 
@@ -283,25 +297,25 @@ public class DistributedGame implements Game {
 
     @Override
     public ChannelBuffer createQuestionInJson(byte currentQuestionIndex, String session_key) {
-        return jsonQuestionWriter.createQuestionInJson(currentQuestionIndex, gemfireRepository.getScoreRegion().get(gemfireRepository.getPlayerRegion().get(session_key)).getCurrentScore());
+        return jsonQuestionWriter.createQuestionInJson(currentQuestionIndex, gemfireRepository.getScoreRegion().get(session_key).getCurrentScore());
 
     }
 
 
     private void startSynchroTime() {
+        final String currentAnswerIndex = getCurrentAnswerIndex();
+        final String currentQuestionIndex = getCurrentQuestionIndex();
+        logger.info("fin REPONSE {}", currentAnswerIndex);
+        gemfireRepository.getQuestionStatusRegion().put(currentAnswerIndex, QuestionStatus.QUESTION_JOUEE);
         logger.info("Start synchro time");
 
-        final byte currentAnswerIndex = getCurrentAnswerIndex();
-        final byte currentQuestionIndex = getCurrentQuestionIndex();
         scheduleExecutor.schedule((new Runnable() {
             @Override
             public void run() {
                 logger.info("end synchro time");
                 // Fin de la fenetre de reponse de la question prec
                 // On met le status de la question en QUESTION_JOUEE
-                logger.info("fin REPONSE {}", currentAnswerIndex);
-                logger.info("{} send answer for question", currentAnswerIndex);
-                gemfireRepository.getQuestionStatusRegion().put(currentAnswerIndex, QuestionStatus.QUESTION_JOUEE);
+
                 // On change le statut de la question
                 gemfireRepository.getQuestionStatusRegion().put(currentQuestionIndex, QuestionStatus.QUESTION_EN_COURS);
             }

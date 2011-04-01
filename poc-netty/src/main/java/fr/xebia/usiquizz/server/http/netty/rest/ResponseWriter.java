@@ -32,7 +32,6 @@ public class ResponseWriter {
     public void writeResponse(final ChannelBuffer buffer, final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx, final MessageEvent e, final String sessionKey) {
         boolean keepAlive = isKeepAlive((HttpMessage) e.getMessage());
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, httpResponseStatus);
-        response.setHeader(CONTENT_LENGTH, response.getContent().readableBytes());
 
         response.setContent(buffer);
         response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
@@ -59,6 +58,8 @@ public class ResponseWriter {
                 }
             }
         }
+
+        response.setHeader(CONTENT_LENGTH, response.getContent().readableBytes());
 
         // Write the response.
         ChannelFuture future = ctx.getChannel().write(response);
