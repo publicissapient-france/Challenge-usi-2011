@@ -2,6 +2,7 @@ package fr.xebia.usiquizz.core.game.gemfire;
 
 import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
 
+import com.gemstone.gemfire.cache.CacheListener;
 import com.usi.Question;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.Game;
@@ -65,6 +66,7 @@ public class DistributedGame implements Game {
         gemfireRepository.initQuestionStatusRegion(new QuestionStatusCacheListener(this, eventTaskExector));
         gemfireRepository.initCurrentQuestionRegion();
         gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
+        gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(gemfireRepository, eventTaskExector));
 
     }
 
@@ -279,9 +281,10 @@ public class DistributedGame implements Game {
                 if (currentQuestionIndex >= getNbquestions()) {
                     // End of game
                     logger.info("END OF GAME");
-                    // FIXME Il faut vraiment trouver un moyen de le faire au fur et à mesure....
-                    // On déclenche la creation du ranking
-                    scoring.calculRanking();
+                    // Create final ranking only when we own the score lock
+                    if (gemfireRepository.hasFinalScoreLock()) {
+                        scoring.calculRanking();
+                    }
                 } else {
                     // Sinon On déclenche le synchrotime...
                     startSynchroTime();

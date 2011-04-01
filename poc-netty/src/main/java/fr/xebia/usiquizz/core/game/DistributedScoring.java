@@ -8,10 +8,11 @@ import fr.xebia.usiquizz.core.persistence.Joueur;
 import fr.xebia.usiquizz.core.persistence.User;
 import fr.xebia.usiquizz.core.sort.NodeSet;
 import fr.xebia.usiquizz.core.sort.RBTree;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
+
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DistributedScoring implements Scoring {
@@ -36,21 +37,24 @@ public class DistributedScoring implements Scoring {
     @Override
     public void createScore(String sessionKey, User user) {
 
-       // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
-        gemfireRepository.createScore(sessionKey, user);
-        if (top100 != null){
+        // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
+        if (top100 != null) {
             top100 = null;
         }
     }
 
     @Override
     public Score getCurrentScore(String sessionId) {
-        return gemfireRepository.getScoreRegion().get(sessionId);
+        Score tmp = gemfireRepository.getScoreRegion().get(sessionId);
+        if (tmp == null) {
+            tmp = gemfireRepository.getScoreFinalRegion().get(sessionId);
+        }
+        return tmp;
     }
 
     @Override
     public Score getCurrentScoreByEmail(String email) {
-        return gemfireRepository.getScoreRegion().get(email.hashCode());
+        return getCurrentScore(Integer.toString(email.hashCode()));
     }
 
     @Override
@@ -68,13 +72,12 @@ public class DistributedScoring implements Scoring {
 
 
     @Override
-    public void calculRanking(){
-         for (String sessionKey : gemfireRepository.getScoreRegion().keySet()) {
+    public void calculRanking() {
+        for (String sessionKey : gemfireRepository.getScoreRegion().keySet()) {
             Score score = gemfireRepository.getScoreRegion().get(sessionKey);
             tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, sessionKey));
         }
     }
-
 
 
     @Override
@@ -85,7 +88,7 @@ public class DistributedScoring implements Scoring {
             NodeSet<Joueur> set = tree.getMaxSet();
             Joueur joueur = null;
             int i = 0;
-            while (i < 100 ){
+            while (i < 100) {
                 joueur = set.prev();
                 if (joueur == null)
                     break;
@@ -106,7 +109,7 @@ public class DistributedScoring implements Scoring {
         List<Joueur> res = new ArrayList<Joueur>();
         NodeSet<Joueur> set = tree.getSet(joueur);
         int i = 0;
-        while (i < 50 ){
+        while (i < 50) {
             joueur = set.prev();
             if (joueur == null)
                 break;
@@ -124,7 +127,7 @@ public class DistributedScoring implements Scoring {
         List<Joueur> res = new ArrayList<Joueur>();
         NodeSet<Joueur> set = tree.getSet(joueur);
         int i = 0;
-        while (i < 50 ){
+        while (i < 50) {
             joueur = set.next();
             if (joueur == null)
                 break;

@@ -1,6 +1,7 @@
 package fr.xebia.usiquizz.core.persistence;
 
 import com.gemstone.gemfire.cache.*;
+import com.gemstone.gemfire.distributed.DistributedLockService;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
 import fr.xebia.usiquizz.core.sort.Node;
@@ -44,6 +45,8 @@ public class GemfireRepository {
             }
 
     );
+
+    private final ExecutorService asyncScore = Executors.newSingleThreadExecutor();
 
     // PARAMETRE DU JEU
     public static final String LOGIN_TIMEOUT = "login-timeout";
@@ -103,7 +106,41 @@ public class GemfireRepository {
     // La difficulté est de le remplir
     private Region<Integer, Joueur> finalRankingRegion = cache.getRegion("final-ranking-region");
 
+
+    // cette region contient les score finaux des utilisateurs qui ont répondus
+    // Elle associe email -> Score
+    private Region<String, Score> scoreFinalRegion = cache.getRegion("final-score-region");
+
+
+    DistributedLockService dls = DistributedLockService.create("ScoreLockService", cache.getDistributedSystem());
+
+    // Tells wether this instance owns the lock or not
+    private boolean ownScoreLock = false;
+
     public GemfireRepository() {
+
+
+        // Try to get the lock indefinitely
+        // if server owning the lock crash we can recover
+        asyncScore.execute(new Runnable() {
+            @Override
+            public void run() {
+                boolean locked = dls.lock("finalScoring", -1, -1);
+                while (!locked) {
+                    locked = dls.lock("finalScoring", -1, -1);
+                }
+                ownScoreLock = true;
+
+                try {
+                    Thread.currentThread().wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
+                dls.freeResources("finalScoring");
+                ownScoreLock = false;
+            }
+        });
+
     }
 
     public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {
@@ -129,6 +166,15 @@ public class GemfireRepository {
         loginAttribute.addCacheListener(loginCacheListener);
         RegionFactory rf = cache.createRegionFactory(loginAttribute.create());
         playerRegion = rf.create("player-region");
+    }
+
+    public void initFinalScoreRegion(CacheListener finalScoreListener) {
+        AttributesFactory scoreAttribute = new AttributesFactory();
+        scoreAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        scoreAttribute.setScope(Scope.DISTRIBUTED_ACK);
+        scoreAttribute.addCacheListener(finalScoreListener);
+        RegionFactory rf = cache.createRegionFactory(scoreAttribute.create());
+        playerRegion = rf.create("final-score-region");
     }
 
     public Cache getCache() {
@@ -159,6 +205,11 @@ public class GemfireRepository {
         return scoreRegion;
     }
 
+
+    public Region<String, Score> getScoreFinalRegion() {
+        return scoreRegion;
+    }
+
     public Region<String, Byte> getQuestionStatusRegion() {
         return questionStatusRegion;
     }
@@ -181,10 +232,16 @@ public class GemfireRepository {
         asyncScoreWritingOperation.submit(new Runnable() {
             @Override
             public void run() {
-                getScoreRegion().put(email, score);
+                if (!score.isAlreadyAnswer(((String) getGameRegion().get(NB_QUESTIONS)))) {
+                    // Maj du score standard
+                    getScoreRegion().put(email, score);
+                } else {
+                    // Ajout du score dans la region final et suppression de scoreRegion
+                    getScoreRegion().remove(email);
+                    getScoreFinalRegion().put(email, score);
+                }
             }
         });
-
     }
 
     public void writeAsyncPlayerForQuestion(final String sessionId) {
@@ -196,16 +253,22 @@ public class GemfireRepository {
         });
     }
 
-    public Region<Joueur, Node<Joueur>> getScoreStoreRegion() {
-        return scoreStoreRegion;
-    }
-
-    public void createScore(final String sessionKey, final User user) {
+    public void createScoreAsync(final String sessionKey, final User user) {
         asyncScoreWritingOperation.submit(new Runnable() {
             @Override
             public void run() {
                 getScoreRegion().put(sessionKey, new Score(((Integer) getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
             }
         });
+
+    }
+
+    public Region<Joueur, Node<Joueur>> getScoreStoreRegion() {
+        return scoreStoreRegion;
+    }
+
+
+    public boolean hasFinalScoreLock() {
+        return ownScoreLock;
     }
 }
