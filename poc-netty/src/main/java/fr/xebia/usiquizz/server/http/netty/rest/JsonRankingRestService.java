@@ -4,6 +4,7 @@ import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Score;
 import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.persistence.Joueur;
+import fr.xebia.usiquizz.server.http.netty.FastSessionKeyCookieDecoder;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -41,19 +42,8 @@ public class JsonRankingRestService extends RestService {
             HttpRequest request = (HttpRequest) e.getMessage();
 
             // Get session_key
-            String sessionKey = null;
-            String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
-            if (cookieString != null) {
+            String sessionKey = FastSessionKeyCookieDecoder.findSessionKey(request.getHeader(COOKIE));
 
-                Set<Cookie> cookies = cookieDecoder.decode(cookieString);
-                if (!cookies.isEmpty()) {
-                    for (Cookie c : cookies) {
-                        if (c.getName().equals(SESSION_KEY)) {
-                            sessionKey = c.getValue();
-                        }
-                    }
-                }
-            }
             if (sessionKey == null) {
                 logger.info("Player with no cookies... Rejected");
                 responseWriter.writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);

@@ -3,6 +3,8 @@ package fr.xebia.usiquizz.server.http.netty.rest;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
 import org.antlr.stringtemplate.StringTemplate;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -18,6 +20,11 @@ public class JsonParameterRestService extends RestService {
 
     private static Logger logger = LoggerFactory.getLogger(JsonGameRestService.class);
 
+    private static final StringTemplate st = new StringTemplate("{ \n" +
+                "\"nbQuestion\" : \"$nbQuestion$\", \n" +
+                "\"questionTimeFrame\" : \"$questionTimeFrame$\", \n" +
+                "\"synchrotime\" : \"$synchrotime$\",\n" +
+                "}");
 
     protected JsonParameterRestService(Game game, Scoring scoring, ExecutorService executorService) {
         super(game, scoring, executorService);
@@ -30,15 +37,13 @@ public class JsonParameterRestService extends RestService {
     }
 
     private ChannelBuffer constructJsonResponse(int nbQuestion, int questionTimeFrame, int synchrotime) {
-        StringTemplate st = new StringTemplate("{ \n" +
-                "\"nbQuestion\" : \"$nbQuestion$\", \n" +
-                "\"questionTimeFrame\" : \"$questionTimeFrame$\", \n" +
-                "\"synchrotime\" : \"$synchrotime$\",\n" +
-                "}");
+
+
         st.setAttribute("nbQuestion", nbQuestion);
         st.setAttribute("questionTimeFrame", questionTimeFrame);
         st.setAttribute("synchrotime", synchrotime);
         ChannelBuffer cb = ChannelBuffers.dynamicBuffer();
+
         cb.writeBytes(st.toString().getBytes());
         return cb;
     }

@@ -60,11 +60,12 @@ public class JsonUserRestService extends RestService {
                     throw new IllegalStateException("Unrecognized field '" + fieldname + "'!");
                 }
             }
-            try {
+                // Do not add the user if it already exists
+             if (!userRepository.checkUserWithEmailExist(email)){
                 userRepository.insertUser(email, password, firstname, lastname);
-            } catch (UserAlreadyExists uae) {
+             }else {
                 responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
-            }
+             }
         } catch (IOException e1) {
             logger.error("Error ", e1);
         }
