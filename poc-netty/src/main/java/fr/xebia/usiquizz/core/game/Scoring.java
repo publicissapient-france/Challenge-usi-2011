@@ -19,7 +19,7 @@ public interface Scoring {
 
     byte[] getAnswers(String email);
 
-    boolean isPlayerAlreadyAnswered(String sessionKey, byte currentQuestion);
+    boolean isPlayerAlreadyAnswered(String sessionKey, String currentQuestion);
 
     // temporary Called at the end of game 
     void calculRanking();

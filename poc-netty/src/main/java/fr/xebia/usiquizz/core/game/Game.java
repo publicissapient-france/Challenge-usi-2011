@@ -58,31 +58,31 @@ public interface Game {
      *
      * @param sessionId
      */
-    void addPlayerForQuestion(String sessionId, byte questionIndex);
+    void addPlayerForQuestion(String sessionId, String questionIndex);
 
     /**
      * Retourne le nombre de joueur ayant demandé une question
      *
      * @return
      */
-    int countUserForQuestion(int questionIndex);
+    int countUserForQuestion(String questionIndex);
 
     /**
      * Retourne l'index de question courant
      *
      * @return
      */
-    byte getCurrentQuestionIndex();
+    String getCurrentQuestionIndex();
 
     /**
      * Retourne l'index de la réponse courante
      * @return
      */
-    byte getCurrentAnswerIndex();
+    String getCurrentAnswerIndex();
 
-    void setCurrentQuestionIndex(byte newIndex);
+    void setCurrentQuestionIndex(String newIndex);
 
-    void setCurrentAnswerIndex(byte newIndex);
+    void setCurrentAnswerIndex(String newIndex);
 
     void registerLongpollingCallback(QuestionLongpollingCallback callback);
 
@@ -95,9 +95,9 @@ public interface Game {
      * @return
      */
 
-    boolean isPlayerCanAnswer(String sessionKey, byte currentQuestion);
+    boolean isPlayerCanAnswer(String sessionKey, String currentQuestion);
 
-    boolean isPlayerCanAskQuestion(String sessionKey, byte questionNbr);
+    boolean isPlayerCanAskQuestion(String sessionKey, String questionNbr);
 
     void startQuestionTimeframe(byte currentQuestionIndex);
 
@@ -111,4 +111,8 @@ public interface Game {
 
     // Good answers byte array
     byte[] getGoodAnswers();
+
+    boolean isAllPlayerLogged();
+
+    void startGame();
 }

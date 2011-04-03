@@ -45,7 +45,7 @@ public class GemfireRepository {
                         (Runnable
                                  r) {
                     Thread t = new Thread(r);
-                    t.setName("Async score gemfire writing : " + counter++);
+                    t.setName("Async player gemfire writing : " + counter++);
                     return t;
                 }
             }
@@ -85,13 +85,13 @@ public class GemfireRepository {
     private Region<String, Object> gameRegion = cache.getRegion("game-region");
     private Region<String, Questiontype> questionRegion = cache.getRegion("question-region");
     // FIXME add index on value....
-    // Some search on email 
-    private Region<String, String> playerRegion = cache.getRegion("player-region");
-    private Region<String, String> currentQuestionRegion = cache.getRegion("current-question-region");
+    // Some search on email
+    private Region<String, String> playerRegion;
+    private Region<String, String> currentQuestionRegion;
 
     // TODO : This is a simple stupid region test to implement Ranking tree NodeStore
     private Region<Joueur, Node<Joueur>> scoreStoreRegion = cache.getRegion("score-store-region");
-    private Region<Byte, Byte> questionStatusRegion;
+    private Region<String, Byte> questionStatusRegion;
 
     // Region for score
     // Cette région contient le score de manière email --> score
@@ -125,15 +125,11 @@ public class GemfireRepository {
 
     public GemfireRepository() {
 
-       
-        AttributesFactory scoreFinalRegionAttribute = new AttributesFactory();
-        scoreFinalRegionAttribute.setDataPolicy(DataPolicy.REPLICATE);
-        scoreFinalRegionAttribute.addCacheListener(new ScoreCacheListener(this));
-        RegionFactory rf = cache.createRegionFactory(scoreFinalRegionAttribute.create());
-        scoreFinalRegion = rf.create("final-score-region");
+      
 
         // Try to get the lock indefinitely
         // if server owning the lock crash we can recover
+
         asyncScore.execute(new Runnable() {
             @Override
             public void run() {
@@ -151,22 +147,44 @@ public class GemfireRepository {
                     }
                     dls.freeResources("finalScoring");
                  }
+
             }
         });
 
     }
 
-
-    public void initFinalScoreRegion(){
-
-    }
-
-    public void initQestionStatusResgion(CacheListener questionStatusCacheListener) {
+    public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();
         questionStatusAttribute.setDataPolicy(DataPolicy.REPLICATE);
         questionStatusAttribute.addCacheListener(questionStatusCacheListener);
         RegionFactory rf = cache.createRegionFactory(questionStatusAttribute.create());
         questionStatusRegion = rf.create("question-status");
+    }
+
+    public void initCurrentQuestionRegion() {
+        AttributesFactory questionAttribute = new AttributesFactory();
+        questionAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        questionAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
+        RegionFactory rf = cache.createRegionFactory(questionAttribute.create());
+        currentQuestionRegion = rf.create("current-question-region");
+    }
+
+    public void initLoginRegion(CacheListener loginCacheListener) {
+        AttributesFactory loginAttribute = new AttributesFactory();
+        loginAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        loginAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
+        loginAttribute.addCacheListener(loginCacheListener);
+        RegionFactory rf = cache.createRegionFactory(loginAttribute.create());
+        playerRegion = rf.create("player-region");
+    }
+
+    public void initFinalScoreRegion(CacheListener finalScoreListener) {
+        AttributesFactory scoreAttribute = new AttributesFactory();
+        scoreAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        scoreAttribute.setScope(Scope.DISTRIBUTED_ACK);
+        scoreAttribute.addCacheListener(finalScoreListener);
+        RegionFactory rf = cache.createRegionFactory(scoreAttribute.create());
+        playerRegion = rf.create("final-score-region");
     }
 
     public Cache getCache() {
@@ -197,11 +215,12 @@ public class GemfireRepository {
         return scoreRegion;
     }
 
+
     public Region<String, Score> getScoreFinalRegion() {
         return scoreRegion;
     }
 
-    public Region<Byte, Byte> getQuestionStatusRegion() {
+    public Region<String, Byte> getQuestionStatusRegion() {
         return questionStatusRegion;
     }
 
@@ -220,26 +239,19 @@ public class GemfireRepository {
 
     // put to score region in other thread
     public void writeAsyncScore(final String email, final Score score) {
-
-
-        if (!score.isAlreadyAnswer(((Integer)getGameRegion().get(NB_QUESTIONS)).byteValue() ) ){
-            // Maj du score standard
-            asyncScoreWritingOperation.submit(new Runnable() {
-                @Override
-                public void run() {
+        asyncScoreWritingOperation.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!score.isAlreadyAnswer(((String) getGameRegion().get(NB_QUESTIONS)))) {
+                    // Maj du score standard
                     getScoreRegion().put(email, score);
-                }
-            });
-        }else {
-            // Ajout du score dans la region final et suppression de scoreRegion
-            asyncScoreWritingOperation.submit(new Runnable() {
-                @Override
-                public void run() {
+                } else {
+                    // Ajout du score dans la region final et suppression de scoreRegion
                     getScoreRegion().remove(email);
                     getScoreFinalRegion().put(email, score);
                 }
-            });
-        }
+            }
+        });
     }
 
     public void writeAsyncPlayerForQuestion(final String sessionId) {
@@ -251,11 +263,22 @@ public class GemfireRepository {
         });
     }
 
+    public void createScoreAsync(final String sessionKey, final User user) {
+        asyncScoreWritingOperation.submit(new Runnable() {
+            @Override
+            public void run() {
+                getScoreRegion().put(sessionKey, new Score(((Integer) getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
+            }
+        });
+
+    }
+
     public Region<Joueur, Node<Joueur>> getScoreStoreRegion() {
         return scoreStoreRegion;
     }
 
-    public boolean hasFinalScoreLock(){
+
+    public boolean hasFinalScoreLock() {
         return ownScoreLock;
     }
 }

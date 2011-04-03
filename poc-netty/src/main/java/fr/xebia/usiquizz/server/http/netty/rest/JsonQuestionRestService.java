@@ -5,6 +5,7 @@ import fr.xebia.usiquizz.core.game.AsyncGame;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
+import fr.xebia.usiquizz.server.http.netty.FastSessionKeyCookieDecoder;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -42,19 +43,8 @@ public class JsonQuestionRestService extends RestService {
             HttpRequest request = (HttpRequest) e.getMessage();
 
             // Get session_key
-            String sessionKey = null;
-            String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
-            if (cookieString != null) {
-
-                Set<Cookie> cookies = cookieDecoder.decode(cookieString);
-                if (!cookies.isEmpty()) {
-                    for (Cookie c : cookies) {
-                        if (c.getName().equals(SESSION_KEY)) {
-                            sessionKey = c.getValue();
-                        }
-                    }
-                }
-            }
+            String sessionKey = FastSessionKeyCookieDecoder.findSessionKey(request.getHeader(COOKIE));
+            
             if (sessionKey == null) {
                 logger.info("Player with no cookies... Rejected");
                 responseWriter.writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
@@ -62,7 +52,7 @@ public class JsonQuestionRestService extends RestService {
             }
 
             // Verify question asked... is active
-            byte questionNbr = Byte.parseByte(path.substring(path.lastIndexOf("/") + 1));
+            String questionNbr = path.substring(path.lastIndexOf("/") + 1);
             if (!game.isPlayerCanAskQuestion(sessionKey, questionNbr)) {
                 // Bad player flow
                 logger.warn("Bad question requested {} by {}", questionNbr, sessionKey);

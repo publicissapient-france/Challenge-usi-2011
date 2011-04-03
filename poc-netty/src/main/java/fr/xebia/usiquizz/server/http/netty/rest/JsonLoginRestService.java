@@ -35,8 +35,6 @@ public class JsonLoginRestService extends RestService {
 
     @Override
     public void post(String path, ChannelHandlerContext ctx, MessageEvent e) {
-        logger.debug("REST call for path {}", path);
-        logger.trace("Message : {}", e.getMessage().toString());
         HttpRequest request = (HttpRequest) e.getMessage();
         // FIXME
         //if (game.isGameStarted()) {
@@ -65,7 +63,7 @@ public class JsonLoginRestService extends RestService {
             if (mail != null && password != null) {
                 User user = userRepository.logUser(mail, password);
                 if (user !=null) {
-                    String sessionKey = new StringBuilder(Integer.toString(mail.hashCode())).append("|").append(mail).toString();
+                    String sessionKey = Integer.toString(mail.hashCode());
                     if (game.isAlreadyLogged(sessionKey)) {
                         logger.info("user already logged");
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);

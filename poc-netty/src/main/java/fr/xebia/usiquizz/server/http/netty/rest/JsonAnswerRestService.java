@@ -3,6 +3,7 @@ package fr.xebia.usiquizz.server.http.netty.rest;
 import com.usi.Question;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
+import fr.xebia.usiquizz.server.http.netty.FastSessionKeyCookieDecoder;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -46,21 +47,11 @@ public class JsonAnswerRestService extends RestService {
         try {
 
             // currentQuestion
-            byte questionNbr = Byte.parseByte(path.substring(path.lastIndexOf("/") + 1));
+            String questionNbr = path.substring(path.lastIndexOf("/") + 1);
+            Byte questionNbrByte = Byte.parseByte(questionNbr);
             // Get session_key
-            String sessionKey = null;
-            String cookieString = ((HttpRequest) e.getMessage()).getHeader(COOKIE);
-            if (cookieString != null) {
-
-                Set<Cookie> cookies = cookieDecoder.decode(cookieString);
-                if (!cookies.isEmpty()) {
-                    for (Cookie c : cookies) {
-                        if (c.getName().equals(SESSION_KEY)) {
-                            sessionKey = c.getValue();
-                        }
-                    }
-                }
-            }
+            String sessionKey = FastSessionKeyCookieDecoder.findSessionKey(request.getHeader(COOKIE));
+                        
             if (sessionKey == null) {
                 logger.info("Player with no cookies... Rejected");
                 responseWriter.writeResponse(HttpResponseStatus.UNAUTHORIZED, ctx, e);
@@ -97,11 +88,11 @@ public class JsonAnswerRestService extends RestService {
             }
 
             byte answerNumber = Byte.parseByte(answer);
-            Question question = getQuestion(questionNbr);
+            Question question = getQuestion(questionNbrByte);
             // Verify is answerd is correction
             boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
             // update score
-            byte newScore = scoring.addScore(sessionKey, answerNumber, answerIsCorrect, questionNbr);
+            byte newScore = scoring.addScore(sessionKey, answerNumber, answerIsCorrect, questionNbrByte);
             responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerNumber == question.getGoodchoice(), question.getGoodAnswer(), newScore), HttpResponseStatus.OK, ctx, e, sessionKey);
             return;
         } catch (Exception e3) {
@@ -116,7 +107,7 @@ public class JsonAnswerRestService extends RestService {
         if (q == null) {
             synchronized (this) {
                 q = questionLocalCache.get(questionNbr);
-                if (q == null){
+                if (q == null) {
                     q = game.getQuestion(questionNbr);
                     questionLocalCache.put(questionNbr, q);
                 }

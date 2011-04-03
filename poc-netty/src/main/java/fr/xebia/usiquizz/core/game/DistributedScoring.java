@@ -36,54 +36,48 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public void createScore(String sessionKey, User user) {
-        // FIXME pass nb question
-        String email = user.getMail();
-       // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
-        gemfireRepository.getScoreRegion().put(email, new Score(((Integer) gemfireRepository.getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
-        if (top100 != null){
+
+        // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
+        if (top100 != null) {
             top100 = null;
         }
     }
 
     @Override
     public Score getCurrentScore(String sessionId) {
-        String email = gemfireRepository.getPlayerRegion().get(sessionId);
-        return getCurrentScoreByEmail(email);
-    }
-
-    @Override
-    public Score getCurrentScoreByEmail(String email) {
-        Score tmp = gemfireRepository.getScoreRegion().get(email);
+        Score tmp = gemfireRepository.getScoreRegion().get(sessionId);
         if (tmp == null) {
-            tmp = gemfireRepository.getScoreFinalRegion().get(email);
+            tmp = gemfireRepository.getScoreFinalRegion().get(sessionId);
         }
         return tmp;
     }
 
     @Override
-    public byte addScore(String sessionId, byte choice, boolean good, byte index) {
+    public Score getCurrentScoreByEmail(String email) {
+        return getCurrentScore(Integer.toString(email.hashCode()));
+    }
 
-        String email = sessionId.split("|")[1];
-        Score score = gemfireRepository.getScoreRegion().get(email);
+    @Override
+    public byte addScore(String sessionId, byte choice, boolean good, byte index) {
+        Score score = gemfireRepository.getScoreRegion().get(sessionId);
         score.addResponse(choice, good, index);
-        gemfireRepository.writeAsyncScore(email, score);
+        gemfireRepository.writeAsyncScore(sessionId, score);
         return score.getCurrentScore();
     }
 
     @Override
-    public boolean isPlayerAlreadyAnswered(String sessionKey, byte currentQuestion) {
+    public boolean isPlayerAlreadyAnswered(String sessionKey, String currentQuestion) {
         return getCurrentScore(sessionKey).isAlreadyAnswer(currentQuestion);
     }
 
 
     @Override
-    public void calculRanking(){
-         for (String email : gemfireRepository.getScoreRegion().keySet()) {
-            Score score = gemfireRepository.getScoreRegion().get(email);
-            tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, email));
+    public void calculRanking() {
+        for (String sessionKey : gemfireRepository.getScoreRegion().keySet()) {
+            Score score = gemfireRepository.getScoreRegion().get(sessionKey);
+            tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, sessionKey));
         }
     }
-
 
 
     @Override
@@ -94,7 +88,7 @@ public class DistributedScoring implements Scoring {
             NodeSet<Joueur> set = tree.getMaxSet();
             Joueur joueur = null;
             int i = 0;
-            while (i < 100 ){
+            while (i < 100) {
                 joueur = set.prev();
                 if (joueur == null)
                     break;
@@ -115,7 +109,7 @@ public class DistributedScoring implements Scoring {
         List<Joueur> res = new ArrayList<Joueur>();
         NodeSet<Joueur> set = tree.getSet(joueur);
         int i = 0;
-        while (i < 50 ){
+        while (i < 50) {
             joueur = set.prev();
             if (joueur == null)
                 break;
@@ -133,7 +127,7 @@ public class DistributedScoring implements Scoring {
         List<Joueur> res = new ArrayList<Joueur>();
         NodeSet<Joueur> set = tree.getSet(joueur);
         int i = 0;
-        while (i < 50 ){
+        while (i < 50) {
             joueur = set.next();
             if (joueur == null)
                 break;
