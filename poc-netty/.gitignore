@@ -3,3 +3,7 @@
 *.iws
 .idea/
 gemfire-persistence/
+*.if
+*.crf
+*.drf
+
