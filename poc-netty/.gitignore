@@ -2,7 +2,7 @@
 *.ipr
 *.iws
 .idea/
-gemfire-persistence/
+gemfire-persistence/*
 *.if
 *.crf
 *.drf
