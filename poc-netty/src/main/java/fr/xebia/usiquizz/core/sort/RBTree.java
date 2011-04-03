@@ -18,6 +18,7 @@ public class RBTree<K extends Comparable<K>> {
     static final int RED = 1;
 
     NodeStore<K> store;
+    Node<K> root;
 
 
     public RBTree() {
@@ -101,7 +102,7 @@ public class RBTree<K extends Comparable<K>> {
 
     private void replaceNode(Node<K> oldn, Node<K> newn) {
         if (oldn.parent == null) {
-            store.updateRoot(newn);
+            updateRoot(newn);
         } else {
             Node<K> parent = store.get(oldn.parent);
             if (oldn.key.equals(parent.left))
@@ -120,7 +121,7 @@ public class RBTree<K extends Comparable<K>> {
         store.startModification();
 
         Node<K> insertedNode = new Node<K>(key, RED, null, null, store);
-        Node<K> root = store.getRoot();
+        Node<K> root = getRoot();
         if (root == null) {
             store.updateMin(insertedNode);
             store.updateMax(insertedNode);
@@ -181,49 +182,73 @@ public class RBTree<K extends Comparable<K>> {
     }
 
     private K getRootKey(){
-        Node<K> root = store.getRoot();
+        Node<K> root = getRoot();
 
         return (root == null ? null : root.key);
+    }
+
+
+    /**
+     * Gets the root node and maintain a local cache
+     * instance to reduce store access
+     * @return
+     */
+    private Node<K> getRoot(){
+        if (root == null){
+            root = store.getRoot();
+        }
+
+        return root;
+    }
+
+    /**
+     * Stores a new root node in both local instance and NodeStore
+     */
+    private void updateRoot(Node<K> newRoot){
+        root = newRoot;
+        store.updateRoot(newRoot);
     }
 
      /** From CLR **/
     private void fixAfterInsertion(Node<K> x) {
         x.color = RED;
-        Node<K> root = store.getRoot();
-        while (x != null && (!x.key.equals(root.key) ) && parentOf(x).color == RED) {
-            if (parentOf(x).key.equals(parentOf(parentOf(x)).left)) {
-                Node<K> y = rightOf(parentOf(parentOf(x)));
+
+        while (x != null && (!x.key.equals(getRoot().key) ) && parentOf(x).color == RED) {
+            Node<K> parentOfX = parentOf(x);
+            Node<K> grandParentOfX = parentOf(parentOfX);
+            if (parentOfX.key.equals((grandParentOfX != null ? grandParentOfX.left : null ))) {
+                Node<K> y = rightOf(grandParentOfX);
                 if (colorOf(y) == RED) {
-                    setColor(parentOf(x), BLACK);
+                    setColor(parentOfX, BLACK);
                     setColor(y, BLACK);
-                    setColor(parentOf(parentOf(x)), RED);
-                    x = parentOf(parentOf(x));
+                    setColor(grandParentOfX, RED);
+                    x = grandParentOfX;
                 } else {
-                    if (x == rightOf(parentOf(x))) {
-                        x = parentOf(x);
+                    if (x.key.equals(parentOfX.right)) {
+                        x = parentOfX;
                         rotateLeft(x);
                     }
-                    setColor(parentOf(x), BLACK);
-                    setColor(parentOf(parentOf(x)), RED);
-                    if (parentOf(parentOf(x)) != null)
-                        rotateRight(parentOf(parentOf(x)));
+                    setColor(parentOfX, BLACK);
+                    setColor(grandParentOfX, RED);
+                    if (grandParentOfX != null)
+                        rotateRight(grandParentOfX);
                 }
             } else {
-                Node<K> y = leftOf(parentOf(parentOf(x)));
+                Node<K> y = leftOf(grandParentOfX);
                 if (colorOf(y) == RED) {
-                    setColor(parentOf(x), BLACK);
+                    setColor(parentOfX, BLACK);
                     setColor(y, BLACK);
-                    setColor(parentOf(parentOf(x)), RED);
-                    x = parentOf(parentOf(x));
+                    setColor(grandParentOfX, RED);
+                    x = grandParentOfX;
                 } else {
-                    if (x == leftOf(parentOf(x))) {
-                        x = parentOf(x);
+                    if (x.key.equals(parentOfX.left)) {
+                        x = parentOfX;
                         rotateRight(x);
                     }
-                    setColor(parentOf(x), BLACK);
-                    setColor(parentOf(parentOf(x)), RED);
-                    if (parentOf(parentOf(x)) != null)
-                        rotateLeft(parentOf(parentOf(x)));
+                    setColor(parentOfX, BLACK);
+                    setColor(grandParentOfX, RED);
+                    if (grandParentOfX != null)
+                        rotateLeft(grandParentOfX);
                 }
             }
         }
@@ -287,7 +312,7 @@ public class RBTree<K extends Comparable<K>> {
             updateParent(p, replacement);
 
             if (p.parent == null) {
-                store.updateRoot(replacement);
+                updateRoot(replacement);
             }
             // Null out links so they are OK to use by fixAfterDeletion.
             p.left = p.right = p.parent = null;
@@ -297,7 +322,7 @@ public class RBTree<K extends Comparable<K>> {
             if (p.color == BLACK)
                 fixAfterDeletion(replacement);
         } else if (p.parent == null) { // return if we are the only node.
-            store.updateRoot(null);
+            updateRoot(null);
             store.updateMin(null);
             store.updateMax(null);
         } else { // No children. Use self as phantom replacement and unlink.
@@ -325,44 +350,44 @@ public class RBTree<K extends Comparable<K>> {
      */
     private void fixAfterDeletion(Node<K> x) {
 
-        Node<K> root = store.getRoot();
 
-        while (!x.key.equals(root.key) && colorOf(x) == BLACK) {
-            if (x.key.equals(parentOf(x).left)) {
-                Node<K> sib = rightOf(parentOf(x));
+        while (!x.key.equals(getRoot().key) && colorOf(x) == BLACK) {
+            Node<K> parentOfX = parentOf(x);
+            if (x.key.equals(parentOfX.left)) {
+                Node<K> sib = rightOf(parentOfX);
 
                 if (colorOf(sib) == RED) {
                     setColor(sib, BLACK);
-                    setColor(parentOf(x), RED);
-                    rotateLeft(parentOf(x));
-                    sib = rightOf(parentOf(x));
+                    setColor(parentOfX, RED);
+                    rotateLeft(parentOfX);
+                    sib = rightOf(parentOfX);
                 }
 
                 if (colorOf(leftOf(sib)) == BLACK &&
                         colorOf(rightOf(sib)) == BLACK) {
                     setColor(sib, RED);
-                    x = parentOf(x);
+                    x = parentOfX;
                 } else {
                     if (colorOf(rightOf(sib)) == BLACK) {
                         setColor(leftOf(sib), BLACK);
                         setColor(sib, RED);
                         rotateRight(sib);
-                        sib = rightOf(parentOf(x));
+                        sib = rightOf(parentOfX);
                     }
-                    setColor(sib, colorOf(parentOf(x)));
-                    setColor(parentOf(x), BLACK);
+                    setColor(sib, colorOf(parentOfX));
+                    setColor(parentOfX, BLACK);
                     setColor(rightOf(sib), BLACK);
-                    rotateLeft(parentOf(x));
+                    rotateLeft(parentOfX);
                     x = store.getRoot();
                 }
             } else { // symmetric
-                Node<K> sib = leftOf(parentOf(x));
+                Node<K> sib = leftOf(parentOfX);
 
                 if (colorOf(sib) == RED) {
                     setColor(sib, BLACK);
-                    setColor(parentOf(x), RED);
-                    rotateRight(parentOf(x));
-                    sib = leftOf(parentOf(x));
+                    setColor(parentOfX, RED);
+                    rotateRight(parentOfX);
+                    sib = leftOf(parentOfX);
                 }
 
                 if (colorOf(rightOf(sib)) == BLACK &&
@@ -374,12 +399,12 @@ public class RBTree<K extends Comparable<K>> {
                         setColor(rightOf(sib), BLACK);
                         setColor(sib, RED);
                         rotateLeft(sib);
-                        sib = leftOf(parentOf(x));
+                        sib = leftOf(parentOfX);
                     }
-                    setColor(sib, colorOf(parentOf(x)));
-                    setColor(parentOf(x), BLACK);
+                    setColor(sib, colorOf(parentOfX));
+                    setColor(parentOfX, BLACK);
                     setColor(leftOf(sib), BLACK);
-                    rotateRight(parentOf(x));
+                    rotateRight(parentOfX);
                     x = store.getRoot();
                 }
             }
@@ -399,18 +424,13 @@ public class RBTree<K extends Comparable<K>> {
         }
     }
 
-    private int colorOf(K n) {
-        return nodeColor(n);
-    }
+
 
     private Node<K> parentOf(Node<K> node) {
 
         return store.get(node.parent);
     }
 
-    private Node<K> leftOf(K node) {
-        return leftOf(store.get(node));
-    }
 
     private Node<K> leftOf(Node<K> node) {
         if (node == null)
