@@ -54,8 +54,8 @@ public class JsonAuditAnswerRestService extends RestService {
             }
 
             // On regarde si on demande une question en particulier
-            // On sépare la query string du path
-            String requestPath = path.substring(0, path.indexOf("?"));
+            String requestPath = qsd.getPath();
+
 
             try {
                 byte questionNbr = Byte.parseByte(requestPath.substring(requestPath.lastIndexOf("/") + 1));

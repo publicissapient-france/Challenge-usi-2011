@@ -4,13 +4,19 @@ import com.gemstone.gemfire.cache.*;
 import com.gemstone.gemfire.distributed.DistributedLockService;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
+import fr.xebia.usiquizz.core.game.gemfire.ScoreCacheListener;
 import fr.xebia.usiquizz.core.sort.Node;
 import fr.xebia.usiquizz.core.sort.NodeStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.TreeSet;
 import java.util.concurrent.*;
 
 public class GemfireRepository {
+
+
+    private static final Logger LOG = LoggerFactory.getLogger(GemfireRepository.class);
 
     private final ExecutorService asyncScoreWritingOperation = new ThreadPoolExecutor(2, 2, 1, TimeUnit.MINUTES,
             new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
@@ -119,31 +125,31 @@ public class GemfireRepository {
 
     public GemfireRepository() {
 
+      
 
         // Try to get the lock indefinitely
         // if server owning the lock crash we can recover
-        /*
+
         asyncScore.execute(new Runnable() {
             @Override
             public void run() {
-                boolean locked = dls.lock("finalScoring", -1, -1);
-                while (!locked) {
-                    locked = dls.lock("finalScoring", -1, -1);
-                }
-                ownScoreLock = true;
+                while (true){
+                    boolean locked = dls.lock("finalScoring", -1, -1);
+                    LOG.info("Granted to final scoring distributed lock {}", locked);
+                    ownScoreLock =locked ;
+                    while (locked){
+                        try {
+                            Thread.currentThread().sleep(500);
+                        } catch (InterruptedException e) {
+                            LOG.warn("Interruption while sleeping before lock access", e);
+                           locked = false;
+                        }
+                    }
+                    dls.freeResources("finalScoring");
+                 }
 
-                try {
-                    Thread.currentThread().wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                }
-                dls.freeResources("finalScoring");
-                ownScoreLock = false;
             }
         });
-        */
-        //ownScoreLock = dls.lock("finalScoring", -1, -1);
-
     }
 
     public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {

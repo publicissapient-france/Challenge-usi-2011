@@ -93,7 +93,7 @@ public class JsonAnswerRestService extends RestService {
             boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
             // update score
             byte newScore = scoring.addScore(sessionKey, answerNumber, answerIsCorrect, questionNbrByte);
-            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerNumber == question.getGoodchoice(), question.getGoodAnswer(), newScore), HttpResponseStatus.OK, ctx, e, sessionKey);
+            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerIsCorrect, question.getGoodAnswer(), newScore), HttpResponseStatus.OK, ctx, e, sessionKey);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);

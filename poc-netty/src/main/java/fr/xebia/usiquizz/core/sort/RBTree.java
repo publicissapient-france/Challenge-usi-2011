@@ -2,31 +2,10 @@ package fr.xebia.usiquizz.core.sort;
 
 
 
-/* Copyright (c) 2011 the authors listed at the following URL, and/or
-the authors of referenced articles or incorporated external code:
-http://en.literateprograms.org/Red-black_tree_(Java)?action=history&offset=20100112141306
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Retrieved from: http://en.literateprograms.org/Red-black_tree_(Java)?oldid=16622
-*/
+/**
+ * Inspired from Java TreeMap with refinement to maintain MIN key, Max Key
+ * and allow to navigate the tree using NodeSet in both orders.
+ */
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +18,7 @@ public class RBTree<K extends Comparable<K>> {
     static final int RED = 1;
 
     NodeStore<K> store;
+    Node<K> root;
 
 
     public RBTree() {
@@ -89,10 +69,6 @@ public class RBTree<K extends Comparable<K>> {
         return n;
     }
 
-    public K lookup(K key) {
-        Node<K> n = lookupNode(key);
-        return n == null ? null : n.key;
-    }
 
     private void rotateLeft(Node<K> n) {
         Node<K> r = store.get(n.right);
@@ -126,7 +102,7 @@ public class RBTree<K extends Comparable<K>> {
 
     private void replaceNode(Node<K> oldn, Node<K> newn) {
         if (oldn.parent == null) {
-            store.updateRoot(newn);
+            updateRoot(newn);
         } else {
             Node<K> parent = store.get(oldn.parent);
             if (oldn.key.equals(parent.left))
@@ -145,7 +121,7 @@ public class RBTree<K extends Comparable<K>> {
         store.startModification();
 
         Node<K> insertedNode = new Node<K>(key, RED, null, null, store);
-        Node<K> root = store.getRoot();
+        Node<K> root = getRoot();
         if (root == null) {
             store.updateMin(insertedNode);
             store.updateMax(insertedNode);
@@ -179,7 +155,7 @@ public class RBTree<K extends Comparable<K>> {
             insertedNode.parent = n.key;
             store.update(insertedNode);
         }
-        insertCase1(insertedNode);
+        fixAfterInsertion(insertedNode);
 
         // Update min and max if necessary
         if (insertedNode.key.compareTo(getMaxKey()) > 0) {
@@ -206,70 +182,79 @@ public class RBTree<K extends Comparable<K>> {
     }
 
     private K getRootKey(){
-        Node<K> root = store.getRoot();
+        Node<K> root = getRoot();
 
         return (root == null ? null : root.key);
     }
 
-    private void insertCase1(Node<K> n) {
-        if (n.parent == null) {
-            n.color = BLACK;
-            store.update(n);
-        } else
-            insertCase2(n);
-    }
 
-    private void insertCase2(Node<K> n) {
-        if (nodeColor(store.get(n.parent)) == BLACK)
-            return; // Tree is still valid
-        else
-            insertCase3(n);
-    }
-
-    void insertCase3(Node<K> n) {
-        if (nodeColor(n.uncle(store)) == RED) {
-            Node<K> parent = store.get(n.parent);
-            parent.color = BLACK;
-            store.update(parent);
-            Node<K> uncle = n.uncle(store);
-            uncle.color = BLACK;
-            store.update(uncle);
-            Node<K> grandparent = n.grandparent(store);
-            grandparent.color = RED;
-            store.update(grandparent);
-            insertCase1(n.grandparent(store));
-        } else {
-            insertCase4(n);
+    /**
+     * Gets the root node and maintain a local cache
+     * instance to reduce store access
+     * @return
+     */
+    private Node<K> getRoot(){
+        if (root == null){
+            root = store.getRoot();
         }
+
+        return root;
     }
 
-    void insertCase4(Node<K> n) {
-        Node<K> parent = store.get(n.parent);
-        Node<K> grandPa = n.grandparent(store);
-        if (n.key.equals(parent.right) && n.parent.equals(grandPa.left)) {
-            rotateLeft(parent);
-            n = store.get(n.left);
-        } else if (n.key.equals(parent.left) && n.parent.equals(grandPa.right)) {
-            rotateRight(parent);
-            n = store.get(n.right);
-        }
-        insertCase5(n);
+    /**
+     * Stores a new root node in both local instance and NodeStore
+     */
+    private void updateRoot(Node<K> newRoot){
+        root = newRoot;
+        store.updateRoot(newRoot);
     }
 
-    void insertCase5(Node<K> n) {
-        Node<K> parent = store.get(n.parent);
-        parent.color = BLACK;
-        store.update(parent);
-        Node<K> gparent = n.grandparent(store);
-        gparent.color = RED;
-        store.update(gparent);
-        if (n.key.equals(parent.left) && n.parent.equals(gparent.left)) {
-            rotateRight(gparent);
-        } else {
-            assert n.key.equals(parent.right) && parent.equals(gparent.right);
-            rotateLeft(gparent);
+     /** From CLR **/
+    private void fixAfterInsertion(Node<K> x) {
+        x.color = RED;
+
+        while (x != null && (!x.key.equals(getRoot().key) ) && parentOf(x).color == RED) {
+            Node<K> parentOfX = parentOf(x);
+            Node<K> grandParentOfX = parentOf(parentOfX);
+            if (parentOfX.key.equals((grandParentOfX != null ? grandParentOfX.left : null ))) {
+                Node<K> y = rightOf(grandParentOfX);
+                if (colorOf(y) == RED) {
+                    setColor(parentOfX, BLACK);
+                    setColor(y, BLACK);
+                    setColor(grandParentOfX, RED);
+                    x = grandParentOfX;
+                } else {
+                    if (x.key.equals(parentOfX.right)) {
+                        x = parentOfX;
+                        rotateLeft(x);
+                    }
+                    setColor(parentOfX, BLACK);
+                    setColor(grandParentOfX, RED);
+                    if (grandParentOfX != null)
+                        rotateRight(grandParentOfX);
+                }
+            } else {
+                Node<K> y = leftOf(grandParentOfX);
+                if (colorOf(y) == RED) {
+                    setColor(parentOfX, BLACK);
+                    setColor(y, BLACK);
+                    setColor(grandParentOfX, RED);
+                    x = grandParentOfX;
+                } else {
+                    if (x.key.equals(parentOfX.left)) {
+                        x = parentOfX;
+                        rotateRight(x);
+                    }
+                    setColor(parentOfX, BLACK);
+                    setColor(grandParentOfX, RED);
+                    if (grandParentOfX != null)
+                        rotateLeft(grandParentOfX);
+                }
+            }
         }
+        root.color = BLACK;
     }
+
 
     /**
      * Clear the complete Tree 
@@ -310,7 +295,7 @@ public class RBTree<K extends Comparable<K>> {
      */
     private void deleteEntry(Node<K> p) {
         // decrementSize();
-
+         K key = p.key;
         // If strictly internal, copy successor's element to p and then make p
         // point to successor.
         if (p.left != null && p.right != null) {
@@ -323,29 +308,21 @@ public class RBTree<K extends Comparable<K>> {
         Node<K> replacement = (p.right == null) ? store.get(p.left) : store.get(p.right);
 
         if (replacement != null) {
-            // Link replacement to parent
+            // Link replacement to p parent and reverse
             updateParent(p, replacement);
 
             if (p.parent == null) {
-                store.updateRoot(replacement);
-            } else if (p.key.equals(leftOf(p.parent).key)) {
-                Node<K> parent = store.get(p.parent);
-                parent.left = replacement.key;
-                store.update(parent);
-            } else {
-                Node<K> parent = store.get(p.parent);
-                parent.right = replacement.key;
-                store.update(parent);
+                updateRoot(replacement);
             }
             // Null out links so they are OK to use by fixAfterDeletion.
             p.left = p.right = p.parent = null;
-            store.update(p);
+            store.delete(key);
 
             // Fix replacement
             if (p.color == BLACK)
                 fixAfterDeletion(replacement);
         } else if (p.parent == null) { // return if we are the only node.
-            store.updateRoot(null);
+            updateRoot(null);
             store.updateMin(null);
             store.updateMax(null);
         } else { // No children. Use self as phantom replacement and unlink.
@@ -364,7 +341,7 @@ public class RBTree<K extends Comparable<K>> {
                 p.parent = null;
             }
         }
-        store.delete(p.key);
+        store.delete(key);
     }
 
 
@@ -372,42 +349,45 @@ public class RBTree<K extends Comparable<K>> {
      * From CLR *
      */
     private void fixAfterDeletion(Node<K> x) {
-        while (x.key.equals(getRootKey()) && colorOf(x) == BLACK) {
-            if (x == leftOf(parentOf(x))) {
-                Node<K> sib = rightOf(parentOf(x));
+
+
+        while (!x.key.equals(getRoot().key) && colorOf(x) == BLACK) {
+            Node<K> parentOfX = parentOf(x);
+            if (x.key.equals(parentOfX.left)) {
+                Node<K> sib = rightOf(parentOfX);
 
                 if (colorOf(sib) == RED) {
                     setColor(sib, BLACK);
-                    setColor(parentOf(x), RED);
-                    rotateLeft(parentOf(x));
-                    sib = rightOf(parentOf(x));
+                    setColor(parentOfX, RED);
+                    rotateLeft(parentOfX);
+                    sib = rightOf(parentOfX);
                 }
 
                 if (colorOf(leftOf(sib)) == BLACK &&
                         colorOf(rightOf(sib)) == BLACK) {
                     setColor(sib, RED);
-                    x = parentOf(x);
+                    x = parentOfX;
                 } else {
                     if (colorOf(rightOf(sib)) == BLACK) {
                         setColor(leftOf(sib), BLACK);
                         setColor(sib, RED);
                         rotateRight(sib);
-                        sib = rightOf(parentOf(x));
+                        sib = rightOf(parentOfX);
                     }
-                    setColor(sib, colorOf(parentOf(x)));
-                    setColor(parentOf(x), BLACK);
+                    setColor(sib, colorOf(parentOfX));
+                    setColor(parentOfX, BLACK);
                     setColor(rightOf(sib), BLACK);
-                    rotateLeft(parentOf(x));
+                    rotateLeft(parentOfX);
                     x = store.getRoot();
                 }
             } else { // symmetric
-                Node<K> sib = leftOf(parentOf(x));
+                Node<K> sib = leftOf(parentOfX);
 
                 if (colorOf(sib) == RED) {
                     setColor(sib, BLACK);
-                    setColor(parentOf(x), RED);
-                    rotateRight(parentOf(x));
-                    sib = leftOf(parentOf(x));
+                    setColor(parentOfX, RED);
+                    rotateRight(parentOfX);
+                    sib = leftOf(parentOfX);
                 }
 
                 if (colorOf(rightOf(sib)) == BLACK &&
@@ -419,12 +399,12 @@ public class RBTree<K extends Comparable<K>> {
                         setColor(rightOf(sib), BLACK);
                         setColor(sib, RED);
                         rotateLeft(sib);
-                        sib = leftOf(parentOf(x));
+                        sib = leftOf(parentOfX);
                     }
-                    setColor(sib, colorOf(parentOf(x)));
-                    setColor(parentOf(x), BLACK);
+                    setColor(sib, colorOf(parentOfX));
+                    setColor(parentOfX, BLACK);
                     setColor(leftOf(sib), BLACK);
-                    rotateRight(parentOf(x));
+                    rotateRight(parentOfX);
                     x = store.getRoot();
                 }
             }
@@ -438,22 +418,19 @@ public class RBTree<K extends Comparable<K>> {
     }
 
     private void setColor(Node<K> node, int color) {
+        if (node !=null){
         node.color = color;
         store.update(node);
+        }
     }
 
-    private int colorOf(K n) {
-        return nodeColor(n);
-    }
+
 
     private Node<K> parentOf(Node<K> node) {
 
         return store.get(node.parent);
     }
 
-    private Node<K> leftOf(K node) {
-        return leftOf(store.get(node));
-    }
 
     private Node<K> leftOf(Node<K> node) {
         if (node == null)
@@ -486,7 +463,8 @@ public class RBTree<K extends Comparable<K>> {
             parent = leftOf(node);
             parent.parent = newKey;
             store.update(parent);
-        } else if (node.right != null) {
+        }
+        if (node.right != null) {
             parent = rightOf(node);
             parent.parent = newKey;
             store.update(parent);
@@ -500,14 +478,17 @@ public class RBTree<K extends Comparable<K>> {
         newn.parent = old.parent;
         Node<K> parent = parentOf(old);
         if (parent != null) {
-            if (newn.key.equals(parent.right)) {
+            if (old.key.equals(parent.right)) {
                 parent.right = newn.key;
-            } else if (newn.key.equals(parent.left)) {
+            } else {
                 parent.left = newn.key;
             }
             store.update(parent);
-            store.update(newn);
+
+        } else {
+            newn.parent = null;
         }
+        store.update(newn);
     }
 
 

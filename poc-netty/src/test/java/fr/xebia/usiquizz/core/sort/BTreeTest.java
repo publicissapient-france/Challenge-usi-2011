@@ -125,7 +125,7 @@ public class BTreeTest {
     /**
      * Test 1250 deletion in a 10k tree
      */
-   // @Test
+    @Test
     public void insertionDeletionLoadTest(){
         RBTree<Integer> tree = new RBTree<Integer>();
         int size = 10000;
@@ -137,9 +137,6 @@ public class BTreeTest {
 
         i = 250;
         while (i <= 1500){
-            if (i == 256){
-                System.out.println("delete 256");
-            }
             tree.delete(i);
             System.out.println("Deleted "+ i);
             i++;

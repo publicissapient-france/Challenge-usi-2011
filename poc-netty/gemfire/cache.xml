@@ -43,16 +43,4 @@
     <region name="score-store-region">
         <region-attributes data-policy="replicate" scope="distributed-ack"/>
     </region>
-
-
-    <!-- Created by API -->
-    <!--
-    <region name="question-status" refid="REPLICATE">
-        <region-attributes>
-            <cache-listener>
-                <class-name>fr.xebia.usiquizz.core.game.gemfire.ScoreCacheListener</class-name>
-            </cache-listener>
-        </region-attributes>
-    </region>
-    -->
 </cache>
