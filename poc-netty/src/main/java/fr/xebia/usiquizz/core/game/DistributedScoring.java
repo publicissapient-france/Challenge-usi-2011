@@ -36,7 +36,7 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public void createScore(String sessionKey, User user) {
-
+        gemfireRepository.createScoreAsync(sessionKey, user);
         // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
         if (top100 != null) {
             top100 = null;

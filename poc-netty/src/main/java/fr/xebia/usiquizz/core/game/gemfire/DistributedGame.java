@@ -156,7 +156,7 @@ public class DistributedGame implements Game {
                 }
             }
         }
-        gemfireRepository.getPlayerRegion().put(sessionId, email);
+        gemfireRepository.addPlayerToGameAsync(sessionId, email);
     }
 
     @Override

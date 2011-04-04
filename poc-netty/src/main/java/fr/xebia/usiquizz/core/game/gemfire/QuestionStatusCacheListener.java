@@ -25,6 +25,20 @@ public class QuestionStatusCacheListener extends CacheListenerAdapter<Byte, Byte
 
 
     @Override
+    public void afterCreate(EntryEvent<Byte, Byte> entryEvent) {
+        logger.info("Question {} status change : {} --> {}", new Object[]{entryEvent.getKey(), entryEvent.getOldValue(), entryEvent.getNewValue()});
+        if (entryEvent.getNewValue() == QuestionStatus.QUESTION_EN_COURS) {
+            // L'appel doit être asynchrone pour liberer les thread gemfire
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    game.startCurrentLongPolling();
+                }
+            });
+        }
+    }
+
+    @Override
     public void afterUpdate(EntryEvent<Byte, Byte> entryEvent) {
         logger.info("Question {} status change : {} --> {}", new Object[]{entryEvent.getKey(), entryEvent.getOldValue(), entryEvent.getNewValue()});
         if (entryEvent.getNewValue() == QuestionStatus.QUESTION_EN_COURS && entryEvent.getOldValue() != QuestionStatus.QUESTION_EN_COURS) {

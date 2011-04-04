@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An HTTP server that sends back the content of the received HTTP request
@@ -64,7 +65,19 @@ public class HttpServer {
         }
 
 
-        ThreadFactory threadFactory = new ThreadFactory() {
+        ThreadFactory bossThreadFactory = new ThreadFactory() {
+
+            private int i = 1;
+
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName("BossExec #1-" + i++);
+                return thread;
+            }
+        };
+
+        ThreadFactory ioThreadFactory = new ThreadFactory() {
 
             private int i = 1;
 
@@ -77,8 +90,11 @@ public class HttpServer {
         };
         // Configure the server.
         //ExecutorService bossExec = Executors.newFixedThreadPool(20, threadFactory);
-        ExecutorService bossExec = Executors.newCachedThreadPool();
-        ExecutorService ioExec = Executors.newCachedThreadPool();
+        //ExecutorService bossExec = Executors.newCachedThreadPool();
+        //ExecutorService ioExec = Executors.newCachedThreadPool();
+        ExecutorService bossExec = new MemoryAwareThreadPoolExecutor(nbListeningPort, 0, 0, 60, TimeUnit.SECONDS, bossThreadFactory);
+        ExecutorService ioExec = new MemoryAwareThreadPoolExecutor(nbThread, 0, 0, 60, TimeUnit.SECONDS, ioThreadFactory);
+
 
         logger.info("start server with {} listning port", nbListeningPort);
         logger.info("Start with {} thread worker", nbThread);

@@ -109,7 +109,7 @@ public class GemfireRepository {
 
     // cette region contient les score finaux des utilisateurs qui ont répondus
     // Elle associe email -> Score
-    private Region<String, Score> scoreFinalRegion = cache.getRegion("final-score-region");
+    private Region<String, Score> scoreFinalRegion;
 
 
     DistributedLockService dls = DistributedLockService.create("ScoreLockService", cache.getDistributedSystem());
@@ -142,7 +142,7 @@ public class GemfireRepository {
             }
         });
         */
-        ownScoreLock = dls.lock("finalScoring", -1, -1);
+        //ownScoreLock = dls.lock("finalScoring", -1, -1);
 
     }
 
@@ -177,7 +177,7 @@ public class GemfireRepository {
         scoreAttribute.setScope(Scope.DISTRIBUTED_ACK);
         scoreAttribute.addCacheListener(finalScoreListener);
         RegionFactory rf = cache.createRegionFactory(scoreAttribute.create());
-        playerRegion = rf.create("final-score-region");
+        scoreFinalRegion = rf.create("final-score-region");
     }
 
     public Cache getCache() {
@@ -208,9 +208,8 @@ public class GemfireRepository {
         return scoreRegion;
     }
 
-
     public Region<String, Score> getScoreFinalRegion() {
-        return scoreRegion;
+        return scoreFinalRegion;
     }
 
     public Region<String, Byte> getQuestionStatusRegion() {
@@ -231,17 +230,17 @@ public class GemfireRepository {
 
 
     // put to score region in other thread
-    public void writeAsyncScore(final String email, final Score score) {
+    public void writeAsyncScore(final String sessionKey, final Score score) {
         asyncScoreWritingOperation.submit(new Runnable() {
             @Override
             public void run() {
                 if (!score.isAlreadyAnswer(((String) getGameRegion().get(NB_QUESTIONS)))) {
                     // Maj du score standard
-                    getScoreRegion().put(email, score);
+                    getScoreRegion().put(sessionKey, score);
                 } else {
                     // Ajout du score dans la region final et suppression de scoreRegion
-                    getScoreRegion().remove(email);
-                    getScoreFinalRegion().put(email, score);
+                    getScoreRegion().remove(sessionKey);
+                    getScoreFinalRegion().put(sessionKey, score);
                 }
             }
         });
@@ -261,6 +260,16 @@ public class GemfireRepository {
             @Override
             public void run() {
                 getScoreRegion().put(sessionKey, new Score(((Integer) getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
+            }
+        });
+
+    }
+
+    public void addPlayerToGameAsync(final String sessionId, final String email) {
+        asyncPlayerWritingOperation.submit(new Runnable() {
+            @Override
+            public void run() {
+                getPlayerRegion().put(sessionId, email);
             }
         });
 
