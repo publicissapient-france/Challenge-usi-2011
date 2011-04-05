@@ -73,4 +73,9 @@ public class Score implements Serializable {
         // Manage difference between question index
         return reponse[Byte.parseByte(currentQuestion) - 1] != 0;
     }
+
+    public boolean isAlreadyAnswer(int currentQuestion) {
+        // Manage difference between question index
+        return reponse[currentQuestion - 1] != 0;
+    }
 }

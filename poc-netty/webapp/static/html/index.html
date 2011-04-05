@@ -1,22 +1,101 @@
 <html>
 <head>
-    <script type="text/javascript" src="../script/jquery-1.3.2.js"></script>
+    <script type="text/javascript" src="../script/jquery-1.5.1.min.js"></script>
     <script type="text/javascript" src="../script/jquery.json-1.3.min.js"></script>
+<script type="text/javascript" src="../script/jquery-ui-1.8.11.custom.min.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/ui-darkness/jquery-ui-1.8.11.custom.css">
+    <style type="text/css">
+		body { font-size: 70%; }
+		label, input { display:block; }
+        .ui-menu-item label, .ui-menu-item  input { display: inline}
 
+		input.text { margin-bottom:12px; width:95%; padding: .4em; }
+		fieldset { padding:0; border:0; margin-top:25px; }
+		h1 { font-size: 1.2em; margin: .6em 0; }
+		.ui-dialog .ui-state-error { padding: .3em; }
+		.validateTips { border: 1px solid transparent; padding: 0.3em; }
+    </style>
 </head>
 <body>
-<h1>Identification</h1>
 
-<form action="" method="post">
-    <label>Email</label>
-    <input type="text" name="mail"/>
-    <br/>
-    <label>Mot de passe</label>
-    <input type="text" name="password"/>
-    <br/>
-    <input type="submit" value="OK">
+<!--  Login Dialog Form -->
+<div id="login-form" title="Please login">
+<form action="" method="post" id="login-dialog-form">
+    <p id="validate-text">Type your e-mail and pasword</p>
+    <fieldset>
+    <label for="mail">E-mail</label>
+    <input type="text" name="mail" class="text ui-widget-content ui-corner-all"/>
+    <label for="password">Password</label>
+    <input type="text" name="password" class="text ui-widget-content ui-corner-all"/>
+    </fieldset>
 </form>
+</div>
+
+<!-- Question Dialog Form -->
+    <div id="question-content" class="main-content" title="Question">
+        <div id="answer_content">
+            <form action="" method="post" id="question-form">
+                <span id="question-text" class="questionLabel" style="font-weight: bold;">De quel couleur est le cheval ?</span><span style="float:right;" id="time">10s</span>
+
+                <ul class="ui-menu" style="margin:10px;width:80%;">
+                <li id="answer_1" style="clear:both;padding: .4em; font-weight: bold;" class="ui-menu-item ui-corner-all">
+                    <input id="1" type="radio" name="answer" value="1" style="" />
+                    <label id="response_1_value" for="1" style="">Blanc</label>
+                </li>
+                <li id="answer_2" style="clear:both;padding: .4em;font-weight: bold;" class="ui-menu-item ui-corner-all">
+                    <input id="2" type="radio" name="answer" value="2" style=""  />
+                    <label id="response_2_value" for="2" style="">Noir</label>
+                </li>
+                <li id="answer_3" style="clear:both;padding: .4em;font-weight: bold;" class="ui-menu-item ui-corner-all">
+                    <input id="3" type="radio" name="answer" value="3" style=""  />
+                    <label id="response_3_value" for="3" style="">Bleu</label>
+                </li>
+                <li id="answer_4" style="clear:both;padding: .4em;font-weight: bold;" class="ui-menu-item ui-corner-all">
+                    <input id="4" type="radio" name="answer" value="4" style=""  />
+                    <label id="response_4_value" for="4" style="">Vert</label>
+                </li>
+				</ul>
+            </form>
+        </div>
+    </div>
+
+
+<!-- Waiting Content -->
+<div id="waiting-content">
+<!-- ui-dialog -->
+<div id="overlay" class="ui-overlay"><div class="ui-widget-overlay"></div></div>
+	<div id="my-banner" style="width: 250px; height: 150px;" class=" ui-dialog ui-widget ui-widget-content ui-corner-all">
+		<div class="ui-dialog-content ui-widget-content" style="background: none; border: 0;">
+			    <div id="player-stat">
+				<span id="email">fsdfsdfsdf@sdfsfd.com</span> youre score is : <span id="current_score_value">0</span>
+				</div>
+			<p style="text-align: center">Waiting for question <span id="question_number_waiting">1</span></p>
+		</div>
+	</div>
+</div>
+
+
+<!-- Score content result -->
+<div id="score-content-wrapper">
+    <div id="score-overlay" class="ui-overlay"><div class="ui-widget-overlay"></div></div>
+    <div id="score-content" class="ui-dialog ui-widget ui-widget-content ui-corner-all">
+        <ul class="ui-menu" style="padding:10px;">
+            <li class="ui-menu-item ui-corner-all"><span id="are_u_right_value"></span></li>
+            <li class="ui-menu-item ui-corner-all">Good answer was : <span id="good_andswer_value"></span></li>
+            <li class="ui-menu-item ui-corner-all">Youre score is :<span id="score_value"></span></li>
+        </ul>
+    </div>
+</div>
+
 <script type="text/javascript">
+
+    var params = { currentQuestionIndex: 1, previousChoice: null, questionTimeFrame: 20, counter: 0 };
+    
+    // Hide Waiting content
+    $('#waiting-content').hide();
+	$('#player-stat').hide();
+    $('#score-content-wrapper').hide();
+
 
     $.fn.serializeObject = function()
     {
@@ -37,18 +116,176 @@
         return o;
     };
 
-    $('form').submit(function()
-    {
-        var responseStatus=$.ajax({async: false, type: "POST", url: "../../api/login", data: $.toJSON($('form').serializeObject()), dataType: "json"}).status;
-        if(responseStatus == 200){
-            document.location.href="/static/html/game.html";
-        }else {
-            alert("Bad login");
-        }
-        return false;
-    });
+    function incrementQuestionIndex(){
+        params.currentQuestionIndex++;
+    }
 
+
+        // Retrieves last answer String from answer number
+    function getQuestionString(answer){
+        switch(answer){
+            case 1: return 'A - ' + params.lastQuestion.answer_1;
+            case 2: return 'B - ' + params.lastQuestion.answer_2;
+            case 3: return 'C - ' + params.lastQuestion.answer_3;
+            case 4: return 'D - ' + params.lastQuestion.answer_4;
+        }
+    }
+
+    function sendAnswer() {
+        $('form').submit(function() {
+            if (params.counter > 0) return false;
+
+            $.ajax({type: "POST", url: "/api/answer/" + currentQuestionIndex, data: $.toJSON($('form').serializeObject()), dataType: "json", success: function(data) {
+                $("#are_u_right_value").html((data.are_u_right ? 'You were right :)' : 'You were wrong :p'));
+                $("#good_andswer_value").html(getQuestionString(data.good_answer));
+                $("#score_value").html(data.score);
+                $("#waiting-content").hide();
+                $("#question-content").dialog('close');
+                $("#score-content-wrapper").show();
+
+
+                // On increment l'index de question courante
+                incrementQuestionIndex();
+                // S'il reste encore des questions on demande la suivante
+                if (params.currentQuestionIndex <= params.nbQuestion) {
+                    // Une fois le score obtenue on lance l'appel a la question suivante
+                    callQuestion();
+
+                    // Et on fait apparaitre l'attente à la question
+                } else {
+                    // Sinon fin du jeu
+                    // On appel les résultats finaux
+                    // Apres
+                    setTimeout(function() {
+                            //redirect to home page
+                            document.location.href = "/static/html/ranking.html";
+                        }, 15000);
+                }
+
+
+            }
+            });
+            params.counter++;
+            return false;
+        });
+    }
+
+
+      // Define getQuestion function
+    function getQuestion() {
+        $('#question_number_waiting').html(params.currentQuestionIndex);
+        $('#waiting-content').show();
+        $.ajax({ url: "/api/question/" + params.currentQuestionIndex, dataType:"json", success: function(data) {
+            params.lastQuestionData = data;
+            $("#question-text").html(data.question);
+            $("#response_1_value").html('A - '+data.answer_1);
+            $("#response_2_value").html('B - '+data.answer_2);
+            $("#response_3_value").html('C - '+data.answer_3);
+            $("#response_4_value").html('D - '+data.answer_4);
+            $("#time").html(params.questionTimeFrame + 's');
+            $("#score_value").html(data.current_score);
+			$('#question-form').reset();
+            $("#waiting-content").hide();
+            $("#score-content-wrapper").hide();
+            $("#question-content").dialog('open');
+            params.timeCounter = params.questionTimeFrame;
+            params.counter = 0;
+            params.timeoutId = setInterval(function(){
+                    params.timeCounter--;
+                    $("#time").html(params.timeCounter + 's');
+                    if (params.timeCounter == 0){
+                        clearInterval(params.timeoutId);
+                        incrementQuestionIndex();
+                        getQuestion();
+                    }
+                }, 1000);
+        }
+        });
+        return false;
+    }
+
+    $('#login-form').dialog({
+        autoOpen:true,
+        height: 300,
+        width: 350,
+        modal: true,
+        buttons: {
+            "Ok": function(){
+                var responseStatus=$.ajax({async: false, type: "POST", url: "/api/login", data: $.toJSON($('#login-dialog-form').serializeObject()), dataType: "json"}).status;
+                if(responseStatus == 200){
+                    params.mail = $('mail').val();
+                    $( this ).dialog( "close" );
+					$('#email').html(params.mail);
+                    $('#waiting-content').show();
+
+                    // prepare game parameters..
+                    $.ajax({ async:false, url: "/api/parameter/", dataType:"json", success: function(data) {
+                        params.nbQuestion = data.nbQuestion;
+                        params.questionTimeFrame = data.questionTimeFrame;
+                        params.synchroTime = data.synchrotime;
+                    }});
+					$(this).dialog("close");
+					// Get the first Question
+					getQuestion();
+                }else {
+                    $('#validate-text').text( "Login failed !" );
+                    $('#login-form').effect('pulsate', {}, 500, null );
+                }
+                return false;
+            },
+        },
+    
+    close: function(){
+       // $(this).dialog("open");
+    }});
+
+    //$('#login-form').dialog("close");
+    
+
+	$('#question-content').dialog({
+        autoOpen:true,
+        height: 300,
+        width: 350,
+        modal: true,
+        buttons: {
+			"Ok": function(){
+
+				// Submit Response then get Answer and score
+				sendAnswer();
+			}
+		}
+		
+		});
+		
+		$('#question-content').dialog('close');
+
+            // Initiate highlights on questions :)
+        $(".ui-menu-item").each(function (){
+            
+            $(this).mouseenter( function(){
+                $( this ).addClass( "ui-state-hover" );
+            });
+
+            $(this).mouseleave( function(){
+                $( this ).removeClass( "ui-state-hover" );
+            });
+
+            $(this).click( function(){
+                if (params.previousChoice != null){
+                    $(params.previousChoice).removeClass("ui-state-active");
+                }
+                $( this ).addClass( "ui-state-active" );
+                params.previousChoice = this;
+                $(this).find('input').attr("checked", "checked");
+            });
+        });
+    $("#my-banner").position({my: "center", of: window});
+    $("#score-content").position({my: "center", of: window});
+
+	
 </script>
+
+
 
 </body>
 </html>

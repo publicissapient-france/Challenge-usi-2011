@@ -109,7 +109,7 @@ public class DistributedScoring implements Scoring {
         List<Joueur> res = new ArrayList<Joueur>();
         NodeSet<Joueur> set = tree.getSet(joueur);
         int i = 0;
-        while (i < 50) {
+        while (i < 5) {
             joueur = set.prev();
             if (joueur == null)
                 break;
@@ -127,7 +127,7 @@ public class DistributedScoring implements Scoring {
         List<Joueur> res = new ArrayList<Joueur>();
         NodeSet<Joueur> set = tree.getSet(joueur);
         int i = 0;
-        while (i < 50) {
+        while (i < 5) {
             joueur = set.next();
             if (joueur == null)
                 break;

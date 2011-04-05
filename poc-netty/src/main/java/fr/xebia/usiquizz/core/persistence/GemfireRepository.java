@@ -184,7 +184,7 @@ public class GemfireRepository {
         scoreAttribute.setScope(Scope.DISTRIBUTED_ACK);
         scoreAttribute.addCacheListener(finalScoreListener);
         RegionFactory rf = cache.createRegionFactory(scoreAttribute.create());
-        playerRegion = rf.create("final-score-region");
+        scoreFinalRegion = rf.create("final-score-region");
     }
 
     public Cache getCache() {
@@ -217,23 +217,11 @@ public class GemfireRepository {
 
 
     public Region<String, Score> getScoreFinalRegion() {
-        return scoreRegion;
+        return scoreFinalRegion;
     }
 
     public Region<String, Byte> getQuestionStatusRegion() {
         return questionStatusRegion;
-    }
-
-    public Region<Integer, TreeSet<Joueur>> getInverseScoreRegion() {
-        return inverseScoreRegion;
-    }
-
-    public Region<String, Integer> getRanking() {
-        return ranking;
-    }
-
-    public Region<Integer, Joueur> getFinalRankingRegion() {
-        return finalRankingRegion;
     }
 
 
@@ -242,7 +230,7 @@ public class GemfireRepository {
         asyncScoreWritingOperation.submit(new Runnable() {
             @Override
             public void run() {
-                if (!score.isAlreadyAnswer(((String) getGameRegion().get(NB_QUESTIONS)))) {
+                if (!score.isAlreadyAnswer(((Integer) getGameRegion().get(NB_QUESTIONS)).intValue())) {
                     // Maj du score standard
                     getScoreRegion().put(email, score);
                 } else {
@@ -263,15 +251,6 @@ public class GemfireRepository {
         });
     }
 
-    public void createScoreAsync(final String sessionKey, final User user) {
-        asyncScoreWritingOperation.submit(new Runnable() {
-            @Override
-            public void run() {
-                getScoreRegion().put(sessionKey, new Score(((Integer) getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
-            }
-        });
-
-    }
 
     public Region<Joueur, Node<Joueur>> getScoreStoreRegion() {
         return scoreStoreRegion;

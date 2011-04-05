@@ -8,6 +8,7 @@ import fr.xebia.usiquizz.core.persistence.Joueur;
 import fr.xebia.usiquizz.core.sort.RBTree;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,12 +24,11 @@ public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
     private RBTree<Joueur> tree;
 
     private final GemfireRepository repository;
-    private ExecutorService executorService;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 
-    public ScoreCacheListener(GemfireRepository repository, ExecutorService executorService) {
+    public ScoreCacheListener(GemfireRepository repository) {
         this.repository = repository;
-        this.executorService = executorService;
     }
 
     /**
