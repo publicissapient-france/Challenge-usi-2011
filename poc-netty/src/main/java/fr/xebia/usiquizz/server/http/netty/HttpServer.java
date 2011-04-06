@@ -90,10 +90,10 @@ public class HttpServer {
         };
         // Configure the server.
         //ExecutorService bossExec = Executors.newFixedThreadPool(20, threadFactory);
-        //ExecutorService bossExec = Executors.newCachedThreadPool();
+        ExecutorService bossExec = Executors.newCachedThreadPool();
         //ExecutorService ioExec = Executors.newCachedThreadPool();
-        ExecutorService bossExec = new MemoryAwareThreadPoolExecutor(nbListeningPort, 0, 0, 60, TimeUnit.SECONDS, bossThreadFactory);
-        ExecutorService ioExec = new MemoryAwareThreadPoolExecutor(nbThread, 0, 0, 60, TimeUnit.SECONDS, ioThreadFactory);
+        //ExecutorService bossExec = new MemoryAwareThreadPoolExecutor(nbListeningPort, 1000, 100000, 60, TimeUnit.SECONDS, bossThreadFactory);
+        ExecutorService ioExec = new MemoryAwareThreadPoolExecutor(nbThread, 400000000, 2000000000, 60, TimeUnit.SECONDS, ioThreadFactory);
 
 
         logger.info("start server with {} listning port", nbListeningPort);
@@ -110,9 +110,10 @@ public class HttpServer {
         // A priori beaucoup de pb de connection reset by peer sous macos sans ces options
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("backlog", 1000);
-        for (int i = 0; i < nbListeningPort; i++) {
-            bootstrap.bind(new InetSocketAddress(firstPort + i));
-        }
+        bootstrap.bind(new InetSocketAddress(firstPort));
+        //for (int i = 0; i < nbListeningPort; i++) {
+        //    bootstrap.bind(new InetSocketAddress(firstPort + i));
+        //}
 
     }
 }

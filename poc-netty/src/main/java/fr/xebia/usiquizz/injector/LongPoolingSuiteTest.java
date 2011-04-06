@@ -3,6 +3,7 @@ package fr.xebia.usiquizz.injector;
 import com.ning.http.client.*;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.slf4j.Logger;
@@ -335,7 +336,7 @@ public class LongPoolingSuiteTest {
         jgen.writeStartObject();
         jgen.writeStringField("authentication_key", "xebia");
         jgen.writeFieldName("parameters");
-        jgen.writeString(gameContent);
+        jgen.writeString(StringEscapeUtils.escapeXml(gameContent));
         jgen.writeEndObject();
         jgen.close();
 

@@ -1,4 +1,3 @@
-
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 import com.usi.Sessiontype;
@@ -7,6 +6,7 @@ import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import fr.xebia.usiquizz.core.xml.InvalidParameterFileException;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -47,7 +47,8 @@ public class JsonGameRestService extends RestService {
                 if ("authentication_key".equals(fieldname)) { // contains an object
                     authenticationKey = jp.getText();
                 } else if ("parameters".equals(fieldname)) {
-                    parameters = jp.getText();
+                    // Decode le format pourri choisi.......
+                    parameters = StringEscapeUtils.unescapeXml(jp.getText());
                 } else {
                     responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                     logger.error("Unrecognized field '" + fieldname + "'!");

@@ -151,7 +151,7 @@ public class DistributedGame implements Game {
 
                                 startGame();
                             }
-                        }), getLoginTimeout(), TimeUnit.MILLISECONDS);
+                        }), getLoginTimeout(), TimeUnit.SECONDS);
                     }
                 }
             }
@@ -296,7 +296,7 @@ public class DistributedGame implements Game {
                     startSynchroTime();
                 }
             }
-        }), getQuestiontimeframe(), TimeUnit.MILLISECONDS);
+        }), getQuestiontimeframe(), TimeUnit.SECONDS);
     }
 
     @Override
@@ -328,7 +328,7 @@ public class DistributedGame implements Game {
                 // On change le statut de la question
                 gemfireRepository.getQuestionStatusRegion().put(currentQuestionIndex, QuestionStatus.QUESTION_EN_COURS);
             }
-        }), getSynchrotime(), TimeUnit.MILLISECONDS);
+        }), getSynchrotime(), TimeUnit.SECONDS);
     }
 
     public void startCurrentLongPolling() {

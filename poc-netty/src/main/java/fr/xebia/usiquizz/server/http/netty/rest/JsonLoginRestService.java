@@ -75,6 +75,7 @@ public class JsonLoginRestService extends RestService {
                     } catch (LoginPhaseEndedException e1) {
                         // Trop tard pour se logguer ...
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                        return;
                     }
                     // Add a score object to player
                     scoring.createScore(sessionKey, user);

@@ -1,154 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<usi:gamesession xmlns:usi="http://www.usi.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.usi.com gamesession.xsd ">
-  <usi:questions>
-    <usi:question goodchoice="1">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="2">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="3">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="4">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="1">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="2">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="3">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="4">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="1">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="2">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="3">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="4">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="1">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="2">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="3">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="4">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="1">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="2">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="3">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-    <usi:question goodchoice="4">
-      <usi:label>usi:label</usi:label>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-      <usi:choice>usi:choice</usi:choice>
-    </usi:question>
-  </usi:questions>
-  <usi:parameters>
-    <usi:logintimeout>20000</usi:logintimeout>
-    <usi:synchrotime>5000</usi:synchrotime>
-    <usi:nbusersthreshold>50</usi:nbusersthreshold>
-    <usi:questiontimeframe>10000</usi:questiontimeframe>
-    <usi:nbquestions>20</usi:nbquestions>
-    <usi:flushusertable>false</usi:flushusertable>
-    <usi:trackeduseridmail>usi:trackeduseridmail</usi:trackeduseridmail>
-  </usi:parameters>
+<usi:gamesession xmlns:usi="http://www.usi.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://www.usi.com gamesession.xsd ">
+    <usi:questions>
+        <usi:question goodchoice="1">
+            <usi:label>This is the question 1.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="1">
+            <usi:label>This is the question 2.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="2">
+            <usi:label>This is the question 3.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="2">
+            <usi:label>This is the question 4.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="3">
+            <usi:label>This is the question 5.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="3">
+            <usi:label>This is the question 6.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="4">
+            <usi:label>This is the question 7.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="4">
+            <usi:label>This is the question 8.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="4">
+            <usi:label>This is the question 9.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="4">
+            <usi:label>This is the question 10.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="3">
+            <usi:label>This is the question 11.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="3">
+            <usi:label>This is the question 12.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="2">
+            <usi:label>This is the question 13.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="2">
+            <usi:label>This is the question 14.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="1">
+            <usi:label>This is the question 15.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="1">
+            <usi:label>This is the question 16.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="1">
+            <usi:label>This is the question 17.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="1">
+            <usi:label>This is the question 18.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="2">
+            <usi:label>This is the question 19.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+        <usi:question goodchoice="2">
+            <usi:label>This is the question 20.</usi:label>
+            <usi:choice>Choix 1</usi:choice>
+            <usi:choice>Choix 2</usi:choice>
+            <usi:choice>Choix 3</usi:choice>
+            <usi:choice>Choix 4</usi:choice>
+        </usi:question>
+    </usi:questions>
+    <usi:parameters>
+        <usi:logintimeout>20</usi:logintimeout>
+        <usi:synchrotime>3</usi:synchrotime>
+        <usi:nbusersthreshold>1000</usi:nbusersthreshold>
+        <usi:questiontimeframe>5</usi:questiontimeframe>
+        <usi:nbquestions>3</usi:nbquestions>
+        <usi:flushusertable>false</usi:flushusertable>
+        <usi:trackeduseridmail>usi:trackeduseridmail</usi:trackeduseridmail>
+    </usi:parameters>
 </usi:gamesession>
