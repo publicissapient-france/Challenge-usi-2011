@@ -17,9 +17,9 @@ public class GemfireBTreeTest {
 
         @Test
     public void simpleInsertion(){
-            GemfireRepository repository = new GemfireRepository();
-            DistributedNodeScoreStore nodeStore = new DistributedNodeScoreStore(repository.getScoreStoreRegion());
-            RBTree<Joueur> tree = new RBTree<Joueur>(nodeStore);
+ //           GemfireRepository repository = new GemfireRepository();
+ //           DistributedNodeScoreStore nodeStore = new DistributedNodeScoreStore(repository.getScoreStoreRegion());
+            LocalBTree<Joueur> tree = new LocalBTree<Joueur>();
 
 
 

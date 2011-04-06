@@ -15,7 +15,7 @@ public class BTreeTest {
 
     @Test
     public void simpleInsertion(){
-        RBTree<Integer> tree = new RBTree<Integer>();
+        LocalBTree<Integer> tree = new LocalBTree<Integer>();
         tree.insert(10);
         tree.insert(12);
         tree.insert(1);
@@ -93,7 +93,7 @@ public class BTreeTest {
      */
     @Test
     public void insertionLoadTest(){
-        RBTree<Integer> tree = new RBTree<Integer>();
+        LocalBTree<Integer> tree = new LocalBTree<Integer>();
         int size = 10000;
         int i = 0, j = size;
         while (i <= j){
@@ -127,7 +127,7 @@ public class BTreeTest {
      */
     @Test
     public void insertionDeletionLoadTest(){
-        RBTree<Integer> tree = new RBTree<Integer>();
+        LocalBTree<Integer> tree = new LocalBTree<Integer>();
         int size = 10000;
         int i = 0, j = size;
         while (i <= size){
