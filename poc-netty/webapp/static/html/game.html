@@ -1,21 +1,29 @@
 <html>
 <head>
-    <script type="text/javascript" src="../script/jquery-1.3.2.js"></script>
+    <script type="text/javascript" src="../script/jquery-1.5.1.min.js"></script>
     <script type="text/javascript" src="../script/jquery.json-1.3.min.js"></script>
-    <script type="text/javascript" src="../script/jquery.timer-1.2.js"></script>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link rel="stylesheet" type="text/css" media="screen" href="../css/usi.css">
+<script type="text/javascript" src="../script/jquery-ui-1.8.11.custom.min.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/ui-darkness/jquery-ui-1.8.11.custom.css">
 </head>
 <body>
+
+<div id="waiting_content">
+<!-- ui-dialog -->
+<div id="overlay" class="ui-overlay"><div class="ui-widget-overlay"></div></div>
+	<div id="my-banner" style="width: 250px; height: 150px;" class=" ui-dialog ui-widget ui-widget-content ui-corner-all">
+		<div class="ui-dialog-content ui-widget-content" style="background: none; border: 0;">
+			<p style="text-align: center">Waiting for question <span id="question_number_waiting">1</span></p>
+		</div>
+	</div>
+</div>
+</div>
+
 <div id="page">
-    <div class="banner">
-        <h2>Waiting for question <span id="question_number_waiting">1</span></h2>
-    </div>
+
     <div class="player-stat">
-        fsdfsdfsdf@sdfsfd.com votre score est de : <p id="current_score_value">0</p>
+        <span id="email">fsdfsdfsdf@sdfsfd.com</span> votre score est de : <span id="current_score_value">0</span>
     </div>
-    <div id="waiting_content" class="main-content">
-    </div>
+
     <div id="question_content" class="main-content">
         <div id="answer_content">
             <form action="" method="post">
@@ -55,8 +63,6 @@
             <span><p>are u right : </p><p id="are_u_right_value"></p></span>
             <span><p>Good answer : </p><p id="good_andswer_value"></p></span>
             <span><p>score : </p><p id="score_value"></p></span>
-
-
         </div>
     </div>
 </div>
@@ -137,9 +143,12 @@
 
     // Quand la page est prete démarrage du jeu
     $(document).ready(function() {
+        $("#my-banner").position({my: "center", of: window});
+
         $("#waiting_content").show();
         $("#question_content").hide();
         $("#score_content").hide();
+
 
         // prepare game parameters..
         $.ajax({ async:false, url: "/api/parameter/", dataType:"json", success: function(data) {

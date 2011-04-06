@@ -66,7 +66,7 @@ public class DistributedGame implements Game {
         gemfireRepository.initQuestionStatusRegion(new QuestionStatusCacheListener(this, eventTaskExector));
         gemfireRepository.initCurrentQuestionRegion();
         gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
-        gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(gemfireRepository, eventTaskExector));
+        gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(gemfireRepository));
 
     }
 

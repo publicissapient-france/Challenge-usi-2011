@@ -70,6 +70,6 @@ public class JsonUserRestService extends RestService {
             logger.error("Error ", e1);
         }
 
-        responseWriter.writeResponse(HttpResponseStatus.OK, ctx, event);
+        responseWriter.writeResponse(HttpResponseStatus.CREATED, ctx, event);
     }
 }
