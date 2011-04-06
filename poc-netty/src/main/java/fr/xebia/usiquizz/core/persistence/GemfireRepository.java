@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.TreeSet;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GemfireRepository {
 
@@ -91,27 +92,13 @@ public class GemfireRepository {
 
     // TODO : This is a simple stupid region test to implement Ranking tree NodeStore
     private Region<Joueur, Node<Joueur>> scoreStoreRegion = cache.getRegion("score-store-region");
+    
     private Region<String, Byte> questionStatusRegion;
 
     // Region for score
     // Cette région contient le score de manière email --> score
     // Utilie lors de l'envoie de la réponse pour donner rapidement son score à un joueur
     private Region<String, Score> scoreRegion = cache.getRegion("score-region");
-
-    // Permet de trier pour un score donnée l'ensemble des joueurs.
-    // L'intérer serait de 'partionner' sur les différents serveurs le tri par ordre alphabetique des ex-equo
-    private Region<Integer, TreeSet<Joueur>> inverseScoreRegion = cache.getRegion("inverse-score-region");
-
-    // Cette region contient le rang : session-id --> rang
-    // Permet de rapidement retrouver le rang d'un joueur
-    // Permet avec finalRankingRegion de répondre au requête de ranking
-    private Region<String, Integer> ranking = cache.getRegion("ranking-region");
-
-    // Cette region contient le rang : rang --> score;firstname;lastname;mail
-    // Doit permettre de répondre tres vite au requête de ranking
-    // La difficulté est de le remplir
-    private Region<Integer, Joueur> finalRankingRegion = cache.getRegion("final-ranking-region");
-
 
     // cette region contient les score finaux des utilisateurs qui ont répondus
     // Elle associe email -> Score
@@ -121,7 +108,7 @@ public class GemfireRepository {
     DistributedLockService dls = DistributedLockService.create("ScoreLockService", cache.getDistributedSystem());
 
     // Tells wether this instance owns the lock or not
-    private boolean ownScoreLock = false;
+    private AtomicBoolean ownScoreLock = new AtomicBoolean(false);
 
     public GemfireRepository() {
 
@@ -136,7 +123,7 @@ public class GemfireRepository {
                 while (true){
                     boolean locked = dls.lock("finalScoring", -1, -1);
                     LOG.info("Granted to final scoring distributed lock {}", locked);
-                    ownScoreLock =locked ;
+                    ownScoreLock.set(locked);
                     while (locked){
                         try {
                             Thread.currentThread().sleep(500);
@@ -258,6 +245,6 @@ public class GemfireRepository {
 
 
     public boolean hasFinalScoreLock() {
-        return ownScoreLock;
+        return ownScoreLock.get();
     }
 }

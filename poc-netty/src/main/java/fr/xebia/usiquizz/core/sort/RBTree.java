@@ -427,19 +427,21 @@ public class RBTree<K extends Comparable<K>> {
 
 
     private Node<K> parentOf(Node<K> node) {
-
+        if (node.parent == null){
+            return null;
+        }
         return store.get(node.parent);
     }
 
 
     private Node<K> leftOf(Node<K> node) {
-        if (node == null)
+        if (node == null || node.left == null)
             return null;
         return store.get(node.left);
     }
 
     private Node<K> rightOf(Node<K> node) {
-        if (node == null)
+        if (node == null  || node.right == null)
             return null;
         return store.get(node.right);
     }

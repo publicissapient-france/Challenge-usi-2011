@@ -29,6 +29,8 @@ public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
 
     public ScoreCacheListener(GemfireRepository repository) {
         this.repository = repository;
+        nodeStore = new DistributedNodeScoreStore(repository.getScoreStoreRegion());
+        tree = new RBTree<Joueur>(nodeStore);
     }
 
     /**
