@@ -6,6 +6,7 @@ import fr.xebia.usiquizz.core.game.gemfire.DistributedNodeScoreStore;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
 import fr.xebia.usiquizz.core.persistence.User;
+import fr.xebia.usiquizz.core.sort.LocalBTree;
 import fr.xebia.usiquizz.core.sort.NodeSet;
 import fr.xebia.usiquizz.core.sort.RBTree;
 
@@ -19,25 +20,20 @@ public class DistributedScoring implements Scoring {
 
     private GemfireRepository gemfireRepository;
 
-    private DistributedNodeScoreStore nodeStore;
-
-    private RBTree<Joueur> tree;
-
     private List<Joueur> top100;
+
+    private LocalBTree<Joueur> tree;
 
     // Uniquement pour debug... Nombre de reponse recu sur l'instance
     private ConcurrentHashMap<Byte, AtomicInteger> nbReponse = new ConcurrentHashMap<Byte, AtomicInteger>();
 
     public DistributedScoring(GemfireRepository gemfireRepository) {
         this.gemfireRepository = gemfireRepository;
-        this.nodeStore = new DistributedNodeScoreStore(this.gemfireRepository.getScoreStoreRegion());
-        this.tree = new RBTree<Joueur>(this.nodeStore);
     }
 
     @Override
     public void createScore(String sessionKey, User user) {
-
-        // String email = gemfireRepository.getPlayerRegion().get(sessionKey);
+            // Reset Top 100 scores
         if (top100 != null) {
             top100 = null;
         }
@@ -141,4 +137,9 @@ public class DistributedScoring implements Scoring {
         return getCurrentScoreByEmail(email).getReponse();
     }
 
+
+    @Override
+    public void setTree(LocalBTree<Joueur> tree) {
+        this.tree = tree;
+    }
 }

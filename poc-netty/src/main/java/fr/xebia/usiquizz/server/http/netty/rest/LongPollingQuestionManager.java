@@ -108,8 +108,8 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
 
     private void awaitAllQuestionSend(List<ChannelFuture> channels) {
         for (ChannelFuture cf : channels) {
-            cf.awaitUninterruptibly();
-            //cf.awaitUninterruptibly(5, TimeUnit.SECONDS);
+            //cf.awaitUninterruptibly();
+            cf.awaitUninterruptibly(5, TimeUnit.SECONDS);
         }
     }
 

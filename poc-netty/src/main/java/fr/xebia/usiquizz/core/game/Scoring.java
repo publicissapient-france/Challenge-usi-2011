@@ -3,6 +3,7 @@ package fr.xebia.usiquizz.core.game;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
 import fr.xebia.usiquizz.core.persistence.User;
+import fr.xebia.usiquizz.core.sort.LocalBTree;
 
 import java.util.List;
 
@@ -29,4 +30,6 @@ public interface Scoring {
     List<Joueur> get50Prec(String email);
 
     List<Joueur> get50Suiv(String email);
+
+    void setTree(LocalBTree<Joueur> tree);
 }

@@ -5,6 +5,7 @@ import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
 import fr.xebia.usiquizz.core.game.Score;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
+import fr.xebia.usiquizz.core.sort.LocalBTree;
 import fr.xebia.usiquizz.core.sort.RBTree;
 
 import java.util.concurrent.ExecutorService;
@@ -19,18 +20,13 @@ import java.util.concurrent.Executors;
  */
 public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
 
-    private DistributedNodeScoreStore nodeStore;
+    private LocalBTree<Joueur> tree;
 
-    private RBTree<Joueur> tree;
-
-    private final GemfireRepository repository;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 
-    public ScoreCacheListener(GemfireRepository repository) {
-        this.repository = repository;
-        nodeStore = new DistributedNodeScoreStore(repository.getScoreStoreRegion());
-        tree = new RBTree<Joueur>(nodeStore);
+    public ScoreCacheListener(LocalBTree<Joueur> tree) {
+        this.tree = tree;
     }
 
     /**
@@ -45,10 +41,8 @@ public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                if (repository.hasFinalScoreLock()) {
                     Score score = entryEvent.getNewValue();
                     tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, score.email));
-                }
             }
         });
 

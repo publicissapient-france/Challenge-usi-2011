@@ -90,8 +90,6 @@ public class GemfireRepository {
     private Region<String, String> playerRegion;
     private Region<String, String> currentQuestionRegion;
 
-    // TODO : This is a simple stupid region test to implement Ranking tree NodeStore
-    private Region<Joueur, Node<Joueur>> scoreStoreRegion = cache.getRegion("score-store-region");
     
     private Region<String, Byte> questionStatusRegion;
 
@@ -107,38 +105,8 @@ public class GemfireRepository {
 
     DistributedLockService dls = DistributedLockService.create("ScoreLockService", cache.getDistributedSystem());
 
-    // Tells wether this instance owns the lock or not
-    private AtomicBoolean ownScoreLock = new AtomicBoolean(false);
 
-    public GemfireRepository() {
 
-      
-
-        // Try to get the lock indefinitely
-        // if server owning the lock crash we can recover
-
-        asyncScore.execute(new Runnable() {
-            @Override
-            public void run() {
-                while (true){
-                    boolean locked = dls.lock("finalScoring", -1, -1);
-                    LOG.info("Granted to final scoring distributed lock {}", locked);
-                    ownScoreLock.set(locked);
-                    while (locked){
-                        try {
-                            Thread.currentThread().sleep(500);
-                        } catch (InterruptedException e) {
-                            LOG.warn("Interruption while sleeping before lock access", e);
-                           locked = false;
-                        }
-                    }
-                    dls.freeResources("finalScoring");
-                 }
-
-            }
-        });
-
-    }
 
     public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();
@@ -239,12 +207,14 @@ public class GemfireRepository {
     }
 
 
-    public Region<Joueur, Node<Joueur>> getScoreStoreRegion() {
-        return scoreStoreRegion;
+    /**
+     * Clears all region used at game time
+     */
+    public void clearGameCaches(){
+        this.currentQuestionRegion.clear();
+        this.playerRegion.clear();
+        this.scoreFinalRegion.clear();
+        this.scoreRegion.clear();
     }
 
-
-    public boolean hasFinalScoreLock() {
-        return ownScoreLock.get();
-    }
 }

@@ -10,6 +10,8 @@ import fr.xebia.usiquizz.core.game.QuestionLongpollingCallback;
 import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
+import fr.xebia.usiquizz.core.persistence.Joueur;
+import fr.xebia.usiquizz.core.sort.LocalBTree;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.slf4j.Logger;
@@ -59,6 +61,7 @@ public class DistributedGame implements Game {
     private boolean firstForQuestion = true;
     private boolean firstLogin = true;
     private JsonQuestionWriter jsonQuestionWriter = new JsonQuestionWriter();
+    private LocalBTree<Joueur> bTree;
 
     public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
@@ -66,7 +69,10 @@ public class DistributedGame implements Game {
         gemfireRepository.initQuestionStatusRegion(new QuestionStatusCacheListener(this, eventTaskExector));
         gemfireRepository.initCurrentQuestionRegion();
         gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
-        gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(gemfireRepository));
+        this.bTree = new LocalBTree<Joueur>();
+        gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(this.bTree));
+            // TODO : Instantiate it here for now but thats a shame
+        scoring.setTree(this.bTree);
 
     }
 
@@ -93,6 +99,15 @@ public class DistributedGame implements Game {
         for (byte currentIndex = 1; currentIndex <= st.getParameters().getNbquestions(); currentIndex++) {
             gemfireRepository.getQuestionStatusRegion().put(Byte.toString(currentIndex), QuestionStatus.QUESTION_NON_JOUEE);
         }
+
+        // Clear all caches used in the party 
+        bTree.clear();
+        gemfireRepository.clearGameCaches();
+            // Flush user Table when requested
+        if (st.getParameters().isFlushusertable()){
+            gemfireRepository.getUserRegion().clear();
+        }
+
     }
 
     @Override
@@ -288,9 +303,7 @@ public class DistributedGame implements Game {
                     // End of game
                     logger.info("END OF GAME");
                     // Create final ranking only when we own the score lock
-                    if (gemfireRepository.hasFinalScoreLock()) {
-                        scoring.calculRanking();
-                    }
+                    scoring.calculRanking();
                 } else {
                     // Sinon On déclenche le synchrotime...
                     startSynchroTime();
