@@ -114,7 +114,6 @@ public class LocalBTree<K extends Comparable<K>> {
             updateMin(insertedNode);
             updateMax(insertedNode);
             updateRoot(insertedNode);
-
         } else {
             Node<K> n = root;
             while (true) {
@@ -522,7 +521,7 @@ public class LocalBTree<K extends Comparable<K>> {
         } else {
             Node<K> node = ptr.parent;
             Node<K> nch = ptr;
-            while (node != null && nch.key.equals(node.left)) {
+            while (node != null && nch.equals(node.left)) {
                 nch = node;
                 node = node.parent;
             }
