@@ -132,7 +132,7 @@
     }
 
     function sendAnswer() {
-        $('#question-form').submit(function() {
+      //  $('#question-form').submit(function() {
             if (params.counter > 0) return false;
 
             $.ajax({type: "POST", url: "/api/answer/" + params.currentQuestionIndex, data: $.toJSON($('#question-form').serializeObject()), dataType: "json", success: function(data) {
@@ -162,12 +162,11 @@
                         }, 15000);
                 }
 
-
             }
             });
             params.counter++;
             return false;
-        });
+      //  });
     }
 
 
