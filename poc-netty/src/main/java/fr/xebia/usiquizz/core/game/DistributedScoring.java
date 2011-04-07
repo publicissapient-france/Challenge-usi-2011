@@ -103,7 +103,7 @@ public class DistributedScoring implements Scoring {
     @Override
     public List<Joueur> get50Prec(String email) {
 
-        Score score = gemfireRepository.getScoreRegion().get(email);
+        Score score = getCurrentScoreByEmail(email);
         Joueur joueur = new Joueur(score.getCurrentScore(), score.lname, score.fname, email);
 
         List<Joueur> res = new ArrayList<Joueur>();
@@ -121,7 +121,7 @@ public class DistributedScoring implements Scoring {
 
     @Override
     public List<Joueur> get50Suiv(String email) {
-        Score score = gemfireRepository.getScoreRegion().get(email);
+        Score score = getCurrentScoreByEmail(email);
         Joueur joueur = new Joueur(score.getCurrentScore(), score.lname, score.fname, email);
 
         List<Joueur> res = new ArrayList<Joueur>();

@@ -549,7 +549,7 @@ public class LocalBTree<K extends Comparable<K>> {
         public K next() {
             if (!visited) {
                 visited = true;
-                return node.key;
+                return (node != null ? node.key : null);
             }
             node = successor(node);
             return node != null ? node.key : null;
@@ -559,7 +559,7 @@ public class LocalBTree<K extends Comparable<K>> {
         public K prev() {
             if (!visited) {
                 visited = true;
-                return node.key;
+                return (node != null ? node.key : null);
             }
             node = predecessor(node);
             return node != null ? node.key : null;

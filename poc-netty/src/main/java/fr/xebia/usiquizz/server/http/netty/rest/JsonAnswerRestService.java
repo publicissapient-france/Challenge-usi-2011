@@ -60,7 +60,7 @@ public class JsonAnswerRestService extends RestService {
 
             // Verifie que l'on est encore dans la bonne fenetre de réponse.
             if (!game.isPlayerCanAnswer(sessionKey, questionNbr)) {
-                //logger.info("Player {} outside windows answer of question {}", sessionKey, questionNbr);
+                logger.info("Player {} outside windows answer of question {}", sessionKey, questionNbr);
                 responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                 return;
             }
