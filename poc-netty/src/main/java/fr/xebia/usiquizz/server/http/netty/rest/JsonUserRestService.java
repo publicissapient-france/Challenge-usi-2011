@@ -57,7 +57,8 @@ public class JsonUserRestService extends RestService {
                 } else if (JSON_LASTNAME.equals(fieldname)) {
                     lastname = jp.getText();
                 } else {
-                    throw new IllegalStateException("Unrecognized field '" + fieldname + "'!");
+                    logger.error("Unrecognized field '{}'!", fieldname);
+                    responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
                 }
             }
                 // Do not add the user if it already exists
@@ -68,6 +69,7 @@ public class JsonUserRestService extends RestService {
              }
         } catch (IOException e1) {
             logger.error("Error ", e1);
+            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
         }
 
         responseWriter.writeResponse(HttpResponseStatus.CREATED, ctx, event);

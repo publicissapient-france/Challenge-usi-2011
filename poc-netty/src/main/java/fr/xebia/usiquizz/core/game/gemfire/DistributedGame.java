@@ -288,9 +288,8 @@ public class DistributedGame implements Game {
                     // End of game
                     logger.info("END OF GAME");
                     // Create final ranking only when we own the score lock
-                    if (gemfireRepository.hasFinalScoreLock()) {
-                        scoring.calculRanking();
-                    }
+                    scoring.calculRanking();
+
                 } else {
                     // Sinon On déclenche le synchrotime...
                     startSynchroTime();

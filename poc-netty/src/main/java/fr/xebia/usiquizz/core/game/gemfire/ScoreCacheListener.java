@@ -45,10 +45,8 @@ public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                if (repository.hasFinalScoreLock()) {
-                    Score score = entryEvent.getNewValue();
-                    tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, score.email));
-                }
+                Score score = entryEvent.getNewValue();
+                tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, score.email));
             }
         });
 

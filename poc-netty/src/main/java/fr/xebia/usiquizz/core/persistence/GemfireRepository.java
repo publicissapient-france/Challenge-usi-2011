@@ -25,9 +25,7 @@ public class GemfireRepository {
                 private int counter = 0;
 
                 @Override
-                public Thread newThread
-                        (Runnable
-                                 r) {
+                public Thread newThread(Runnable r) {
                     Thread t = new Thread(r);
                     t.setName("Async score gemfire writing : " + counter++);
                     return t;
@@ -42,9 +40,7 @@ public class GemfireRepository {
                 private int counter = 0;
 
                 @Override
-                public Thread newThread
-                        (Runnable
-                                 r) {
+                public Thread newThread(Runnable r) {
                     Thread t = new Thread(r);
                     t.setName("Async player gemfire writing : " + counter++);
                     return t;
@@ -92,7 +88,7 @@ public class GemfireRepository {
 
     // TODO : This is a simple stupid region test to implement Ranking tree NodeStore
     private Region<Joueur, Node<Joueur>> scoreStoreRegion = cache.getRegion("score-store-region");
-    
+
     private Region<String, Byte> questionStatusRegion;
 
     // Region for score
@@ -104,39 +100,8 @@ public class GemfireRepository {
     // Elle associe email -> Score
     private Region<String, Score> scoreFinalRegion;
 
-
-    DistributedLockService dls = DistributedLockService.create("ScoreLockService", cache.getDistributedSystem());
-
-    // Tells wether this instance owns the lock or not
-    private AtomicBoolean ownScoreLock = new AtomicBoolean(false);
-
     public GemfireRepository() {
 
-      
-
-        // Try to get the lock indefinitely
-        // if server owning the lock crash we can recover
-
-        asyncScore.execute(new Runnable() {
-            @Override
-            public void run() {
-                while (true){
-                    boolean locked = dls.lock("finalScoring", -1, -1);
-                    LOG.info("Granted to final scoring distributed lock {}", locked);
-                    ownScoreLock.set(locked);
-                    while (locked){
-                        try {
-                            Thread.currentThread().sleep(500);
-                        } catch (InterruptedException e) {
-                            LOG.warn("Interruption while sleeping before lock access", e);
-                           locked = false;
-                        }
-                    }
-                    dls.freeResources("finalScoring");
-                 }
-
-            }
-        });
     }
 
     public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {
@@ -236,6 +201,15 @@ public class GemfireRepository {
         });
     }
 
+    public void createScoreAsync(final String sessionKey, final User user) {
+        asyncScoreWritingOperation.submit(new Runnable() {
+            @Override
+            public void run() {
+                getScoreRegion().put(sessionKey, new Score(((Integer) getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
+            }
+        });
+
+    }
 
     public void addPlayerToGameAsync(final String sessionId, final String email) {
         asyncPlayerWritingOperation.submit(new Runnable() {
@@ -251,8 +225,4 @@ public class GemfireRepository {
         return scoreStoreRegion;
     }
 
-
-    public boolean hasFinalScoreLock() {
-        return ownScoreLock.get();
-    }
 }
