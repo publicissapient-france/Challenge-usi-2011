@@ -132,10 +132,10 @@
     }
 
     function sendAnswer() {
-        $('form').submit(function() {
+        $('#question-form').submit(function() {
             if (params.counter > 0) return false;
 
-            $.ajax({type: "POST", url: "/api/answer/" + currentQuestionIndex, data: $.toJSON($('form').serializeObject()), dataType: "json", success: function(data) {
+            $.ajax({type: "POST", url: "/api/answer/" + params.currentQuestionIndex, data: $.toJSON($('#question-form').serializeObject()), dataType: "json", success: function(data) {
                 $("#are_u_right_value").html((data.are_u_right ? 'You were right :)' : 'You were wrong :p'));
                 $("#good_andswer_value").html(getQuestionString(data.good_answer));
                 $("#score_value").html(data.score);
@@ -179,12 +179,15 @@
             params.lastQuestionData = data;
             $("#question-text").html(data.question);
             $("#response_1_value").html('A - '+data.answer_1);
+            $("#response_1_value").removeAttr("checked");
             $("#response_2_value").html('B - '+data.answer_2);
+            $("#response_2_value").removeAttr("checked");
             $("#response_3_value").html('C - '+data.answer_3);
+            $("#response_3_value").removeAttr("checked");
             $("#response_4_value").html('D - '+data.answer_4);
+            $("#response_4_value").removeAttr("checked");
             $("#time").html(params.questionTimeFrame + 's');
             $("#score_value").html(data.current_score);
-			$('#question-form').reset();
             $("#waiting-content").hide();
             $("#score-content-wrapper").hide();
             $("#question-content").dialog('open');
@@ -251,7 +254,9 @@
 			"Ok": function(){
 
 				// Submit Response then get Answer and score
+                clearInterval(params.timeoutId);
 				sendAnswer();
+                $('#question-content').dialog("close");
 			}
 		}
 		

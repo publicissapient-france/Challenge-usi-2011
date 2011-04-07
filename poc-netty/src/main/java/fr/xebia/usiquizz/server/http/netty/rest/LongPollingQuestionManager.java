@@ -91,7 +91,11 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
                 //executorService.submit(new Runnable() {
                 //    @Override
                 //    public void run() {
-                channels.add(responseWriter.endWritingResponseWithoutClose(game.createQuestionInJson(currentQuestionIndex, sessionKey), sessionKey, longPollingResponse.get(sessionKey)));
+                try {
+                    channels.add(responseWriter.endWritingResponseWithoutClose(game.createQuestionInJson(currentQuestionIndex, sessionKey), sessionKey, longPollingResponse.get(sessionKey)));
+                } catch (Exception e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
                 //    }
                 //});
 
@@ -116,5 +120,9 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
     @Override
     public void startSendAll() {
         sendQuestionToAllPlayer();
+    }
+
+    public void reset(){
+        currentQuestionIndex = 1;
     }
 }

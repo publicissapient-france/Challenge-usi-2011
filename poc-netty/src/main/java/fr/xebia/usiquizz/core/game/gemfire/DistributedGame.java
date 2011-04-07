@@ -100,6 +100,7 @@ public class DistributedGame implements Game {
             gemfireRepository.getQuestionStatusRegion().put(Byte.toString(currentIndex), QuestionStatus.QUESTION_NON_JOUEE);
         }
 
+        longpollingCallback.reset();
         // Clear all caches used in the party 
         bTree.clear();
         gemfireRepository.clearGameCaches();

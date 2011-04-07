@@ -34,9 +34,13 @@ public class DistributedScoring implements Scoring {
     @Override
     public void createScore(String sessionKey, User user) {
             // Reset Top 100 scores
+        
+        gemfireRepository.getScoreRegion().put(sessionKey, new Score(((Integer) gemfireRepository.getGameRegion().get(NB_QUESTIONS)).byteValue(), user));
+
         if (top100 != null) {
             top100 = null;
         }
+
     }
 
     @Override
