@@ -86,9 +86,6 @@ public class GemfireRepository {
     private Region<String, String> playerRegion;
     private Region<String, String> currentQuestionRegion;
 
-    // TODO : This is a simple stupid region test to implement Ranking tree NodeStore
-    private Region<Joueur, Node<Joueur>> scoreStoreRegion = cache.getRegion("score-store-region");
-
     private Region<String, Byte> questionStatusRegion;
 
     // Region for score
@@ -100,9 +97,6 @@ public class GemfireRepository {
     // Elle associe email -> Score
     private Region<String, Score> scoreFinalRegion;
 
-    public GemfireRepository() {
-
-    }
 
     public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();
@@ -221,8 +215,14 @@ public class GemfireRepository {
 
     }
 
-    public Region<Joueur, Node<Joueur>> getScoreStoreRegion() {
-        return scoreStoreRegion;
+    /**
+     * Clears all region used at game time
+     */
+    public void clearGameCaches(){
+        this.currentQuestionRegion.clear();
+        this.playerRegion.clear();
+        this.scoreFinalRegion.clear();
+        this.scoreRegion.clear();
     }
 
 }

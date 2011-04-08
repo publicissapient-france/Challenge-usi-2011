@@ -4,5 +4,7 @@ public interface QuestionLongpollingCallback {
     void startSendAll();
 
     void initNewQuestion(byte currentQuestionIndex);
+
+    void reset();
 }
 
