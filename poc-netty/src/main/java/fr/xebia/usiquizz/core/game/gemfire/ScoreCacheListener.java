@@ -7,9 +7,12 @@ import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
 import fr.xebia.usiquizz.core.sort.LocalBTree;
 import fr.xebia.usiquizz.core.sort.RBTree;
+import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,7 +25,19 @@ public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
 
     private LocalBTree<Joueur> tree;
 
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    ThreadFactory treeInsertionThreadFactory = new ThreadFactory() {
+
+        private int i = 1;
+
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setName("Score ordering #1-" + i++);
+            return thread;
+        }
+    };
+
+    private ExecutorService executorService = new MemoryAwareThreadPoolExecutor(1, 400000000, 2000000000, 60, TimeUnit.SECONDS, treeInsertionThreadFactory);
 
 
     public ScoreCacheListener(LocalBTree<Joueur> tree) {

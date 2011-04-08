@@ -18,6 +18,7 @@ package fr.xebia.usiquizz.server.http.netty;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
+import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.logging.Slf4JLoggerFactory;
 import org.slf4j.Logger;
@@ -90,10 +91,10 @@ public class HttpServer {
         };
         // Configure the server.
         //ExecutorService bossExec = Executors.newFixedThreadPool(20, threadFactory);
-        ExecutorService bossExec = Executors.newCachedThreadPool();
+        //ExecutorService bossExec = Executors.newCachedThreadPool();
         //ExecutorService ioExec = Executors.newCachedThreadPool();
-        //ExecutorService bossExec = new MemoryAwareThreadPoolExecutor(nbListeningPort, 1000, 100000, 60, TimeUnit.SECONDS, bossThreadFactory);
-        ExecutorService ioExec = new MemoryAwareThreadPoolExecutor(nbThread, 400000000, 2000000000, 60, TimeUnit.SECONDS, ioThreadFactory);
+        ExecutorService bossExec = new OrderedMemoryAwareThreadPoolExecutor(nbListeningPort, 400000000, 2000000000, 60, TimeUnit.SECONDS, bossThreadFactory);
+        ExecutorService ioExec = new OrderedMemoryAwareThreadPoolExecutor(nbThread, 400000000, 2000000000, 60, TimeUnit.SECONDS, ioThreadFactory);
 
 
         logger.info("start server with {} listning port", nbListeningPort);

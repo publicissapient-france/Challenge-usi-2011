@@ -1,4 +1,3 @@
-
 package fr.xebia.usiquizz.server.http.netty.rest;
 
 import fr.xebia.usiquizz.core.game.Game;
@@ -59,17 +58,21 @@ public class JsonUserRestService extends RestService {
                 } else {
                     logger.error("Unrecognized field '{}'!", fieldname);
                     responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
+                    return;
                 }
             }
-                // Do not add the user if it already exists
-             if (!userRepository.checkUserWithEmailExist(email)){
+            // Do not add the user if it already exists
+            if (!userRepository.checkUserWithEmailExist(email)) {
                 userRepository.insertUser(email, password, firstname, lastname);
-             }else {
+            } else {
+                logger.error("User already exists {}", email);
                 responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
-             }
+                return;
+            }
         } catch (IOException e1) {
             logger.error("Error ", e1);
             responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, event);
+            return;
         }
 
         responseWriter.writeResponse(HttpResponseStatus.CREATED, ctx, event);
