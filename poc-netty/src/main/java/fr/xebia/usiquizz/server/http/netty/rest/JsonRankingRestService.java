@@ -73,19 +73,20 @@ public class JsonRankingRestService extends RestService {
         createJsonListJoueur(top100, sb);
         sb.append("},");
 
-        if (prec.size() > 0) {
-            sb.append("\"before\":{");
-            // boucle des before scores
-            createJsonListJoueur(prec, sb);
-            sb.append("},");
-        }
+        sb.append("\"before\":{");
 
-        if (suiv.size() > 0) {
-            sb.append("\"after\":{");
+            // boucle des before scores
+        createJsonListJoueur(prec, sb);
+
+
+        sb.append("},");
+        sb.append("\"after\":{");
+
             // boucle des after scores
-            createJsonListJoueur(suiv, sb);
-            sb.append("}");
-        }
+        createJsonListJoueur(suiv, sb);
+
+        
+        sb.append("}");
         sb.append("}");
         ChannelBuffer cb = ChannelBuffers.dynamicBuffer(20000);
         cb.writeBytes(sb.toString().getBytes());
@@ -93,7 +94,7 @@ public class JsonRankingRestService extends RestService {
     }
 
     private void createJsonListJoueur(List<Joueur> list, StringBuilder sb) {
-        int i = 0;
+        int i = 1;
         StringBuilder sbMail = new StringBuilder();
         StringBuilder sbScores = new StringBuilder();
         StringBuilder sbFirstName = new StringBuilder();
@@ -138,7 +139,7 @@ public class JsonRankingRestService extends RestService {
         sbMail.append("],");
         sbScores.append("],");
         sbFirstName.append("],");
-        sbLastName.append("],");
+        sbLastName.append("]");
 
         sb.append(sbMail.toString());
         sb.append(sbScores.toString());

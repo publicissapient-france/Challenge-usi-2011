@@ -63,38 +63,31 @@
 <!-- Waiting Content -->
 <div id="waiting-content">
 <!-- ui-dialog -->
-<div id="overlay" class="ui-overlay"><div class="ui-widget-overlay"></div></div>
+    <div id="overlay" class="ui-overlay"><div class="ui-widget-overlay"></div></div>
 	<div id="my-banner" style="width: 250px; height: 150px;" class=" ui-dialog ui-widget ui-widget-content ui-corner-all">
 		<div class="ui-dialog-content ui-widget-content" style="background: none; border: 0;">
-			    <div id="player-stat">
-				<span id="email">fsdfsdfsdf@sdfsfd.com</span> youre score is : <span id="current_score_value">0</span>
-				</div>
-			<p style="text-align: center">Waiting for question <span id="question_number_waiting">1</span></p>
+            <div id="score-content" style="display:block;">
+                    <ul class="ui-menu" style="padding:10px;">
+                        <li id="right-string" class="ui-menu-item ui-corner-all"><span id="are_u_right_value"></span></li>
+                        <li id="good-answer-string" class="ui-menu-item ui-corner-all">Good answer was : <span id="good_andswer_value"></span></li>
+                        <li id="score-string" class="ui-menu-item ui-corner-all">Youre score is :<span id="score_value"></span></li>
+                    </ul>
+             </div>
+			<p style="text-align: center;clear:both;">Waiting for question <span id="question_number_waiting">1</span></p>
 		</div>
 	</div>
 </div>
 
 
-<!-- Score content result -->
-<div id="score-content-wrapper">
-    <div id="score-overlay" class="ui-overlay"><div class="ui-widget-overlay"></div></div>
-    <div id="score-content" class="ui-dialog ui-widget ui-widget-content ui-corner-all">
-        <ul class="ui-menu" style="padding:10px;">
-            <li class="ui-menu-item ui-corner-all"><span id="are_u_right_value"></span></li>
-            <li class="ui-menu-item ui-corner-all">Good answer was : <span id="good_andswer_value"></span></li>
-            <li class="ui-menu-item ui-corner-all">Youre score is :<span id="score_value"></span></li>
-        </ul>
-    </div>
-</div>
 
 <script type="text/javascript">
 
-    var params = { currentQuestionIndex: 1, previousChoice: null, questionTimeFrame: 20, counter: 0 };
+    var params = { currentQuestionIndex: 1, previousChoice: null, questionTimeFrame: 20, counter: 0, nbQuestion : 20 };
     
     // Hide Waiting content
     $('#waiting-content').hide();
 	$('#player-stat').hide();
-    $('#score-content-wrapper').hide();
+    $('#score-content').hide();
 
 
     $.fn.serializeObject = function()
@@ -121,14 +114,25 @@
     }
 
 
-        // Retrieves last answer String from answer number
-    function getQuestionString(answer){
-        switch(answer){
-            case 1: return 'A - ' + params.lastQuestion.answer_1;
-            case 2: return 'B - ' + params.lastQuestion.answer_2;
-            case 3: return 'C - ' + params.lastQuestion.answer_3;
-            case 4: return 'D - ' + params.lastQuestion.answer_4;
-        }
+    function incrementAndGetQuestion(){
+        // On increment l'index de question courante
+       incrementQuestionIndex();
+       // S'il reste encore des questions on demande la suivante
+       if (params.currentQuestionIndex <= params.nbQuestion) {
+           // Une fois le score obtenue on lance l'appel a la question suivante
+           getQuestion();
+
+           // Et on fait apparaitre l'attente à la question
+       } else {
+           // Sinon fin du jeu
+           // On appel les résultats finaux
+           // Apres
+           setTimeout(function() {
+                   //redirect to home page
+                   document.location.href = "/static/html/ranking.html";
+               }, 15000);
+       }
+
     }
 
     function sendAnswer() {
@@ -136,32 +140,19 @@
             if (params.counter > 0) return false;
 
             $.ajax({type: "POST", url: "/api/answer/" + params.currentQuestionIndex, data: $.toJSON($('#question-form').serializeObject()), dataType: "json", success: function(data) {
-                $("#are_u_right_value").html((data.are_u_right ? 'You were right :)' : 'You were wrong :p'));
-                $("#good_andswer_value").html(getQuestionString(data.good_answer));
+                $("#are_u_right_value").html((data.are_u_right === 'true' ? 'You were right :)' : 'You were wrong :p'));
+                $("#good_andswer_value").html(data.good_answer);
                 $("#score_value").html(data.score);
-                $("#waiting-content").hide();
+
+                $("#right-string").show();
+                $("#good-answer-string").show();
+                $("#score-content").show();
                 $("#question-content").dialog('close');
-                $("#score-content-wrapper").show();
+                $("#waiting-content").show();
 
 
-                // On increment l'index de question courante
-                incrementQuestionIndex();
-                // S'il reste encore des questions on demande la suivante
-                if (params.currentQuestionIndex <= params.nbQuestion) {
-                    // Une fois le score obtenue on lance l'appel a la question suivante
-                    callQuestion();
 
-                    // Et on fait apparaitre l'attente à la question
-                } else {
-                    // Sinon fin du jeu
-                    // On appel les résultats finaux
-                    // Apres
-                    setTimeout(function() {
-                            //redirect to home page
-                            document.location.href = "/static/html/ranking.html";
-                        }, 15000);
-                }
-
+               incrementAndGetQuestion();
             }
             });
             params.counter++;
@@ -174,31 +165,36 @@
     function getQuestion() {
         $('#question_number_waiting').html(params.currentQuestionIndex);
         $('#waiting-content').show();
+
         $.ajax({ url: "/api/question/" + params.currentQuestionIndex, dataType:"json", success: function(data) {
             params.lastQuestionData = data;
             $("#question-text").html(data.question);
             $("#response_1_value").html('A - '+data.answer_1);
-            $("#response_1_value").removeAttr("checked");
             $("#response_2_value").html('B - '+data.answer_2);
-            $("#response_2_value").removeAttr("checked");
             $("#response_3_value").html('C - '+data.answer_3);
-            $("#response_3_value").removeAttr("checked");
             $("#response_4_value").html('D - '+data.answer_4);
-            $("#response_4_value").removeAttr("checked");
-            $("#time").html(params.questionTimeFrame + 's');
+            $(params.previousChoice).removeClass("ui-state-active");
+            $(params.previousChoice).removeAttr("checked");
+            params.previousChoice = null;
+
+            $("#time").html((params.questionTimeFrame/1000) + 's');
             $("#score_value").html(data.current_score);
             $("#waiting-content").hide();
-            $("#score-content-wrapper").hide();
+            $("#ui-dialog-title-question-content").html("Question " + params.currentQuestionIndex);
             $("#question-content").dialog('open');
-            params.timeCounter = params.questionTimeFrame;
+            params.timeCounter = params.questionTimeFrame / 1000;
             params.counter = 0;
             params.timeoutId = setInterval(function(){
                     params.timeCounter--;
                     $("#time").html(params.timeCounter + 's');
                     if (params.timeCounter == 0){
                         clearInterval(params.timeoutId);
-                        incrementQuestionIndex();
-                        getQuestion();
+
+                        $("#question-content").dialog('close');
+                        $("#right-string").hide();
+                        $("#good-answer-string").hide();
+                        $("#score-content").show();
+                        incrementAndGetQuestion();
                     }
                 }, 1000);
         }
@@ -264,7 +260,7 @@
 		$('#question-content').dialog('close');
 
             // Initiate highlights on questions :)
-        $(".ui-menu-item").each(function (){
+        $("#question-form li").each(function (){
             
             $(this).mouseenter( function(){
                 $( this ).addClass( "ui-state-hover" );
@@ -284,7 +280,6 @@
             });
         });
     $("#my-banner").position({my: "center", of: window});
-    $("#score-content").position({my: "center", of: window});
 
 	
 </script>

@@ -21,9 +21,9 @@ public class JsonParameterRestService extends RestService {
     private static Logger logger = LoggerFactory.getLogger(JsonGameRestService.class);
 
     private static final StringTemplate st = new StringTemplate("{ \n" +
-                "\"nbQuestion\" : \"$nbQuestion$\", \n" +
-                "\"questionTimeFrame\" : \"$questionTimeFrame$\", \n" +
-                "\"synchrotime\" : \"$synchrotime$\",\n" +
+                "\"nbQuestion\" : $nbQuestion$, \n" +
+                "\"questionTimeFrame\" : $questionTimeFrame$, \n" +
+                "\"synchrotime\" : $synchrotime$\n" +
                 "}");
 
     protected JsonParameterRestService(Game game, Scoring scoring, ExecutorService executorService) {
@@ -38,10 +38,10 @@ public class JsonParameterRestService extends RestService {
 
     private ChannelBuffer constructJsonResponse(int nbQuestion, int questionTimeFrame, int synchrotime) {
 
-
-        st.setAttribute("nbQuestion", nbQuestion);
-        st.setAttribute("questionTimeFrame", questionTimeFrame);
-        st.setAttribute("synchrotime", synchrotime);
+        st.reset();
+        st.setAttribute("nbQuestion", Integer.toString(nbQuestion));
+        st.setAttribute("questionTimeFrame", Integer.toString(questionTimeFrame));
+        st.setAttribute("synchrotime", Integer.toString(synchrotime));
         ChannelBuffer cb = ChannelBuffers.dynamicBuffer();
 
         cb.writeBytes(st.toString().getBytes());
