@@ -87,9 +87,12 @@ public class JsonAuditAnswerRestService extends RestService {
 
 
     private ChannelBuffer sendQuestionResult(Question question, byte uResponse){
-        StringBuilder sb = new StringBuilder("{\"user_answer\":");
-        sb.append(",\"good_answer\":").append(question.getGoodchoice());
-        sb.append("\"question\":\"").append(question.getLabel()).append("\"}");
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"user_answer\":\"");
+        sb.append(uResponse);
+        sb.append("\",\"good_answer\":\"");
+        sb.append(question.getGoodchoice());
+        sb.append("\",\"question\":\"").append(question.getLabel()).append("\"}");
         ChannelBuffer cb = ChannelBuffers.dynamicBuffer(256);
         cb.writeBytes(sb.toString().getBytes());
         return cb;
@@ -105,12 +108,17 @@ public class JsonAuditAnswerRestService extends RestService {
                 sb.append(',');
                 sbg.append(',');
             }
+            sb.append("\"");
             sb.append(uResponse[i]);
+            sb.append("\"");
+
+            sbg.append("\"");
             sbg.append(gResponse[i]);
+            sbg.append("\"");
             i++;
         }
         sb.append("],\"good_answers\":").append(sbg).append("]}");
-        ChannelBuffer cb = ChannelBuffers.dynamicBuffer(256);
+        ChannelBuffer cb = ChannelBuffers.dynamicBuffer(1024);
         cb.writeBytes(sb.toString().getBytes());
         return cb;
     }

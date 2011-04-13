@@ -93,7 +93,7 @@ public class JsonAnswerRestService extends RestService {
             boolean answerIsCorrect = question.getGoodchoice() == answerNumber;
             // update score
             byte newScore = scoring.addScore(sessionKey, answerNumber, answerIsCorrect, questionNbrByte);
-            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerIsCorrect, question.getGoodAnswer(), newScore), HttpResponseStatus.OK, ctx, e, sessionKey);
+            responseWriter.writeResponse(AnswerJsonWriter.createJsonResponse(answerIsCorrect, question.getGoodAnswer(), newScore), HttpResponseStatus.CREATED, ctx, e, sessionKey);
             return;
         } catch (Exception e3) {
             logger.error("Error ", e3);
@@ -121,8 +121,8 @@ public class JsonAnswerRestService extends RestService {
 
         private final static byte[] ARE_U_RIGHT_BA = "{\"are_u_right\":\"".getBytes();
         private final static byte[] GOOD_ANSWER_BA = "\",\"good_answer\":\"".getBytes();
-        private final static byte[] SCORE_BA = "\",\"score\":".getBytes();
-        private final static byte[] END_BA = "}".getBytes();
+        private final static byte[] SCORE_BA = "\",\"score\":\"".getBytes();
+        private final static byte[] END_BA = "\"}".getBytes();
         private final static byte[] TRUE_BA = Boolean.TRUE.toString().getBytes();
         private final static byte[] FALSE_BA = Boolean.FALSE.toString().getBytes();
 

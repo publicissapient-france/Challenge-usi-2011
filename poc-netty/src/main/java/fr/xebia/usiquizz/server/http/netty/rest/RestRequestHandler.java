@@ -28,6 +28,7 @@ public class RestRequestHandler {
     private static final String AUDIT_REST_SERVICE = "audit";
 
     private static final String PATH_SEPARATOR = "/";
+    private static final String QUERY_SEPARATOR = "?";
 
     private Map<String, RestService> restMapping = new HashMap<String, RestService>();
     private UserRepository userRepository;
@@ -59,7 +60,11 @@ public class RestRequestHandler {
         String serviceToUse = path;
         if (path.indexOf(PATH_SEPARATOR) > 0) {
             serviceToUse = path.substring(0, path.indexOf(PATH_SEPARATOR));
+        } else if (path.indexOf(QUERY_SEPARATOR) > 0) {
+            // Gestion du cas avec un ?
+            serviceToUse = path.substring(0, path.indexOf(QUERY_SEPARATOR));
         }
+
         if (request.getMethod().equals(HttpMethod.GET)) {
             restMapping.get(serviceToUse).get(path, ctx, e);
         } else if (request.getMethod().equals(HttpMethod.POST)) {

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 
-import static fr.xebia.usiquizz.core.persistence.GemfireRepository.CURRENT_QUESTION_INDEX;
+import static fr.xebia.usiquizz.core.persistence.GemfireAttribute.CURRENT_QUESTION_INDEX;
 
 public class LoginCacheListener extends CacheListenerAdapter<String, String> {
 

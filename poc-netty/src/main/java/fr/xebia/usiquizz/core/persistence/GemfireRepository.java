@@ -1,15 +1,20 @@
 package fr.xebia.usiquizz.core.persistence;
 
+import static fr.xebia.usiquizz.core.persistence.GemfireAttribute.*;
+
 import com.gemstone.gemfire.cache.*;
 import com.gemstone.gemfire.distributed.DistributedLockService;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
 import fr.xebia.usiquizz.core.game.gemfire.ScoreCacheListener;
+import fr.xebia.usiquizz.core.sort.LocalBTree;
 import fr.xebia.usiquizz.core.sort.Node;
 import fr.xebia.usiquizz.core.sort.NodeStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,25 +56,6 @@ public class GemfireRepository {
 
     private final ExecutorService asyncScore = Executors.newSingleThreadExecutor();
 
-    // PARAMETRE DU JEU
-    public static final String LOGIN_TIMEOUT = "login-timeout";
-    public static final String SYNCHROTIME = "synchrotime";
-    public static final String NB_USERS_THRESOLD = "nb-users-thresold";
-    public static final String QUESTION_TIME_FRAME = "question-time-frame";
-    public static final String NB_QUESTIONS = "nb-questions";
-    public static final String FLUSH_USER_TABLE = "flush-user-table";
-    public static final String TRACKED_USER_IDMAIL = "tracked-user-idmail";
-
-    // QUESTION
-    public static final String QUESTION_LIST = "question_list";
-    // Response
-    public static final String GOOD_RESPONSE = "good-response";
-
-
-    // ETAT COURANT DU JEU
-    public static final String CURRENT_QUESTION_INDEX = "current-question-index";
-    public static final String CURRENT_ANSWER_INDEX = "current-answer-index";
-    public static final String LOGIN_PHASE_STATUS = "login-phase-status";
 
     private Cache cache = new CacheFactory()
             .set("cache-xml-file", "gemfire/cache.xml")
@@ -79,7 +65,7 @@ public class GemfireRepository {
     private Region<String, byte[]> userRegion = cache.getRegion("user-region");
 
     // Region for the current game
-    private Region<String, Object> gameRegion = cache.getRegion("game-region");
+    private Region<String, Object> gameRegion;
     private Region<String, Questiontype> questionRegion = cache.getRegion("question-region");
     // FIXME add index on value....
     // Some search on email
@@ -93,10 +79,7 @@ public class GemfireRepository {
     // Utilie lors de l'envoie de la réponse pour donner rapidement son score à un joueur
     private Region<String, Score> scoreRegion = cache.getRegion("score-region");
 
-    // cette region contient les score finaux des utilisateurs qui ont répondus
-    // Elle associe email -> Score
     private Region<String, Score> scoreFinalRegion;
-
 
     public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();
@@ -124,12 +107,30 @@ public class GemfireRepository {
     }
 
     public void initFinalScoreRegion(CacheListener finalScoreListener) {
+        // Creation score disk store
+        DiskStoreFactory scoreStoreFactory = cache.createDiskStoreFactory();
+        scoreStoreFactory.setDiskDirs(new File[]{new File("gemfire-persistence/score-oplogDir1"), new File("gemfire-persistence/score-oplogDir2"), new File("gemfire-persistence/score-dbDir")});
+        scoreStoreFactory.setMaxOplogSize(10);
+        scoreStoreFactory.setQueueSize(100);
+        scoreStoreFactory.create("final-score");
+
         AttributesFactory scoreAttribute = new AttributesFactory();
-        scoreAttribute.setDataPolicy(DataPolicy.REPLICATE);
-        scoreAttribute.setScope(Scope.DISTRIBUTED_ACK);
+        scoreAttribute.setDataPolicy(DataPolicy.PERSISTENT_REPLICATE);
+        scoreAttribute.setDiskStoreName("final-score");
+        scoreAttribute.setDiskSynchronous(false);
+        scoreAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
         scoreAttribute.addCacheListener(finalScoreListener);
         RegionFactory rf = cache.createRegionFactory(scoreAttribute.create());
         scoreFinalRegion = rf.create("final-score-region");
+    }
+
+    public void initGameRegion(CacheListener gameListener) {
+        AttributesFactory gameAttribute = new AttributesFactory();
+        gameAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        gameAttribute.setScope(Scope.DISTRIBUTED_ACK);
+        gameAttribute.addCacheListener(gameListener);
+        RegionFactory rf = cache.createRegionFactory(gameAttribute.create());
+        gameRegion = rf.create("game-region");
     }
 
     public Cache getCache() {
@@ -218,11 +219,12 @@ public class GemfireRepository {
     /**
      * Clears all region used at game time
      */
-    public void clearGameCaches(){
+    public void clearGameCaches() {
         this.currentQuestionRegion.clear();
         this.playerRegion.clear();
         this.scoreFinalRegion.clear();
         this.scoreRegion.clear();
+        this.gameRegion.clear();
     }
 
 }

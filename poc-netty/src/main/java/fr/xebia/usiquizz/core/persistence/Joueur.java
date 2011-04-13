@@ -36,7 +36,7 @@ public class Joueur implements Serializable, Comparable<Joueur> {
     @Override
     public int compareTo(Joueur o1) {
         int comp;
-        if ((comp = this.getScore() - o1.getScore()) == 0) {
+        if ((comp = o1.getScore() - this.getScore()) == 0) {
             if ((comp = this.getEmail().compareTo(o1.getEmail())) == 0) {
                 if ((comp = this.getLastName().compareTo(o1.getLastName())) == 0) {
                     return this.getFirstName().compareTo(o1.getFirstName());
@@ -69,5 +69,15 @@ public class Joueur implements Serializable, Comparable<Joueur> {
         result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Joueur{" +
+                "score=" + score +
+                ", lastName='" + lastName + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

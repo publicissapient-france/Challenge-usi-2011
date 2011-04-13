@@ -65,7 +65,7 @@ public class JsonLoginRestService extends RestService {
                 if (user !=null) {
                     String sessionKey = Integer.toString(mail.hashCode());
                     if (game.isAlreadyLogged(sessionKey)) {
-                        logger.info("user already logged");
+                        logger.info("user {} already logged with sessionKey : {}", mail, sessionKey);
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                         return;
                     }
@@ -80,7 +80,7 @@ public class JsonLoginRestService extends RestService {
                     // Add a score object to player
                     scoring.createScore(sessionKey, user);
 
-                    responseWriter.writeResponse(null, HttpResponseStatus.OK, ctx, e, sessionKey);
+                    responseWriter.writeResponse(null, HttpResponseStatus.CREATED, ctx, e, sessionKey);
                     return;
                 } else {
                     logger.warn("Authentication refused {}", mail);

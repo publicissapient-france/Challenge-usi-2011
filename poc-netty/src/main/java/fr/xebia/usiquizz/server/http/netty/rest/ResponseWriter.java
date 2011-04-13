@@ -104,13 +104,15 @@ public class ResponseWriter {
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
         response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
-        response.setHeader(CONTENT_LENGTH, response.getContent().readableBytes());
 
         // Encode the cookie.
         CookieEncoder cookieEncoder = new CookieEncoder(true);
         cookieEncoder.addCookie(SESSION_KEY, sessionKey);
         response.addHeader(SET_COOKIE, cookieEncoder.encode());
         response.setContent(content);
+
+        response.setHeader(CONTENT_LENGTH, response.getContent().readableBytes());
+
 
         // Write the response.
         ChannelFuture future = ctx.getChannel().write(response);

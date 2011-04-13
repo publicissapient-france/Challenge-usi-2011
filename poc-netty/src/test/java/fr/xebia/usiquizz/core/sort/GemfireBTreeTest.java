@@ -39,18 +39,18 @@ public class GemfireBTreeTest {
         System.out.println("Took "+ (stop - start) + " ms for "+size+" users ...");
         // check from max
         j = size;
-        NodeSet<Joueur> set =  tree.getMaxSet();
+        NodeSet<Joueur> set =  tree.getMinSet();
         while(j != 0){
-            Assert.assertEquals("" + j, "" + set.prev().getScore());
+            Assert.assertEquals("" + j, "" + set.next().getScore());
 
             j--;
         }
 
         // check from min
         j = 0;
-        set =  tree.getMinSet();
+        set =  tree.getMaxSet();
         while(j != size){
-            Assert.assertEquals(""+j, ""+set.next().getScore());
+            Assert.assertEquals(""+j, ""+set.prev().getScore());
             j++;
         }
 

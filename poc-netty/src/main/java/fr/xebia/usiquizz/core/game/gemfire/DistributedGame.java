@@ -1,6 +1,6 @@
 package fr.xebia.usiquizz.core.game.gemfire;
 
-import static fr.xebia.usiquizz.core.persistence.GemfireRepository.*;
+import static fr.xebia.usiquizz.core.persistence.GemfireAttribute.*;
 
 import com.gemstone.gemfire.cache.CacheListener;
 import com.usi.Question;
@@ -24,11 +24,6 @@ import java.util.concurrent.*;
 public class DistributedGame implements Game {
 
     private static final Logger logger = LoggerFactory.getLogger(DistributedGame.class);
-
-    // Etat du login
-    private static final byte LOGIN_PHASE_NON_COMMENCER = 21;
-    private static final byte LOGIN_PHASE_EN_COURS = 22;
-    private static final byte LOGIN_PHASE_TERMINER = 23;
 
     private ScheduledExecutorService scheduleExecutor = Executors.newScheduledThreadPool(4, new ThreadFactory() {
 
@@ -71,13 +66,21 @@ public class DistributedGame implements Game {
         gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
         this.bTree = new LocalBTree<Joueur>();
         gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(this.bTree));
-            // TODO : Instantiate it here for now but thats a shame
+        gemfireRepository.initGameRegion(new GameCacheListener(this));
+        // TODO : Instantiate it here for now but thats a shame
         scoring.setTree(this.bTree);
 
     }
 
     @Override
     public void init(Sessiontype st) {
+        // Clean all cache
+        gemfireRepository.clearGameCaches();
+        // Flush user Table when requested
+        if (st.getParameters().isFlushusertable()) {
+            gemfireRepository.getUserRegion().clear();
+        }
+
         // Parametre du jeu
         gemfireRepository.getGameRegion().put(LOGIN_TIMEOUT, st.getParameters().getLogintimeout());
         gemfireRepository.getGameRegion().put(SYNCHROTIME, st.getParameters().getSynchrotime());
@@ -100,15 +103,13 @@ public class DistributedGame implements Game {
             gemfireRepository.getQuestionStatusRegion().put(Byte.toString(currentIndex), QuestionStatus.QUESTION_NON_JOUEE);
         }
 
-        longpollingCallback.reset();
-        // Clear all caches used in the party 
-        bTree.clear();
-        gemfireRepository.clearGameCaches();
-            // Flush user Table when requested
-        if (st.getParameters().isFlushusertable()){
-            gemfireRepository.getUserRegion().clear();
-        }
 
+    }
+
+    public void resetLocalGameData() {
+        longpollingCallback.reset();
+        // Clear all caches used in the party
+        bTree.clear();
     }
 
     @Override
@@ -356,7 +357,7 @@ public class DistributedGame implements Game {
 
     private class JsonQuestionWriter {
 
-        private final byte[] END_BA = "}".getBytes();
+        private final byte[] END_BA = "\"}".getBytes();
 
         private Map<Byte, byte[]> questionCache = new ConcurrentHashMap<Byte, byte[]>();
 
@@ -379,7 +380,7 @@ public class DistributedGame implements Game {
                         sb.append(question.getChoice().get(2));
                         sb.append("\",\"answer_4\":\"");
                         sb.append(question.getChoice().get(3));
-                        sb.append("\",\"score\":");
+                        sb.append("\",\"score\":\"");
                         questionBa = sb.toString().getBytes();
                         questionCache.put(currentQuestionIndex, questionBa);
                     }

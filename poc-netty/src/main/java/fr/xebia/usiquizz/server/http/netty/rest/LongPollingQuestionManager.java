@@ -30,9 +30,7 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
                 private int counter = 0;
 
                 @Override
-                public Thread newThread
-                        (Runnable
-                                 r) {
+                public Thread newThread(Runnable r) {
                     Thread t = new Thread(r);
                     t.setName("Longpolling player register " + counter++);
                     return t;
@@ -122,7 +120,7 @@ public class LongPollingQuestionManager implements QuestionLongpollingCallback {
         sendQuestionToAllPlayer();
     }
 
-    public void reset(){
-        currentQuestionIndex = 1;
+    public void reset() {
+        initNewQuestion((byte) 1);
     }
 }

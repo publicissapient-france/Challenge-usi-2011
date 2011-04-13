@@ -12,6 +12,7 @@ import fr.xebia.usiquizz.core.sort.RBTree;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -78,11 +79,11 @@ public class DistributedScoring implements Scoring {
 
         if (top100 == null) {
             List<Joueur> res = new ArrayList<Joueur>();
-            NodeSet<Joueur> set = tree.getMaxSet();
+            NodeSet<Joueur> set = tree.getMinSet();
             Joueur joueur = null;
             int i = 0;
             while (i < 100) {
-                joueur = set.prev();
+                joueur = set.next();
                 if (joueur == null)
                     break;
                 res.add(joueur);
@@ -109,6 +110,7 @@ public class DistributedScoring implements Scoring {
             res.add(joueur);
             i++;
         }
+        Collections.reverse(res);
         return res;
     }
 
