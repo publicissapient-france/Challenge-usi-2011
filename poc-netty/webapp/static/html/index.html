@@ -64,7 +64,7 @@
 <div id="waiting-content">
 <!-- ui-dialog -->
     <div id="overlay" class="ui-overlay"><div class="ui-widget-overlay"></div></div>
-	<div id="my-banner" style="width: 250px; height: 150px;" class=" ui-dialog ui-widget ui-widget-content ui-corner-all">
+	<div id="my-banner" style="" class=" ui-dialog ui-widget ui-widget-content ui-corner-all">
 		<div class="ui-dialog-content ui-widget-content" style="background: none; border: 0;">
             <div id="score-content" style="display:block;">
                     <ul class="ui-menu" style="padding:10px;">
@@ -149,6 +149,8 @@
                 $("#score-content").show();
                 $("#question-content").dialog('close');
                 $("#waiting-content").show();
+                $("#my-banner").position({my: "center", of: window});
+
 
 
 
@@ -174,15 +176,15 @@
             $("#response_3_value").html('C - '+data.answer_3);
             $("#response_4_value").html('D - '+data.answer_4);
             $(params.previousChoice).removeClass("ui-state-active");
-            $(params.previousChoice).removeAttr("checked");
+            $(params.previousChoice).find('input').removeAttr("checked");
             params.previousChoice = null;
 
-            $("#time").html((params.questionTimeFrame/1000) + 's');
+            $("#time").html((params.questionTimeFrame) + 's');
             $("#score_value").html(data.current_score);
             $("#waiting-content").hide();
             $("#ui-dialog-title-question-content").html("Question " + params.currentQuestionIndex);
             $("#question-content").dialog('open');
-            params.timeCounter = params.questionTimeFrame / 1000;
+            params.timeCounter = params.questionTimeFrame ;
             params.counter = 0;
             params.timeoutId = setInterval(function(){
                     params.timeCounter--;
@@ -194,6 +196,8 @@
                         $("#right-string").hide();
                         $("#good-answer-string").hide();
                         $("#score-content").show();
+                        $("#my-banner").position({my: "center", of: window});
+
                         incrementAndGetQuestion();
                     }
                 }, 1000);
@@ -210,7 +214,7 @@
         buttons: {
             "Ok": function(){
                 var responseStatus=$.ajax({async: false, type: "POST", url: "/api/login", data: $.toJSON($('#login-dialog-form').serializeObject()), dataType: "json"}).status;
-                if(responseStatus == 200){
+                if(responseStatus == 201){
                     params.mail = $('mail').val();
                     $( this ).dialog( "close" );
 					$('#email').html(params.mail);
