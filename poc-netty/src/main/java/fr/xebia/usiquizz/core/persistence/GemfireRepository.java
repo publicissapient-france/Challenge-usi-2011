@@ -66,7 +66,6 @@ public class GemfireRepository {
 
     // Region for the current game
     private Region<String, Object> gameRegion;
-    private Region<String, Questiontype> questionRegion = cache.getRegion("question-region");
     // FIXME add index on value....
     // Some search on email
     private Region<String, String> playerRegion;
@@ -111,13 +110,12 @@ public class GemfireRepository {
         DiskStoreFactory scoreStoreFactory = cache.createDiskStoreFactory();
         scoreStoreFactory.setDiskDirs(new File[]{new File("gemfire-persistence/score-oplogDir1"), new File("gemfire-persistence/score-oplogDir2"), new File("gemfire-persistence/score-dbDir")});
         scoreStoreFactory.setMaxOplogSize(10);
-        scoreStoreFactory.setQueueSize(100);
         scoreStoreFactory.create("final-score");
 
         AttributesFactory scoreAttribute = new AttributesFactory();
         scoreAttribute.setDataPolicy(DataPolicy.PERSISTENT_REPLICATE);
         scoreAttribute.setDiskStoreName("final-score");
-        scoreAttribute.setDiskSynchronous(false);
+        scoreAttribute.setDiskSynchronous(true);
         scoreAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
         scoreAttribute.addCacheListener(finalScoreListener);
         RegionFactory rf = cache.createRegionFactory(scoreAttribute.create());
@@ -125,8 +123,15 @@ public class GemfireRepository {
     }
 
     public void initGameRegion(CacheListener gameListener) {
+        // Creation score disk store
+        DiskStoreFactory scoreStoreFactory = cache.createDiskStoreFactory();
+        scoreStoreFactory.setDiskDirs(new File[]{new File("gemfire-persistence/game-dbDir")});
+        scoreStoreFactory.setMaxOplogSize(10);
+        scoreStoreFactory.create("game");
+
         AttributesFactory gameAttribute = new AttributesFactory();
-        gameAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        gameAttribute.setDataPolicy(DataPolicy.PERSISTENT_REPLICATE);
+        gameAttribute.setDiskStoreName("game");
         gameAttribute.setScope(Scope.DISTRIBUTED_ACK);
         gameAttribute.addCacheListener(gameListener);
         RegionFactory rf = cache.createRegionFactory(gameAttribute.create());
@@ -139,10 +144,6 @@ public class GemfireRepository {
 
     public Region<String, Object> getGameRegion() {
         return gameRegion;
-    }
-
-    public Region<String, Questiontype> getQuestionRegion() {
-        return questionRegion;
     }
 
     public Region<String, String> getPlayerRegion() {

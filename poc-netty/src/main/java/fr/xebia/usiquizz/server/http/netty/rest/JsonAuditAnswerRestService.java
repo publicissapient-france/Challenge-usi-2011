@@ -59,24 +59,19 @@ public class JsonAuditAnswerRestService extends RestService {
 
             try {
                 byte questionNbr = Byte.parseByte(requestPath.substring(requestPath.lastIndexOf("/") + 1));
-                // audit d'une question
-                //auditQuestion(questionNbr);
 
-                    // Fail on bad question number
-                if (questionNbr < 1 || questionNbr > game.getNbquestions()){
+                // Fail on bad question number
+                if (questionNbr < 1 || questionNbr > game.getNbquestions()) {
                     responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                     return;
                 }
 
-
-                responseWriter.writeResponse(sendQuestionResult(game.getQuestion(questionNbr),scoring.getAnswers(userMail)[questionNbr -1]), HttpResponseStatus.OK, ctx, e, null);
+                responseWriter.writeResponse(sendQuestionResult(game.getQuestion(questionNbr), scoring.getAnswers(userMail)[questionNbr - 1]), HttpResponseStatus.OK, ctx, e, null);
                 return;
             } catch (NumberFormatException ex) {
-                // audit de tout
-                //auditAllQuestion();
             }
 
-            responseWriter.writeResponse(sendAllQuestionResult(scoring.getAnswers(userMail), game.getGoodAnswers()), HttpResponseStatus.OK, ctx, e, null);
+            responseWriter.writeResponse(sendAllQuestionResult(scoring.getAnswers(userMail), game.getQuestionList()), HttpResponseStatus.OK, ctx, e, null);
             return;
 
         } catch (Exception exc) {
@@ -86,7 +81,7 @@ public class JsonAuditAnswerRestService extends RestService {
     }
 
 
-    private ChannelBuffer sendQuestionResult(Question question, byte uResponse){
+    private ChannelBuffer sendQuestionResult(Question question, byte uResponse) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"user_answer\":\"");
         sb.append(uResponse);
@@ -98,13 +93,13 @@ public class JsonAuditAnswerRestService extends RestService {
         return cb;
     }
 
-    private ChannelBuffer sendAllQuestionResult(byte[] uResponse, byte[] gResponse){
+    private ChannelBuffer sendAllQuestionResult(byte[] uResponse, List<Question> questionList) {
         StringBuilder sb = new StringBuilder("{\"user_answers\":[");
         StringBuilder sbg = new StringBuilder("[");
         int i = 0;
-        while(i < uResponse.length){
+        while (i < uResponse.length) {
 
-            if (i>0){
+            if (i > 0) {
                 sb.append(',');
                 sbg.append(',');
             }
@@ -113,7 +108,7 @@ public class JsonAuditAnswerRestService extends RestService {
             sb.append("\"");
 
             sbg.append("\"");
-            sbg.append(gResponse[i]);
+            sbg.append(questionList.get(i).getGoodchoice());
             sbg.append("\"");
             i++;
         }

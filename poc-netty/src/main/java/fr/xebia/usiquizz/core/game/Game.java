@@ -3,9 +3,11 @@ package fr.xebia.usiquizz.core.game;
 import com.usi.Question;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
+import fr.xebia.usiquizz.core.persistence.User;
 import org.jboss.netty.buffer.ChannelBuffer;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface Game {
 
@@ -27,6 +29,8 @@ public interface Game {
     String getTrackeduseridmail();
 
     Question getQuestion(int index);
+
+    List<Question> getQuestionList();
 
     // Gestion des joueurs
 
@@ -109,10 +113,9 @@ public interface Game {
 
     Collection<String> listPlayer();
 
-    // Good answers byte array
-    byte[] getGoodAnswers();
-
     boolean isAllPlayerLogged();
 
     void startGame();
+
+    List<User> userList(int count);
 }

@@ -4,6 +4,7 @@ import static fr.xebia.usiquizz.core.persistence.GemfireAttribute.*;
 
 import com.gemstone.gemfire.cache.CacheListener;
 import com.usi.Question;
+import com.usi.Questiontype;
 import com.usi.Sessiontype;
 import fr.xebia.usiquizz.core.game.Game;
 import fr.xebia.usiquizz.core.game.QuestionLongpollingCallback;
@@ -11,14 +12,15 @@ import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
+import fr.xebia.usiquizz.core.persistence.User;
+import fr.xebia.usiquizz.core.persistence.serialization.UserSerializer;
 import fr.xebia.usiquizz.core.sort.LocalBTree;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class DistributedGame implements Game {
@@ -67,8 +69,14 @@ public class DistributedGame implements Game {
         this.bTree = new LocalBTree<Joueur>();
         gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(this.bTree));
         gemfireRepository.initGameRegion(new GameCacheListener(this));
-        // TODO : Instantiate it here for now but thats a shame
+
         scoring.setTree(this.bTree);
+        // if repository contains final score data, reconstruct scoring tree (Organisation can stop application and consult result after restart application)
+        if (gemfireRepository.getScoreFinalRegion().size() > 0) {
+            logger.info("Reconstruct scoring btree");
+            scoring.calculRanking();
+            logger.info("Reconstruct scoring btree ended");
+        }
 
     }
 
@@ -96,7 +104,8 @@ public class DistributedGame implements Game {
         gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_NON_COMMENCER);
 
         // les questions
-        gemfireRepository.getQuestionRegion().put(QUESTION_LIST, st.getQuestions());
+        gemfireRepository.getGameRegion().put(QUESTION_LIST, st.getQuestions());
+
 
         // Les status de chaque question (non jouée, en cours, jouée)
         for (byte currentIndex = 1; currentIndex <= st.getParameters().getNbquestions(); currentIndex++) {
@@ -145,6 +154,23 @@ public class DistributedGame implements Game {
     @Override
     public int getSynchrotime() {
         return ((Integer) gemfireRepository.getGameRegion().get(SYNCHROTIME));
+    }
+
+    @Override
+    public List<Question> getQuestionList() {
+        return ((Questiontype) gemfireRepository.getGameRegion().get(QUESTION_LIST)).getQuestion();
+    }
+
+    @Override
+    public List<User> userList(int count) {
+        UserSerializer us = new UserSerializer();
+        Set<String> key = gemfireRepository.getUserRegion().keySet();
+        Iterator<String> keyIt = key.iterator();
+        List<User> res = new ArrayList<User>();
+        for (int i = 0; i < count; i++) {
+            res.add(us.deserializeUser(gemfireRepository.getUserRegion().get(keyIt.next())));
+        }
+        return res;
     }
 
     @Override
@@ -225,7 +251,7 @@ public class DistributedGame implements Game {
     @Override
     public Question getQuestion(int index) {
         // -1 difference between spec and list implementation
-        return gemfireRepository.getQuestionRegion().get(QUESTION_LIST).getQuestion().get(index - 1);
+        return ((Questiontype) gemfireRepository.getGameRegion().get(QUESTION_LIST)).getQuestion().get(index - 1);
     }
 
     @Override
@@ -349,11 +375,6 @@ public class DistributedGame implements Game {
     public void startCurrentLongPolling() {
         longpollingCallback.startSendAll();
     }
-
-    public byte[] getGoodAnswers() {
-        return (byte[]) gemfireRepository.getGameRegion().get(GOOD_RESPONSE);
-    }
-
 
     private class JsonQuestionWriter {
 

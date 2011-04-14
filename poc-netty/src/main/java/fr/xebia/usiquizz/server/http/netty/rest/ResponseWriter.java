@@ -64,7 +64,7 @@ public class ResponseWriter {
         // Write the response.
         ChannelFuture future = ctx.getChannel().write(response);
         //if (!isKeepAlive((HttpRequest)e.getMessage()) || response.getStatus().getCode() != 200) {
-        future.addListener(ChannelFutureListener.CLOSE);
+        //future.addListener(ChannelFutureListener.CLOSE);
         //}
 
     }
@@ -122,7 +122,7 @@ public class ResponseWriter {
 
         // Write the response.
         //ChannelFuture future = ctx.getChannel().write(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
-        future.addListener(ChannelFutureListener.CLOSE);
+       // future.addListener(ChannelFutureListener.CLOSE);
         return future;
     }
 }

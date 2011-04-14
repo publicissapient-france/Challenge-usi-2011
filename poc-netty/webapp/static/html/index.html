@@ -73,7 +73,8 @@
                         <li id="score-string" class="ui-menu-item ui-corner-all">Youre score is :<span id="score_value"></span></li>
                     </ul>
              </div>
-			<p style="text-align: center;clear:both;">Waiting for question <span id="question_number_waiting">1</span></p>
+			<p id="waiting-for-question-label" style="text-align: center;clear:both;">Waiting for question <span id="question_number_waiting">1</span></p>
+			<p id="waiting-for-ranking-label" style="text-align: center;clear:both;">Waiting for ranking</span></p>
 		</div>
 	</div>
 </div>
@@ -83,9 +84,10 @@
 <script type="text/javascript">
 
     var params = { currentQuestionIndex: 1, previousChoice: null, questionTimeFrame: 20, counter: 0, nbQuestion : 20 };
-    
+
     // Hide Waiting content
     $('#waiting-content').hide();
+    $('#waiting-for-ranking-label').hide();
 	$('#player-stat').hide();
     $('#score-content').hide();
 
@@ -120,6 +122,7 @@
        // S'il reste encore des questions on demande la suivante
        if (params.currentQuestionIndex <= params.nbQuestion) {
            // Une fois le score obtenue on lance l'appel a la question suivante
+           $("#waiting-for-question-label").show();
            getQuestion();
 
            // Et on fait apparaitre l'attente à la question
@@ -127,6 +130,7 @@
            // Sinon fin du jeu
            // On appel les résultats finaux
            // Apres
+           $("#waiting-for-ranking-label").show();
            setTimeout(function() {
                    //redirect to home page
                    document.location.href = "/static/html/ranking.html";
@@ -149,6 +153,8 @@
                 $("#score-content").show();
                 $("#question-content").dialog('close');
                 $("#waiting-content").show();
+                $("#waiting-for-question-label").hide();
+                $("#waiting-for-ranking-label").hide();
 
 
 
@@ -175,6 +181,7 @@
             $("#response_4_value").html('D - '+data.answer_4);
             $(params.previousChoice).removeClass("ui-state-active");
             $(params.previousChoice).removeAttr("checked");
+            $("input:radio").removeAttr("checked")
             params.previousChoice = null;
 
             $("#time").html((params.questionTimeFrame/1000) + 's');
@@ -210,7 +217,7 @@
         buttons: {
             "Ok": function(){
                 var responseStatus=$.ajax({async: false, type: "POST", url: "/api/login", data: $.toJSON($('#login-dialog-form').serializeObject()), dataType: "json"}).status;
-                if(responseStatus == 200){
+                if(responseStatus == 201){
                     params.mail = $('mail').val();
                     $( this ).dialog( "close" );
 					$('#email').html(params.mail);
@@ -230,15 +237,15 @@
                     $('#login-form').effect('pulsate', {}, 500, null );
                 }
                 return false;
-            },
+            }
         },
-    
+
     close: function(){
        // $(this).dialog("open");
     }});
 
     //$('#login-form').dialog("close");
-    
+
 
 	$('#question-content').dialog({
         autoOpen:true,
@@ -254,14 +261,14 @@
                 $('#question-content').dialog("close");
 			}
 		}
-		
+
 		});
-		
+
 		$('#question-content').dialog('close');
 
             // Initiate highlights on questions :)
         $("#question-form li").each(function (){
-            
+
             $(this).mouseenter( function(){
                 $( this ).addClass( "ui-state-hover" );
             });
@@ -281,7 +288,7 @@
         });
     $("#my-banner").position({my: "center", of: window});
 
-	
+
 </script>
 
 

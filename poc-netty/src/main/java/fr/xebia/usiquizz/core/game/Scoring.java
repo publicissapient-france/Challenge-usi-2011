@@ -25,6 +25,8 @@ public interface Scoring {
     // temporary Called at the end of game 
     void calculRanking();
 
+    void reconstructRanking();
+
     List<Joueur> getTop100();
 
     List<Joueur> get50Prec(String email);

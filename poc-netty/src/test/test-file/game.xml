@@ -147,7 +147,7 @@
         <usi:logintimeout>20</usi:logintimeout>
         <usi:synchrotime>3</usi:synchrotime>
         <usi:nbusersthreshold>1000</usi:nbusersthreshold>
-        <usi:questiontimeframe>5</usi:questiontimeframe>
+        <usi:questiontimeframe>20</usi:questiontimeframe>
         <usi:nbquestions>3</usi:nbquestions>
         <usi:flushusertable>false</usi:flushusertable>
         <usi:trackeduseridmail>usi:trackeduseridmail</usi:trackeduseridmail>

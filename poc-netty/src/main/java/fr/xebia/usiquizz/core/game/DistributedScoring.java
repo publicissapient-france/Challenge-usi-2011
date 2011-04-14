@@ -73,6 +73,14 @@ public class DistributedScoring implements Scoring {
         }
     }
 
+    @Override
+    public void reconstructRanking() {
+        for (String sessionKey : gemfireRepository.getScoreFinalRegion().keySet()) {
+            Score score = gemfireRepository.getScoreFinalRegion().get(sessionKey);
+            tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, sessionKey));
+        }
+    }
+
 
     @Override
     public List<Joueur> getTop100() {
