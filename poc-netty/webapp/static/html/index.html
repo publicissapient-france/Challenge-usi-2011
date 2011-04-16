@@ -31,6 +31,59 @@
 </form>
 </div>
 
+<!-- Score Dialog -->
+<div id="score-dialog" title="Final ranking">
+<ul>
+<li><h1>Youre score: <span id="score-dialog-score"></span></h1></li>
+<li>
+    <h1>The 100 best players</h1>
+    <table id="score-dialog-100-best" class="ui-widget ui-widget-content">
+        <thead>
+        <tr class="ui-widget-header">
+        <th>Name</th>
+        <th>Firstname</th>
+        <th>Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Put players by order -->
+        </tbody>
+    </table>
+</li>
+<li>
+    <h1>The 5 players before you</h1>
+    <table id="score-dialog-5-before" class="ui-widget ui-widget-content">
+        <thead>
+        <tr class="ui-widget-header">
+        <th>Name</th>
+        <th>Firstname</th>
+        <th>Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Put players by order -->
+        </tbody>
+    </table>
+</li>
+<li>
+    <h1>The 5 players after you</h1>
+    <table id="score-dialog-5-after" class="ui-widget ui-widget-content">
+        <thead>
+        <tr class="ui-widget-header">
+        <th>Name</th>
+        <th>Firstname</th>
+        <th>Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Put players by order -->
+        </tbody>
+    </table>
+</li>
+</ul>
+</div>
+
+
 <!-- Question Dialog Form -->
     <div id="question-content" class="main-content" title="Question">
         <div id="answer_content">
@@ -81,7 +134,7 @@
 
 
 
-<script type="text/javascript">
+<script type="text/javascript"><!--
 
     var params = { currentQuestionIndex: 1, previousChoice: null, questionTimeFrame: 20, counter: 0, nbQuestion : 20 };
 
@@ -131,10 +184,50 @@
            // On appel les résultats finaux
            // Apres
            $("#waiting-for-ranking-label").show();
+           $("#waiting-for-question-label").hide();
+           $("#score-content").hide();
+           $('#waiting-content').show();
+
            setTimeout(function() {
                    //redirect to home page
-                   document.location.href = "/static/html/ranking.html";
-               }, 15000);
+              $.ajax({ url: "/api/ranking/",
+                 dataType:"json",
+                 success: function(data) {
+                    var table = $('#score-dialog-100-best tbody'), reftBody = $(table).find('tbody');
+
+                    var loadTable = function(table, playerList) {
+                         table.html("");
+                         $.each(playerList.mail, function(i, item) {
+                            var td_score = $('<td>')
+                                    .text(playerList.scores[i]);
+                            var td_email = $('<td>')
+                                    .text(item);
+                            var td_firstname = $('<td>')
+                                    .text(playerList.firstname[i]);
+                            var td_lastname = $('<td>')
+                                    .text(playerList.lastname[i]);
+
+                            var tr = $('<tr>').append(td_lastname).append(td_firstname).append(td_score);
+
+                            $(table).append(tr);
+                        });
+                        if (playerList.scores.length == 0){
+                             var tr = $('<tr><td colspan="3"><span  class="ui-icon ui-icon-alert" style="float:left;"></span> No players found !</td></tr>');
+                            $(table).append(tr);
+                        }
+                    };
+
+                    loadTable ($('#score-dialog-100-best tbody'), data.top_scores);
+                    loadTable ($('#score-dialog-5-before tbody'), data.before);
+                    loadTable ($('#score-dialog-5-after tbody'), data.after);
+                    $("#score-dialog-score").html(data.score);
+                    $("#waiting-content").hide();
+                    $('#score-dialog').dialog('open');
+
+                 }
+              });
+
+           }, 15000);
        }
 
     }
@@ -171,6 +264,8 @@
       // Define getQuestion function
     function getQuestion() {
         $('#question_number_waiting').html(params.currentQuestionIndex);
+        $('#waiting-for-question-label').show();
+        $("#waiting-for-ranking-label").hide();
         $('#waiting-content').show();
 
         $.ajax({ url: "/api/question/" + params.currentQuestionIndex, dataType:"json", success: function(data) {
@@ -201,7 +296,8 @@
                         $("#right-string").hide();
                         $("#good-answer-string").hide();
                         $("#score-content").show();
-                        $("#my-banner").position({my: "center", of: window});
+                       // todo: fix banner positionning
+                       // $("#my-banner").position({my: "center", of: window});
 
                         incrementAndGetQuestion();
                     }
@@ -231,6 +327,8 @@
                         params.questionTimeFrame = data.questionTimeFrame;
                         params.synchroTime = data.synchrotime;
                     }});
+                    params.currentQuestionIndex =1;
+                   // params.previousChoice = null;
 					$(this).dialog("close");
 					// Get the first Question
 					getQuestion();
@@ -290,7 +388,18 @@
         });
     $("#my-banner").position({my: "center", of: window});
 
-
+    $('#score-dialog').dialog({
+         autoOpen:false,
+         modal: true,
+         buttons: {
+             "Ok": function(){
+                $(this).dialog("close");
+                $('#login-form').dialog("open");
+                return false;
+             }
+         }
+    });
+// -->
 </script>
 
 
