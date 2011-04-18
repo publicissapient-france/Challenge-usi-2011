@@ -56,6 +56,8 @@ public class JsonAuditAnswerRestService extends RestService {
             // On regarde si on demande une question en particulier
             String requestPath = qsd.getPath();
 
+            String fakeSessionKey = Integer.valueOf(userMail.hashCode()).toString();
+
 
             try {
                 byte questionNbr = Byte.parseByte(requestPath.substring(requestPath.lastIndexOf("/") + 1));
@@ -66,12 +68,12 @@ public class JsonAuditAnswerRestService extends RestService {
                     return;
                 }
 
-                responseWriter.writeResponse(sendQuestionResult(game.getQuestion(questionNbr), scoring.getAnswers(userMail)[questionNbr - 1]), HttpResponseStatus.OK, ctx, e, null);
+                responseWriter.writeResponse(sendQuestionResult(game.getQuestion(questionNbr), scoring.getAnswers(fakeSessionKey)[questionNbr - 1]), HttpResponseStatus.OK, ctx, e, null);
                 return;
             } catch (NumberFormatException ex) {
             }
 
-            responseWriter.writeResponse(sendAllQuestionResult(scoring.getAnswers(userMail), game.getQuestionList()), HttpResponseStatus.OK, ctx, e, null);
+            responseWriter.writeResponse(sendAllQuestionResult(scoring.getAnswers(fakeSessionKey), game.getQuestionList()), HttpResponseStatus.OK, ctx, e, null);
             return;
 
         } catch (Exception exc) {

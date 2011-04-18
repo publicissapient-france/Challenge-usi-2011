@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 
@@ -32,6 +34,8 @@ public class JsonAnswerRestService extends RestService {
     private static final String SESSION_KEY = "session_key";
 
     private static final String JSON_ANSWER_ATTRIBUTE = "answer";
+
+    private static Pattern answerPattern = Pattern.compile("\\{\"answer\":([0-9]*)\\}");
 
     private static final CookieDecoder cookieDecoder = new CookieDecoder();
 
@@ -73,6 +77,11 @@ public class JsonAnswerRestService extends RestService {
             }
 
             String answer = null;
+            Matcher m = answerPattern.matcher(new String(request.getContent().array()));
+            if(m.matches()){
+                answer = m.group(1);
+            }
+            /*
             JsonParser jp = jsonFactory.createJsonParser(request.getContent().array());
             jp.nextToken(); // will return JsonToken.START_OBJECT (verify?)
             while (jp.nextToken() != JsonToken.END_OBJECT) {
@@ -86,6 +95,7 @@ public class JsonAnswerRestService extends RestService {
                     return;
                 }
             }
+            */
 
             byte answerNumber = Byte.parseByte(answer);
             Question question = getQuestion(questionNbrByte);

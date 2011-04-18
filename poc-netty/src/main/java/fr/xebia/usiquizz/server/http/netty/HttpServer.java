@@ -51,7 +51,7 @@ public class HttpServer {
 
     public static void main(String[] args) {
         // Si args[0] present. on considere que c'est le nombre de I/O server worker
-        int nbThread = 50;
+        int nbThread = 4;
         int nbListeningPort = 2;
 
         if (args.length > 0) {

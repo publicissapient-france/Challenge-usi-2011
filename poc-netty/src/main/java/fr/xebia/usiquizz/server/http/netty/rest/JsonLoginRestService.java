@@ -5,9 +5,6 @@ import fr.xebia.usiquizz.core.game.Scoring;
 import fr.xebia.usiquizz.core.game.exception.LoginPhaseEndedException;
 import fr.xebia.usiquizz.core.persistence.User;
 import fr.xebia.usiquizz.core.persistence.UserRepository;
-import fr.xebia.usiquizz.core.persistence.serialization.UserSerializer;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -15,14 +12,17 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JsonLoginRestService extends RestService {
 
     private static final String JSON_MAIL = "mail";
     private static final String JSON_PASSWORD = "password";
+
+    private Pattern pattern = Pattern.compile("\\{\"mail\":\"(.*)\".*\"password\":\"(.*)\"\\}");
+
 
     private static Logger logger = LoggerFactory.getLogger(JsonLoginRestService.class);
 
@@ -44,6 +44,7 @@ public class JsonLoginRestService extends RestService {
         try {
             String mail = null;
             String password = null;
+            /*
             JsonParser jp = jsonFactory.createJsonParser(request.getContent().array());
             jp.nextToken(); // will return JsonToken.START_OBJECT (verify?)
             while (jp.nextToken() != JsonToken.END_OBJECT) {
@@ -60,10 +61,25 @@ public class JsonLoginRestService extends RestService {
                     return;
                 }
             }
+            */
+
+            Matcher m = pattern.matcher(new String(request.getContent().array()));
+            if (m.matches()) {
+                mail = m.group(1);
+                password = m.group(2);
+            } else {
+                //throw new IllegalStateException("Unrecognized field '" + fieldname + "'!");
+                logger.info("json not valid : {}, login refused", new String(request.getContent().array()));
+                responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+                return;
+            }
+
+            String sessionKey = Integer.toString(mail.hashCode());
+
             if (mail != null && password != null) {
                 User user = userRepository.logUser(mail, password);
-                if (user !=null) {
-                    String sessionKey = Integer.toString(mail.hashCode());
+                if (user != null) {
+
                     if (game.isAlreadyLogged(sessionKey)) {
                         logger.info("user {} already logged with sessionKey : {}", mail, sessionKey);
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
@@ -88,7 +104,7 @@ public class JsonLoginRestService extends RestService {
                     return;
                 }
             }
-        } catch (IOException e1) {
+        } catch (Exception e1) {
             logger.error("Error ", e1);
         }
         // ERROR
