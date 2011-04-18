@@ -7,15 +7,16 @@ import com.gemstone.gemfire.distributed.DistributedLockService;
 import com.usi.Questiontype;
 import fr.xebia.usiquizz.core.game.Score;
 import fr.xebia.usiquizz.core.game.gemfire.ScoreCacheListener;
+import fr.xebia.usiquizz.core.persistence.serialization.UserSerializer;
 import fr.xebia.usiquizz.core.sort.LocalBTree;
 import fr.xebia.usiquizz.core.sort.Node;
 import fr.xebia.usiquizz.core.sort.NodeStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.management.counter.Units;
 
 import java.io.File;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -54,8 +55,6 @@ public class GemfireRepository {
 
     );
 
-    private final ExecutorService asyncScore = Executors.newSingleThreadExecutor();
-
 
     private Cache cache = new CacheFactory()
             .set("cache-xml-file", "gemfire/cache.xml")
@@ -70,6 +69,7 @@ public class GemfireRepository {
     // Some search on email
     private Region<String, String> playerRegion;
     private Region<String, String> currentQuestionRegion;
+    private Region<String, String> playerEndingGameRegion;
 
     private Region<String, Byte> questionStatusRegion;
 
@@ -94,6 +94,15 @@ public class GemfireRepository {
         questionAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
         RegionFactory rf = cache.createRegionFactory(questionAttribute.create());
         currentQuestionRegion = rf.create("current-question-region");
+    }
+
+    public void initPlayerEndingGameRegion(CacheListener endingGameCacheListener) {
+        AttributesFactory endingGameAttribute = new AttributesFactory();
+        endingGameAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        endingGameAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
+        endingGameAttribute.addCacheListener(endingGameCacheListener);
+        RegionFactory rf = cache.createRegionFactory(endingGameAttribute.create());
+        playerEndingGameRegion = rf.create("player-ending-region");
     }
 
     public void initLoginRegion(CacheListener loginCacheListener) {
@@ -142,19 +151,20 @@ public class GemfireRepository {
         return cache;
     }
 
-    public Region<String, Object> getGameRegion() {
+
+    protected Region<String, Object> getGameRegion() {
         return gameRegion;
     }
 
-    public Region<String, String> getPlayerRegion() {
+    protected Region<String, String> getPlayerRegion() {
         return playerRegion;
     }
 
-    public Region<String, String> getCurrentQuestionRegion() {
+    protected Region<String, String> getCurrentQuestionRegion() {
         return currentQuestionRegion;
     }
 
-    public Region<String, byte[]> getUserRegion() {
+    protected Region<String, byte[]> getUserRegion() {
         return userRegion;
     }
 
@@ -166,10 +176,13 @@ public class GemfireRepository {
         return scoreFinalRegion;
     }
 
-    public Region<String, Byte> getQuestionStatusRegion() {
+    protected Region<String, Byte> getQuestionStatusRegion() {
         return questionStatusRegion;
     }
 
+    protected Region<String, String> getPlayerEndingGameRegion() {
+        return playerEndingGameRegion;
+    }
 
     // put to score region in other thread
     public void writeAsyncScore(final String sessionKey, final Score score) {
@@ -217,6 +230,15 @@ public class GemfireRepository {
 
     }
 
+    public void writePlayerEndGame(final String sessionKey) {
+        asyncPlayerWritingOperation.submit(new Runnable() {
+            @Override
+            public void run() {
+                getPlayerEndingGameRegion().put(sessionKey, "");
+            }
+        });
+    }
+
     /**
      * Clears all region used at game time
      */
@@ -228,4 +250,73 @@ public class GemfireRepository {
         this.gameRegion.clear();
     }
 
+
+    public int getScoreFinalRegionSize() {
+        return scoreFinalRegion.size();
+    }
+
+    public void clearUserRegion() {
+        userRegion.clear();
+    }
+
+    public void putInGameRegion(String gameKey, Object value) {
+        gameRegion.put(gameKey, value);
+    }
+
+    public void putQuestionStatus(String questionIndexInString, byte questionStatut) {
+        questionStatusRegion.put(questionIndexInString, questionStatut);
+    }
+
+    public Byte getQuestionStatus(String questionIndexInString) {
+        return questionStatusRegion.get(questionIndexInString);
+    }
+
+    public Object getFromGameRegion(String gameKey) {
+        return gameRegion.get(gameKey);
+    }
+
+
+    public List<User> listUser(int count) {
+        UserSerializer us = new UserSerializer();
+        Set<String> key = userRegion.keySet();
+        Iterator<String> keyIt = key.iterator();
+        List<User> res = new ArrayList<User>();
+        for (int i = 0; i < count; i++) {
+            res.add(us.deserializeUser(userRegion.get(keyIt.next())));
+        }
+        return res;
+    }
+
+    public int getPlayerRegionSize() {
+        return playerRegion.size();
+    }
+
+
+    public boolean isPlayerExists(String sessionKey) {
+        return playerRegion.containsKey(sessionKey);
+    }
+
+    public Collection<String> listPlayer() {
+        return playerRegion.keySet();
+    }
+
+    public int getCurrentQuestionRegionSize() {
+        return currentQuestionRegion.size();
+    }
+
+    public boolean isPlayerAlreadyAskQuestion(String sessionKey) {
+        return currentQuestionRegion.containsKey(sessionKey);
+    }
+
+    public void clearCurrentQuestionRegion() {
+        currentQuestionRegion.clear();
+    }
+
+    public Score getScore(String session_key) {
+        return scoreRegion.get(session_key);
+    }
+
+    public int getPlayerEndingGameRegionSize() {
+        return playerEndingGameRegion.size();
+    }
 }

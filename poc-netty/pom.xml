@@ -106,7 +106,7 @@
             <groupId>ch.qos.logback</groupId>
             <version>0.9.27</version>
         </dependency>
-<!-- mvn install:install-file -DgroupId=org.jboss.netty -DartifactId=netty -Dversion=4.0.0-USI -Dpackaging=jar -Dfile=lib/netty-4.0.0-USI.jar -->
+        <!-- mvn install:install-file -DgroupId=org.jboss.netty -DartifactId=netty -Dversion=4.0.0-USI -Dpackaging=jar -Dfile=lib/netty-4.0.0-USI.jar -->
         <dependency>
             <groupId>org.jboss.netty</groupId>
             <artifactId>netty</artifactId>
@@ -278,6 +278,12 @@
             <groupId>org.coconut.forkjoin</groupId>
             <artifactId>jsr166y</artifactId>
             <version>281207</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.twitter4j</groupId>
+            <artifactId>twitter4j-core</artifactId>
+            <version>2.2.0</version>
         </dependency>
 
 

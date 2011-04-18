@@ -49,8 +49,8 @@ public class JsonRankingRestService extends AbstractRankingRestService {
             // On a besoin du score courant
             // Du top 100
             // Des 50 precedents et 50 suivants
-            String email = game.getEmailFromSession(sessionKey);
-            responseWriter.writeResponse(constructJsonResponse(scoring.getCurrentScoreByEmail(email), scoring.getTop100(), scoring.get50Prec(email), scoring.get50Suiv(email)), HttpResponseStatus.OK, ctx, e, null);
+            responseWriter.writeResponse(constructJsonResponse(scoring.getCurrentScore(sessionKey), scoring.getTop100(), scoring.get50Prec(sessionKey), scoring.get50Suiv(sessionKey)), HttpResponseStatus.OK, ctx, e, null);
+            game.playerEndGame(sessionKey);
 
 
         } catch (Exception exc) {

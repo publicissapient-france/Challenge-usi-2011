@@ -3,6 +3,9 @@ package fr.xebia.usiquizz.core.sort;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListMap;
+
 /**
  * Test the Btree
  * <p/>
@@ -93,7 +96,9 @@ public class BTreeTest {
     @Test
     public void insertionLoadTest() {
         LocalBTree<Integer> tree = new LocalBTree<Integer>();
-        int size = 50000;
+        // Compare with TreeSet
+        ConcurrentSkipListMap<Integer, Integer> treeset = new ConcurrentSkipListMap<Integer, Integer>();
+        int size = 60000;
         int i = 0, j = size;
         long start = System.nanoTime();
         while (i <= j) {
@@ -103,7 +108,23 @@ public class BTreeTest {
             j--;
         }
         long end = System.nanoTime();
-        System.out.println("Insert " + size + " take : " + (end - start) / 1000000 + " ms");
+        System.out.println("Insert " + size + " in btree take : " + (end - start) / 1000000 + " ms");
+
+        start = System.nanoTime();
+        i = 0;
+        j = size;
+        while (i <= j) {
+            treeset.put(i, i);
+            treeset.put(j, j);
+            i++;
+            j--;
+        }
+        end = System.nanoTime();
+        System.out.println("Insert " + size + " in ConcurrentSkipListMap take : " + (end - start) / 1000000 + " ms");
+
+
+
+
 
         // check from max
         j = size;

@@ -80,6 +80,7 @@ public interface Game {
 
     /**
      * Retourne l'index de la réponse courante
+     *
      * @return
      */
     String getCurrentAnswerIndex();
@@ -94,6 +95,7 @@ public interface Game {
 
     /**
      * Verification of flow
+     *
      * @param sessionKey
      * @param currentQuestion
      * @return
@@ -109,8 +111,6 @@ public interface Game {
 
     ChannelBuffer createQuestionInJson(byte currentQuestionIndex, String sessionKey);
 
-    String getEmailFromSession(String sessionKey);
-
     Collection<String> listPlayer();
 
     boolean isAllPlayerLogged();
@@ -118,4 +118,10 @@ public interface Game {
     void startGame();
 
     List<User> userList(int count);
+
+    void playerEndGame(String sessionKey);
+
+    void setLoginPhaseBegin();
+
+    void setLoginPhaseEnded();
 }

@@ -9,10 +9,7 @@ import fr.xebia.usiquizz.core.sort.LocalBTree;
 import fr.xebia.usiquizz.core.sort.RBTree;
 import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
 
-    private LocalBTree<Joueur> tree;
+    private ConcurrentSkipListSet<Joueur> tree;
 
     ThreadFactory treeInsertionThreadFactory = new ThreadFactory() {
 
@@ -40,7 +37,7 @@ public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
     private ExecutorService executorService = new MemoryAwareThreadPoolExecutor(1, 400000000, 2000000000, 60, TimeUnit.SECONDS, treeInsertionThreadFactory);
 
 
-    public ScoreCacheListener(LocalBTree<Joueur> tree) {
+    public ScoreCacheListener(ConcurrentSkipListSet<Joueur> tree) {
         this.tree = tree;
     }
 
@@ -57,7 +54,7 @@ public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
             @Override
             public void run() {
                 Score score = entryEvent.getNewValue();
-                tree.insert(new Joueur(score.getCurrentScore(), score.lname, score.fname, score.email));
+                tree.add(new Joueur(score.getCurrentScore(), score.lname, score.fname, score.email));
             }
         });
 

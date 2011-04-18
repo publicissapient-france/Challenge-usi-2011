@@ -2,7 +2,6 @@ package fr.xebia.usiquizz.core.game.gemfire;
 
 import static fr.xebia.usiquizz.core.persistence.GemfireAttribute.*;
 
-import com.gemstone.gemfire.cache.CacheListener;
 import com.usi.Question;
 import com.usi.Questiontype;
 import com.usi.Sessiontype;
@@ -14,7 +13,7 @@ import fr.xebia.usiquizz.core.persistence.GemfireRepository;
 import fr.xebia.usiquizz.core.persistence.Joueur;
 import fr.xebia.usiquizz.core.persistence.User;
 import fr.xebia.usiquizz.core.persistence.serialization.UserSerializer;
-import fr.xebia.usiquizz.core.sort.LocalBTree;
+import fr.xebia.usiquizz.core.twitter.UsiXebiaTwitter;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.slf4j.Logger;
@@ -55,26 +54,32 @@ public class DistributedGame implements Game {
     private GemfireRepository gemfireRepository;
     private QuestionLongpollingCallback longpollingCallback;
     private Scoring scoring;
-    private boolean firstForQuestion = true;
-    private boolean firstLogin = true;
     private JsonQuestionWriter jsonQuestionWriter = new JsonQuestionWriter();
-    private LocalBTree<Joueur> bTree;
+    private ConcurrentSkipListSet<Joueur> bTree;
+    private UsiXebiaTwitter usiXebiaTwitter = new UsiXebiaTwitter();
+
+    // local state
+    private boolean loginPhaseEnded = false;
+    private boolean firstUserLogged = false;
+    private String currentQuestionIndex = "1";
+    private String currentAnswerIndex = "1";
 
     public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
         this.scoring = scoring;
         gemfireRepository.initQuestionStatusRegion(new QuestionStatusCacheListener(this, eventTaskExector));
         gemfireRepository.initCurrentQuestionRegion();
+        gemfireRepository.initPlayerEndingGameRegion(new PlayerEndingGameListener(this));
         gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
-        this.bTree = new LocalBTree<Joueur>();
+        this.bTree = new ConcurrentSkipListSet<Joueur>();
         gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(this.bTree));
         gemfireRepository.initGameRegion(new GameCacheListener(this));
 
         scoring.setTree(this.bTree);
         // if repository contains final score data, reconstruct scoring tree (Organisation can stop application and consult result after restart application)
-        if (gemfireRepository.getScoreFinalRegion().size() > 0) {
+        if (gemfireRepository.getScoreFinalRegionSize() > 0) {
             logger.info("Reconstruct scoring btree");
-            scoring.calculRanking();
+            scoring.reconstructRanking();
             logger.info("Reconstruct scoring btree ended");
         }
 
@@ -86,30 +91,30 @@ public class DistributedGame implements Game {
         gemfireRepository.clearGameCaches();
         // Flush user Table when requested
         if (st.getParameters().isFlushusertable()) {
-            gemfireRepository.getUserRegion().clear();
+            gemfireRepository.clearUserRegion();
         }
 
         // Parametre du jeu
-        gemfireRepository.getGameRegion().put(LOGIN_TIMEOUT, st.getParameters().getLogintimeout());
-        gemfireRepository.getGameRegion().put(SYNCHROTIME, st.getParameters().getSynchrotime());
-        gemfireRepository.getGameRegion().put(NB_USERS_THRESOLD, st.getParameters().getNbusersthreshold());
-        gemfireRepository.getGameRegion().put(QUESTION_TIME_FRAME, st.getParameters().getQuestiontimeframe());
-        gemfireRepository.getGameRegion().put(NB_QUESTIONS, st.getParameters().getNbquestions());
-        gemfireRepository.getGameRegion().put(FLUSH_USER_TABLE, st.getParameters().isFlushusertable());
-        gemfireRepository.getGameRegion().put(TRACKED_USER_IDMAIL, st.getParameters().getTrackeduseridmail());
-        gemfireRepository.getGameRegion().put(CURRENT_QUESTION_INDEX, "1");
-        gemfireRepository.getGameRegion().put(CURRENT_ANSWER_INDEX, "1");
+        gemfireRepository.putInGameRegion(LOGIN_TIMEOUT, st.getParameters().getLogintimeout());
+        gemfireRepository.putInGameRegion(SYNCHROTIME, st.getParameters().getSynchrotime());
+        gemfireRepository.putInGameRegion(NB_USERS_THRESOLD, st.getParameters().getNbusersthreshold());
+        gemfireRepository.putInGameRegion(QUESTION_TIME_FRAME, st.getParameters().getQuestiontimeframe());
+        gemfireRepository.putInGameRegion(NB_QUESTIONS, st.getParameters().getNbquestions());
+        gemfireRepository.putInGameRegion(FLUSH_USER_TABLE, st.getParameters().isFlushusertable());
+        gemfireRepository.putInGameRegion(TRACKED_USER_IDMAIL, st.getParameters().getTrackeduseridmail());
+        gemfireRepository.putInGameRegion(CURRENT_QUESTION_INDEX, "1");
+        gemfireRepository.putInGameRegion(CURRENT_ANSWER_INDEX, "1");
 
         // Status du jeux
-        gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_NON_COMMENCER);
+        gemfireRepository.putInGameRegion(LOGIN_PHASE_STATUS, LOGIN_PHASE_NON_COMMENCER);
 
         // les questions
-        gemfireRepository.getGameRegion().put(QUESTION_LIST, st.getQuestions());
+        gemfireRepository.putInGameRegion(QUESTION_LIST, st.getQuestions());
 
 
         // Les status de chaque question (non jouée, en cours, jouée)
         for (byte currentIndex = 1; currentIndex <= st.getParameters().getNbquestions(); currentIndex++) {
-            gemfireRepository.getQuestionStatusRegion().put(Byte.toString(currentIndex), QuestionStatus.QUESTION_NON_JOUEE);
+            gemfireRepository.putQuestionStatus(Byte.toString(currentIndex), QuestionStatus.QUESTION_NON_JOUEE);
         }
 
 
@@ -117,84 +122,97 @@ public class DistributedGame implements Game {
 
     public void resetLocalGameData() {
         longpollingCallback.reset();
+        loginPhaseEnded = false;
+        firstUserLogged = false;
         // Clear all caches used in the party
         bTree.clear();
     }
 
     @Override
     public int getLoginTimeout() {
-        return ((Integer) gemfireRepository.getGameRegion().get(LOGIN_TIMEOUT)).intValue();
+        return ((Integer) gemfireRepository.getFromGameRegion(LOGIN_TIMEOUT)).intValue();
     }
 
     @Override
     public int getNbusersthresold() {
-        return ((Integer) gemfireRepository.getGameRegion().get(NB_USERS_THRESOLD)).intValue();
+        return ((Integer) gemfireRepository.getFromGameRegion(NB_USERS_THRESOLD)).intValue();
     }
 
     @Override
     public int getQuestiontimeframe() {
-        return ((Integer) gemfireRepository.getGameRegion().get(QUESTION_TIME_FRAME)).intValue();
+        return ((Integer) gemfireRepository.getFromGameRegion(QUESTION_TIME_FRAME)).intValue();
     }
 
     @Override
     public int getNbquestions() {
-        return ((Integer) gemfireRepository.getGameRegion().get(NB_QUESTIONS)).intValue();
+        return ((Integer) gemfireRepository.getFromGameRegion(NB_QUESTIONS)).intValue();
     }
 
     @Override
     public boolean getFlushusertable() {
-        return ((Boolean) gemfireRepository.getGameRegion().get(FLUSH_USER_TABLE)).booleanValue();
+        return ((Boolean) gemfireRepository.getFromGameRegion(FLUSH_USER_TABLE)).booleanValue();
     }
 
     @Override
     public String getTrackeduseridmail() {
-        return ((String) gemfireRepository.getGameRegion().get(TRACKED_USER_IDMAIL));
+        return ((String) gemfireRepository.getFromGameRegion(TRACKED_USER_IDMAIL));
     }
 
     @Override
     public int getSynchrotime() {
-        return ((Integer) gemfireRepository.getGameRegion().get(SYNCHROTIME));
+        return ((Integer) gemfireRepository.getFromGameRegion(SYNCHROTIME));
     }
 
     @Override
     public List<Question> getQuestionList() {
-        return ((Questiontype) gemfireRepository.getGameRegion().get(QUESTION_LIST)).getQuestion();
+        return ((Questiontype) gemfireRepository.getFromGameRegion(QUESTION_LIST)).getQuestion();
     }
 
     @Override
     public List<User> userList(int count) {
-        UserSerializer us = new UserSerializer();
-        Set<String> key = gemfireRepository.getUserRegion().keySet();
-        Iterator<String> keyIt = key.iterator();
-        List<User> res = new ArrayList<User>();
-        for (int i = 0; i < count; i++) {
-            res.add(us.deserializeUser(gemfireRepository.getUserRegion().get(keyIt.next())));
-        }
-        return res;
+        return gemfireRepository.listUser(count);
     }
+
+    public void setLocalCurrentQuestionIndex(String currentQuestionIndex) {
+        this.currentQuestionIndex = currentQuestionIndex;
+    }
+
+    public void setLocalCurrentAnswerIndex(String currentAnswerIndex) {
+        this.currentAnswerIndex = currentAnswerIndex;
+    }
+
+    public String getCurrentQuestionIndex() {
+        return currentQuestionIndex;
+    }
+
+    public String getCurrentAnswerIndex() {
+        return currentAnswerIndex;
+    }
+
+
 
     @Override
     public void logPlayerToApplication(String sessionId, String email) throws LoginPhaseEndedException {
         // Si c'est le premier joueur, alors on démarre un timer
         // FIXME Le status doit bien être synchrone entre tous les serveurs.. Bien verifier la conf de cette région
-        if ((Byte) gemfireRepository.getGameRegion().get(LOGIN_PHASE_STATUS) == LOGIN_PHASE_TERMINER) {
+        if (loginPhaseEnded) {
             throw new LoginPhaseEndedException();
         } else {
-            if ((Byte) gemfireRepository.getGameRegion().get(LOGIN_PHASE_STATUS) == LOGIN_PHASE_NON_COMMENCER) {
+            if (!firstUserLogged) {
                 synchronized (this) {
-                    if ((Byte) gemfireRepository.getGameRegion().get(LOGIN_PHASE_STATUS) == LOGIN_PHASE_NON_COMMENCER) {
+                    if (!firstUserLogged) {
                         logger.info("Start timers login timeout");
-                        gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_EN_COURS);
                         scheduleExecutor.schedule((new Runnable() {
                             @Override
                             public void run() {
                                 logger.info("Login timer ended");
-                                gemfireRepository.getGameRegion().put(LOGIN_PHASE_STATUS, LOGIN_PHASE_TERMINER);
-                                logger.info("{} player logged for game", gemfireRepository.getPlayerRegion().size());
+                                gemfireRepository.putInGameRegion(LOGIN_PHASE_STATUS, LOGIN_PHASE_TERMINER);
+                                logger.info("{} player logged for game", gemfireRepository.getPlayerRegionSize());
 
                                 startGame();
                             }
                         }), getLoginTimeout(), TimeUnit.SECONDS);
+                        gemfireRepository.putInGameRegion(LOGIN_PHASE_STATUS, LOGIN_PHASE_EN_COURS);
                     }
                 }
             }
@@ -203,39 +221,45 @@ public class DistributedGame implements Game {
     }
 
     @Override
+    public void setLoginPhaseBegin() {
+        firstUserLogged = true;
+    }
+
+    @Override
+    public void setLoginPhaseEnded() {
+        loginPhaseEnded = true;
+    }
+
+    @Override
     public void startGame() {
         // On change le status de la première question.
         // Un listener permet, si nécessaire (pas tous les joueurs de loggué) de démarrer l'envoie de la premiere question
         // Si la question n'est pas encore en cours on la passe en cours. (cas de tous les joueurs loggué avant la fin du timer)
         logger.warn("Start game");
-        if (gemfireRepository.getQuestionStatusRegion().get(gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX)).intValue() == QuestionStatus.QUESTION_NON_JOUEE) {
-            gemfireRepository.getQuestionStatusRegion().put((String) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX), QuestionStatus.QUESTION_EN_COURS);
+        if (gemfireRepository.getQuestionStatus(currentQuestionIndex).intValue() == QuestionStatus.QUESTION_NON_JOUEE) {
+            gemfireRepository.putQuestionStatus(currentQuestionIndex, QuestionStatus.QUESTION_EN_COURS);
         }
     }
 
     @Override
     public boolean isAllPlayerLogged() {
-        return gemfireRepository.getPlayerRegion().size() == ((Integer) gemfireRepository.getGameRegion().get(NB_USERS_THRESOLD)).intValue();
+        return gemfireRepository.getPlayerRegionSize() == ((Integer) gemfireRepository.getFromGameRegion(NB_USERS_THRESOLD)).intValue();
     }
 
     @Override
     public boolean isAlreadyLogged(String sessionKey) {
-        return gemfireRepository.getPlayerRegion().containsKey(sessionKey);
+        return gemfireRepository.isPlayerExists(sessionKey);
     }
 
-    @Override
-    public String getEmailFromSession(String sessionKey) {
-        return gemfireRepository.getPlayerRegion().get(sessionKey);
-    }
 
     @Override
     public Collection<String> listPlayer() {
-        return gemfireRepository.getPlayerRegion().values();
+        return gemfireRepository.listPlayer();
     }
 
     @Override
     public int countUserConnected() {
-        return gemfireRepository.getPlayerRegion().size();
+        return gemfireRepository.getPlayerRegionSize();
     }
 
     @Override
@@ -245,33 +269,23 @@ public class DistributedGame implements Game {
 
     @Override
     public int countUserForQuestion(String questionIndex) {
-        return gemfireRepository.getCurrentQuestionRegion().size();
+        return gemfireRepository.getCurrentQuestionRegionSize();
     }
 
     @Override
     public Question getQuestion(int index) {
         // -1 difference between spec and list implementation
-        return ((Questiontype) gemfireRepository.getGameRegion().get(QUESTION_LIST)).getQuestion().get(index - 1);
-    }
-
-    @Override
-    public String getCurrentQuestionIndex() {
-        return (String) gemfireRepository.getGameRegion().get(CURRENT_QUESTION_INDEX);
-    }
-
-    @Override
-    public String getCurrentAnswerIndex() {
-        return (String) gemfireRepository.getGameRegion().get(CURRENT_ANSWER_INDEX);
+        return ((Questiontype) gemfireRepository.getFromGameRegion(QUESTION_LIST)).getQuestion().get(index - 1);
     }
 
     @Override
     public void setCurrentQuestionIndex(String newIndex) {
-        gemfireRepository.getGameRegion().put(CURRENT_QUESTION_INDEX, newIndex);
+        gemfireRepository.putInGameRegion(CURRENT_QUESTION_INDEX, newIndex);
     }
 
     @Override
     public void setCurrentAnswerIndex(String newIndex) {
-        gemfireRepository.getGameRegion().put(CURRENT_ANSWER_INDEX, newIndex);
+        gemfireRepository.putInGameRegion(CURRENT_ANSWER_INDEX, newIndex);
     }
 
     @Override
@@ -290,8 +304,8 @@ public class DistributedGame implements Game {
         // On doit être encore dans la bonne timeframe
         // Pour cela on regarde le statut de la question courante.
         // Elle doit être de en QUESTION_EN_COURS
-        if (gemfireRepository.getQuestionStatusRegion().get(currentQuestion) != QuestionStatus.QUESTION_EN_COURS) {
-            logger.info("Player {} outside windows answer of question {} current statut {} (should be 11)", new Object[]{sessionKey, currentQuestion, gemfireRepository.getQuestionStatusRegion().get(currentQuestion)});
+        if (gemfireRepository.getQuestionStatus(currentQuestion) != QuestionStatus.QUESTION_EN_COURS) {
+            logger.info("Player {} outside windows answer of question {} current statut {} (should be 11)", new Object[]{sessionKey, currentQuestion, gemfireRepository.getQuestionStatus(currentQuestion)});
             return false;
         }
 
@@ -311,7 +325,7 @@ public class DistributedGame implements Game {
         // FIXME implements...
 
         // Le joueur ne doit pas déja avoir demandé la question
-        return !gemfireRepository.getCurrentQuestionRegion().containsKey(sessionKey);
+        return !gemfireRepository.isPlayerAlreadyAskQuestion(sessionKey);
 
 
     }
@@ -342,12 +356,12 @@ public class DistributedGame implements Game {
 
     @Override
     public void resetPlayerAskedQuestion() {
-        gemfireRepository.getCurrentQuestionRegion().clear();
+        gemfireRepository.clearCurrentQuestionRegion();
     }
 
     @Override
     public ChannelBuffer createQuestionInJson(byte currentQuestionIndex, String session_key) {
-        return jsonQuestionWriter.createQuestionInJson(currentQuestionIndex, gemfireRepository.getScoreRegion().get(session_key).getCurrentScore());
+        return jsonQuestionWriter.createQuestionInJson(currentQuestionIndex, gemfireRepository.getScore(session_key).getCurrentScore());
 
     }
 
@@ -356,7 +370,7 @@ public class DistributedGame implements Game {
         final String currentAnswerIndex = getCurrentAnswerIndex();
         final String currentQuestionIndex = getCurrentQuestionIndex();
         logger.info("fin REPONSE {}", currentAnswerIndex);
-        gemfireRepository.getQuestionStatusRegion().put(currentAnswerIndex, QuestionStatus.QUESTION_JOUEE);
+        gemfireRepository.putQuestionStatus(currentAnswerIndex, QuestionStatus.QUESTION_JOUEE);
         logger.info("Start synchro time");
 
         scheduleExecutor.schedule((new Runnable() {
@@ -367,7 +381,7 @@ public class DistributedGame implements Game {
                 // On met le status de la question en QUESTION_JOUEE
 
                 // On change le statut de la question
-                gemfireRepository.getQuestionStatusRegion().put(currentQuestionIndex, QuestionStatus.QUESTION_EN_COURS);
+                gemfireRepository.putQuestionStatus(currentQuestionIndex, QuestionStatus.QUESTION_EN_COURS);
             }
         }), getSynchrotime(), TimeUnit.SECONDS);
     }
@@ -375,6 +389,20 @@ public class DistributedGame implements Game {
     public void startCurrentLongPolling() {
         longpollingCallback.startSendAll();
     }
+
+    public void playerEndGame(String sessionKey) {
+        gemfireRepository.writePlayerEndGame(sessionKey);
+    }
+
+    public int countUserEndingGame() {
+        return gemfireRepository.getPlayerEndingGameRegionSize();
+    }
+
+    public void tweetResult() {
+        usiXebiaTwitter.tweetNbUserSupportedByAppli(countUserEndingGame());
+    }
+
+
 
     private class JsonQuestionWriter {
 

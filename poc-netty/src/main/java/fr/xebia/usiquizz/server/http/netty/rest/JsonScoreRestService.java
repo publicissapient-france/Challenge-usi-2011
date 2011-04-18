@@ -57,10 +57,11 @@ public class JsonScoreRestService extends AbstractRankingRestService {
             }
 
 
+            String fakeSessionKey = Integer.valueOf(userMail.hashCode()).toString();
             // On a besoin du score courant
             // Du top 100
             // Des 50 precedents et 50 suivants
-            responseWriter.writeResponse(constructJsonResponse(scoring.getCurrentScoreByEmail(userMail), scoring.getTop100(), scoring.get50Prec(userMail), scoring.get50Suiv(userMail)), HttpResponseStatus.OK, ctx, e, null);
+            responseWriter.writeResponse(constructJsonResponse(scoring.getCurrentScore(fakeSessionKey), scoring.getTop100(), scoring.get50Prec(fakeSessionKey), scoring.get50Suiv(fakeSessionKey)), HttpResponseStatus.OK, ctx, e, null);
 
 
         } catch (Exception exc) {
