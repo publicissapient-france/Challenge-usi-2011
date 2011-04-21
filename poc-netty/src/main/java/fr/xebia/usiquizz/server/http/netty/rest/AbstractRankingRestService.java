@@ -54,49 +54,59 @@ public class AbstractRankingRestService extends RestService {
         StringBuilder sbScores = new StringBuilder();
         StringBuilder sbFirstName = new StringBuilder();
         StringBuilder sbLastName = new StringBuilder();
-        sbMail.append("\"mail\":[");
-        sbScores.append("\"scores\":[");
-        sbFirstName.append("\"firstname\":[");
-        sbLastName.append("\"lastname\":[");
-        for (Joueur j : list) {
-            // Mail
-            sbMail.append("\"");
-            sbMail.append(j.getEmail());
-            sbMail.append("\"");
-            if (i < list.size()) {
-                sbMail.append(",");
-            }
 
-            // scores
-            sbScores.append("\"");
-            sbScores.append(j.getScore());
-            sbScores.append("\"");
-            if (i < list.size()) {
-                sbScores.append(",");
-            }
+        if (list != null && list.size() > 0) {
+            sbMail.append("\"mail\":[");
+            sbScores.append("\"scores\":[");
+            sbFirstName.append("\"firstname\":[");
+            sbLastName.append("\"lastname\":[");
+            for (Joueur j : list) {
+                // Mail
+                sbMail.append("\"");
+                sbMail.append(j.getEmail());
+                sbMail.append("\"");
+                if (i < list.size()) {
+                    sbMail.append(",");
+                }
 
-            // firstname
-            sbFirstName.append("\"");
-            sbFirstName.append(j.getFirstName());
-            sbFirstName.append("\"");
-            if (i < list.size()) {
-                sbFirstName.append(",");
-            }
+                // scores
+                sbScores.append("\"");
+                sbScores.append(j.getScore());
+                sbScores.append("\"");
+                if (i < list.size()) {
+                    sbScores.append(",");
+                }
 
-            // lastname
-            sbLastName.append("\"");
-            sbLastName.append(j.getLastName());
-            sbLastName.append("\"");
-            if (i < list.size()) {
-                sbLastName.append(",");
-            }
+                // firstname
+                sbFirstName.append("\"");
+                sbFirstName.append(j.getFirstName());
+                sbFirstName.append("\"");
+                if (i < list.size()) {
+                    sbFirstName.append(",");
+                }
 
-            i++;
+                // lastname
+                sbLastName.append("\"");
+                sbLastName.append(j.getLastName());
+                sbLastName.append("\"");
+                if (i < list.size()) {
+                    sbLastName.append(",");
+                }
+
+                i++;
+            }
+            sbMail.append("],");
+            sbScores.append("],");
+            sbFirstName.append("],");
+            sbLastName.append("]");
+        } else {
+            // il faut mettre null si le tableau est vide.....
+            sbMail.append("\"mail\":null");
+            sbScores.append("\"scores\":null");
+            sbFirstName.append("\"firstname\":null");
+            sbLastName.append("\"lastname\":null");
         }
-        sbMail.append("],");
-        sbScores.append("],");
-        sbFirstName.append("],");
-        sbLastName.append("]");
+
 
         sb.append(sbMail.toString());
         sb.append(sbScores.toString());

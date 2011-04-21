@@ -22,8 +22,6 @@ public class DistributedScoring implements Scoring {
 
     private ConcurrentSkipListSet<Joueur> tree;
 
-    // Uniquement pour debug... Nombre de reponse recu sur l'instance
-    private ConcurrentHashMap<Byte, AtomicInteger> nbReponse = new ConcurrentHashMap<Byte, AtomicInteger>();
 
     public DistributedScoring(GemfireRepository gemfireRepository) {
         this.gemfireRepository = gemfireRepository;
@@ -153,5 +151,10 @@ public class DistributedScoring implements Scoring {
     @Override
     public void setTree(ConcurrentSkipListSet<Joueur> tree) {
         this.tree = tree;
+    }
+
+    @Override
+    public void init(){
+        top100 = null;
     }
 }

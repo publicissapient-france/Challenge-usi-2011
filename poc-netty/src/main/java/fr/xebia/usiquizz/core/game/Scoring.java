@@ -35,4 +35,6 @@ public interface Scoring {
     List<Joueur> get50Suiv(String sessionKey);
 
     void setTree(ConcurrentSkipListSet<Joueur> tree);
+
+    void init();
 }

@@ -90,6 +90,8 @@ public class DistributedGame implements Game {
     public void init(Sessiontype st) {
         // Clean all cache
         gemfireRepository.clearGameCaches();
+        // Clean scoring
+        scoring.init();
         // Flush user Table when requested
         if (st.getParameters().isFlushusertable()) {
             gemfireRepository.clearUserRegion();
