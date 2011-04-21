@@ -22,10 +22,11 @@ public class UsiXebiaTwitter {
     }
 
     public void tweetNbUserSupportedByAppli(int nbJoueur) {
+        logger.info("Tweet this message : " + "Notre appli supporte " + nbJoueur + " joueurs #challengeUSI2011");
+                        
         if (System.getProperty("tweetAfterRanking") != null && System.getProperty("tweetAfterRanking").equals("true")) {
             Twitter twitter = twitterFactory.getInstance(new AccessToken(oauthToken, oauthSecret));
             try {
-                logger.info("Tweet this message : " + "Notre appli supporte " + nbJoueur + " joueurs #challengeUSI2011");
                 twitter.updateStatus("Notre appli supporte " + nbJoueur + " joueurs #challengeUSI2011");
             } catch (TwitterException e) {
                 logger.error("Cannot send tweet ", e);

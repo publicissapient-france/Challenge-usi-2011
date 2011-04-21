@@ -79,4 +79,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("handler", new HttpRequestHandler(restRequestHandler, staticRequestHandler));
         return pipeline;
     }
+
+    public void shutdown() {
+        gemfireRepository.shutdown();
+    }
 }

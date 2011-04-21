@@ -29,6 +29,7 @@ public class LongPoolingSuiteTest {
     private static final AtomicLong nbRequestCompleted = new AtomicLong(0);
     private static final AtomicLong responseSended = new AtomicLong(0);
     private static final AtomicLong scoreReceived = new AtomicLong(0);
+    private static final AtomicLong rankingReceived = new AtomicLong(0);
 
     // Counter for audit
     private static final AtomicLong loginCounter = new AtomicLong(0);
@@ -47,6 +48,8 @@ public class LongPoolingSuiteTest {
     private static String userFile = "src/test/test-file/1million_users_1.csv.gz";
     private static String gameFile = "src/test/test-file/game.xml";
     private static String gameContent;
+
+    private static ScheduledExecutorService scheduleExecutor;
 
     public static void main(String[] args) throws Exception, InterruptedException, IOException {
 
@@ -77,6 +80,7 @@ public class LongPoolingSuiteTest {
         // Timeout 10 minutes
         configBuilder.setRequestTimeoutInMs(60000);
         configBuilder.setExecutorService(Executors.newCachedThreadPool());
+        scheduleExecutor = Executors.newScheduledThreadPool(2);
         configBuilder.setAllowPoolingConnection(false);
         // Better perf, but less logging
         //AsyncHttpProviderConfig nettyConfig = new NettyAsyncHttpProviderConfig();
@@ -275,15 +279,62 @@ public class LongPoolingSuiteTest {
                                 LongPoolingSuiteTest.sendGetQuestionRequest(client, response, Integer.toString(Integer.parseInt(questionNumber) + 1));
                             }
                         });
-                    } else if (scoreReceived.get() == nbClient) {
-                        writeAudit();
+                    } else {
+                        scheduleExecutor.schedule(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                LongPoolingSuiteTest.sendGetRanking(client, response);
+                            }
+                        }, 10, TimeUnit.SECONDS);
+
                     }
+                    //} else if (scoreReceived.get() == nbClient) {
+                    //    writeAudit();
+                    //}
                     return null;
                 }
 
                 @Override
                 public void onThrowable(Throwable t, final String id) {
                     logger.error("Error send response request", t);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void sendGetRanking(final AsyncHttpClient client, final Response response) {
+        AsyncHttpClient.BoundRequestBuilder request = client.prepareGet("http://" + host + "/api/ranking/");
+        for (Cookie c : response.getCookies()) {
+            request.addCookie(c);
+        }
+
+        try {
+
+            request.execute(new AsyncAuditedCompletionHandler<Void>("ranking", System.nanoTime()) {
+
+                @Override
+                public void onThrowable(Throwable t, final String id) {
+                    logger.error("Error in get ranking request", t);
+                    // Try again
+                    //LongPoolingSuiteTest.sendGetQuestionRequest(client, response, questionNumber);
+                }
+
+                @Override
+                public Void onCompleted(final Response response, final String id) throws Exception {
+                    answerCallAudit.put(id, getRequestTimeInMillis());
+                    if (rankingReceived.incrementAndGet() % 100 == 0) {
+                        final long end = System.nanoTime();
+                        System.out.println(rankingReceived.get() + " ranking received in " + ((double) (end - start)) / 1000000d + " ms ");
+                    }
+                    if (rankingReceived.get() == nbClient) {
+                        writeAudit();
+                    }
+
+                    // Send response from question
+                    return null;
                 }
             });
         } catch (IOException e) {

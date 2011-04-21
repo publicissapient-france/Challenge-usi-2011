@@ -69,7 +69,7 @@ public interface Game {
      *
      * @return
      */
-    int countUserForQuestion(String questionIndex);
+    int countUserForCurrentQuestion();
 
     /**
      * Retourne l'index de question courant

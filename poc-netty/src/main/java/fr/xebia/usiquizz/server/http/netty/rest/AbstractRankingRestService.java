@@ -43,8 +43,8 @@ public class AbstractRankingRestService extends RestService {
 
         sb.append("}");
         sb.append("}");
-        ChannelBuffer cb = ChannelBuffers.dynamicBuffer(20000);
-        cb.writeBytes(sb.toString().getBytes());
+        byte[] res = sb.toString().getBytes();
+        ChannelBuffer cb = ChannelBuffers.wrappedBuffer(res);
         return cb;
     }
 

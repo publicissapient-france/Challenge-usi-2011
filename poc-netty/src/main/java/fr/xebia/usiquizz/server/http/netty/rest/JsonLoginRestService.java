@@ -21,7 +21,7 @@ public class JsonLoginRestService extends RestService {
     private static final String JSON_MAIL = "mail";
     private static final String JSON_PASSWORD = "password";
 
-    private Pattern pattern = Pattern.compile("\\{\"mail\":\"(.*)\".*\"password\":\"(.*)\"\\}");
+    private Pattern pattern = Pattern.compile("\\{\"mail\".*\"(.*)\".*\"password\".*\"(.*)\"\\}");
 
 
     private static Logger logger = LoggerFactory.getLogger(JsonLoginRestService.class);
@@ -76,7 +76,7 @@ public class JsonLoginRestService extends RestService {
 
             String sessionKey = Integer.toString(mail.hashCode());
 
-            if (mail != null && password != null) {
+            if (mail != null && !mail.isEmpty() && password != null && !password.isEmpty()) {
                 User user = userRepository.logUser(mail, password);
                 if (user != null) {
 
@@ -106,6 +106,8 @@ public class JsonLoginRestService extends RestService {
             }
         } catch (Exception e1) {
             logger.error("Error ", e1);
+            responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
+            return;
         }
         // ERROR
         logger.error("Flow not supported");

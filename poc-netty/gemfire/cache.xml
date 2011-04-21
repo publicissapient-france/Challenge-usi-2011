@@ -3,23 +3,6 @@
         "http://www.gemstone.com/dtd/cache6_5.dtd">
 <cache>
 
-    <region name="user-region">
-        <region-attributes
-                data-policy="persistent-replicate"
-                scope="distributed-ack">
-            <disk-write-attributes
-                    roll-oplogs="true"
-                    max-oplog-size="10">
-                <synchronous-writes/>
-            </disk-write-attributes>
-            <disk-dirs>
-                <disk-dir>gemfire-persistence/oplogDir1</disk-dir>
-                <disk-dir>gemfire-persistence/oplogDir2</disk-dir>
-                <disk-dir>gemfire-persistence/dbDir</disk-dir>
-            </disk-dirs>
-        </region-attributes>
-    </region>
-
     <region name="score-region">
         <region-attributes data-policy="replicate" scope="distributed-ack"/>
     </region>

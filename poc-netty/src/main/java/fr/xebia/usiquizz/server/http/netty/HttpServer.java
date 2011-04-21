@@ -15,7 +15,14 @@
  */
 package fr.xebia.usiquizz.server.http.netty;
 
+import org.apache.commons.daemon.Daemon;
+import org.apache.commons.daemon.DaemonContext;
+import org.apache.commons.daemon.DaemonInitException;
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.ChannelGroupFuture;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
@@ -39,32 +46,34 @@ import java.util.concurrent.TimeUnit;
  * @author <a href="http://gleamynode.net/">Trustin Lee</a>
  * @version $Rev: 2080 $, $Date: 2010-01-26 18:04:19 +0900 (Tue, 26 Jan 2010) $
  */
-public class HttpServer {
+public class HttpServer implements Daemon {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
-    private static final int firstPort = 8080;
+    private static int firstPort = 80;
 
-    static {
+    private final ChannelGroup allChannels = new DefaultChannelGroup("quizz-server");
+
+    private HttpServerPipelineFactory server;
+
+    public static void main(String[] args) throws Exception {
+        if(args.length > 0){
+            firstPort = Integer.parseInt(args[0]);
+        }
+        HttpServer server = new HttpServer();
+        server.start();
+    }
+
+    @Override
+    public void init(DaemonContext context) throws DaemonInitException, Exception {
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
     }
 
-    public static void main(String[] args) {
+    @Override
+    public void start() throws Exception {
         // Si args[0] present. on considere que c'est le nombre de I/O server worker
         int nbThread = 4;
-        int nbListeningPort = 2;
-
-        if (args.length > 0) {
-            nbListeningPort = Integer.parseInt(args[0]);
-            if (nbListeningPort > 8) {
-                nbListeningPort = 8;
-            }
-        }
-
-        if (args.length > 1) {
-            nbThread = Integer.parseInt(args[1]);
-        }
-
+        int nbListeningPort = 1;
 
         ThreadFactory bossThreadFactory = new ThreadFactory() {
 
@@ -104,17 +113,32 @@ public class HttpServer {
 
 
         // Set up the event pipeline factory.
-        bootstrap.setPipelineFactory(new HttpServerPipelineFactory(bossExec));
+        server = new HttpServerPipelineFactory(bossExec);
+        logger.info("Pipeline initialized");
+        bootstrap.setPipelineFactory(server);
 
         // Bind and start to accept incoming connections.
 
         // A priori beaucoup de pb de connection reset by peer sous macos sans ces options
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("backlog", 1000);
-        bootstrap.bind(new InetSocketAddress(firstPort));
-        //for (int i = 0; i < nbListeningPort; i++) {
-        //    bootstrap.bind(new InetSocketAddress(firstPort + i));
-        //}
-
+        Channel c = bootstrap.bind(new InetSocketAddress(firstPort));
+        allChannels.add(c);
+        logger.info("Ready for quizz");
     }
+
+    @Override
+    public void stop() throws Exception {
+        // call shutdown to server
+        server.shutdown();
+        ChannelGroupFuture future = allChannels.close();
+        future.awaitUninterruptibly();
+    }
+
+    @Override
+    public void destroy() {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+
 }

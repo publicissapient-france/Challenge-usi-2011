@@ -67,8 +67,9 @@ public class DistributedGame implements Game {
     public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
         this.scoring = scoring;
+        gemfireRepository.initUserRegion();
         gemfireRepository.initQuestionStatusRegion(new QuestionStatusCacheListener(this, eventTaskExector));
-        gemfireRepository.initCurrentQuestionRegion();
+        gemfireRepository.initCurrentQuestionRegion(new CurrentQuestionCacheListener(this, eventTaskExector));
         gemfireRepository.initPlayerEndingGameRegion(new PlayerEndingGameListener(this));
         gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
         this.bTree = new ConcurrentSkipListSet<Joueur>();
@@ -236,8 +237,8 @@ public class DistributedGame implements Game {
         // Un listener permet, si nécessaire (pas tous les joueurs de loggué) de démarrer l'envoie de la premiere question
         // Si la question n'est pas encore en cours on la passe en cours. (cas de tous les joueurs loggué avant la fin du timer)
         logger.warn("Start game");
-        if (gemfireRepository.getQuestionStatus(currentQuestionIndex).intValue() == QuestionStatus.QUESTION_NON_JOUEE) {
-            gemfireRepository.putQuestionStatus(currentQuestionIndex, QuestionStatus.QUESTION_EN_COURS);
+        if (gemfireRepository.getQuestionStatus("1").intValue() == QuestionStatus.QUESTION_NON_JOUEE) {
+            gemfireRepository.putQuestionStatus("1", QuestionStatus.QUESTION_EN_COURS);
         }
     }
 
@@ -268,7 +269,7 @@ public class DistributedGame implements Game {
     }
 
     @Override
-    public int countUserForQuestion(String questionIndex) {
+    public int countUserForCurrentQuestion() {
         return gemfireRepository.getCurrentQuestionRegionSize();
     }
 

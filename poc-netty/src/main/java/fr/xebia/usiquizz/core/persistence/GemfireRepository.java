@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 
 public class GemfireRepository {
 
@@ -61,7 +62,7 @@ public class GemfireRepository {
             .create();
 
     // Region for user storage
-    private Region<String, byte[]> userRegion = cache.getRegion("user-region");
+    private Region<String, byte[]> userRegion;
 
     // Region for the current game
     private Region<String, Object> gameRegion;
@@ -83,12 +84,33 @@ public class GemfireRepository {
     public void initQuestionStatusRegion(CacheListener questionStatusCacheListener) {
         AttributesFactory questionStatusAttribute = new AttributesFactory();
         questionStatusAttribute.setDataPolicy(DataPolicy.REPLICATE);
+        questionStatusAttribute.setScope(Scope.GLOBAL);
         questionStatusAttribute.addCacheListener(questionStatusCacheListener);
         RegionFactory rf = cache.createRegionFactory(questionStatusAttribute.create());
         questionStatusRegion = rf.create("question-status");
     }
 
-    public void initCurrentQuestionRegion() {
+    public void initUserRegion() {
+        // Creation score disk store
+        DiskStoreFactory userStoreFactory = cache.createDiskStoreFactory();
+        userStoreFactory.setDiskDirs(new File[]{new File("gemfire-persistence/user-oplogDir1"), new File("gemfire-persistence/user-oplogDir2"), new File("gemfire-persistence/user-dbDir")});
+        userStoreFactory.setMaxOplogSize(10);
+        userStoreFactory.create("user-persistence");
+
+        PartitionAttributesFactory<String, byte[]> userPartitionAttributeFactory = new PartitionAttributesFactory<String, byte[]>();
+        userPartitionAttributeFactory.setRedundantCopies(1);
+        PartitionAttributes<String, byte[]> userPartitionAttribute = userPartitionAttributeFactory.create();
+
+        AttributesFactory userAttribute = new AttributesFactory();
+        userAttribute.setDataPolicy(DataPolicy.PERSISTENT_PARTITION);
+        userAttribute.setDiskStoreName("user-persistence");
+        userAttribute.setDiskSynchronous(true);
+        userAttribute.setPartitionAttributes(userPartitionAttribute);
+        RegionFactory rf = cache.createRegionFactory(userAttribute.create());
+        userRegion = rf.create("user-region");
+    }
+
+    public void initCurrentQuestionRegion(CacheListener<String, String> currentQuestionCacheListener) {
         AttributesFactory questionAttribute = new AttributesFactory();
         questionAttribute.setDataPolicy(DataPolicy.REPLICATE);
         questionAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
@@ -248,6 +270,7 @@ public class GemfireRepository {
         this.scoreFinalRegion.clear();
         this.scoreRegion.clear();
         this.gameRegion.clear();
+        this.playerEndingGameRegion.clear();
     }
 
 
@@ -263,8 +286,21 @@ public class GemfireRepository {
         gameRegion.put(gameKey, value);
     }
 
+    /**
+     * Change le statut pour une question
+     * Ce changement doit être transactionnel. 2 noeud ne doivent pas pouvoir changer la valeur systématiquement sinon il y a un risque que le timer questiontimeframe ne démarre pas
+     *
+     * @param questionIndexInString
+     * @param questionStatut
+     */
     public void putQuestionStatus(String questionIndexInString, byte questionStatut) {
-        questionStatusRegion.put(questionIndexInString, questionStatut);
+        Lock lock = questionStatusRegion.getDistributedLock(questionIndexInString);
+        lock.lock();
+        try {
+            questionStatusRegion.put(questionIndexInString, questionStatut);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public Byte getQuestionStatus(String questionIndexInString) {
@@ -318,5 +354,9 @@ public class GemfireRepository {
 
     public int getPlayerEndingGameRegionSize() {
         return playerEndingGameRegion.size();
+    }
+
+    public void shutdown() {
+        cache.close();
     }
 }

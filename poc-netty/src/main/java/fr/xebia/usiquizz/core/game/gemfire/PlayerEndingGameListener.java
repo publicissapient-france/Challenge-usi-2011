@@ -14,7 +14,7 @@ public class PlayerEndingGameListener extends CacheListenerAdapter<String, Strin
 
     @Override
     public void afterCreate(EntryEvent<String, String> event) {
-        if (game.countUserEndingGame() >= game.countUserConnected()) {
+        if (game.countUserEndingGame() == game.countUserConnected()) {
             game.tweetResult();
         }
 

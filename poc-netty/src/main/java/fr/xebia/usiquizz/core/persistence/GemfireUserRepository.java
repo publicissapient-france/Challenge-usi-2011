@@ -29,7 +29,11 @@ public class GemfireUserRepository implements UserRepository {
 
     @Override
     public User logUser(String mail, String password) {
-        User user = userSerializer.deserializeUser(gemfireRepository.getUserRegion().get(mail));
+        byte[] serUser = gemfireRepository.getUserRegion().get(mail);
+        if(serUser==null){
+            return null;
+        }
+        User user = userSerializer.deserializeUser(serUser);
         return (user != null && user.getPassword().equals(password) ? user : null);
     }
 }

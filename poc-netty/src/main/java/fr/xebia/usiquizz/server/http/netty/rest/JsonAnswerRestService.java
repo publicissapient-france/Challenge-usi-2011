@@ -35,7 +35,7 @@ public class JsonAnswerRestService extends RestService {
 
     private static final String JSON_ANSWER_ATTRIBUTE = "answer";
 
-    private static Pattern answerPattern = Pattern.compile("\\{\"answer\":([0-9]*)\\}");
+    private static Pattern answerPattern = Pattern.compile("\\{\"answer\".*\"([0-9]*)\".*\\}");
 
     private static final CookieDecoder cookieDecoder = new CookieDecoder();
 
@@ -79,7 +79,7 @@ public class JsonAnswerRestService extends RestService {
             String answer = null;
             Matcher m = answerPattern.matcher(new String(request.getContent().array()));
             if(m.matches()){
-                answer = m.group(1);
+                answer = m.group(1).trim();
             }
             /*
             JsonParser jp = jsonFactory.createJsonParser(request.getContent().array());
