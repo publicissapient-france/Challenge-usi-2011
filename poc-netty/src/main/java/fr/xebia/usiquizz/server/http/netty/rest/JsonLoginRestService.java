@@ -90,6 +90,7 @@ public class JsonLoginRestService extends RestService {
                         game.logPlayerToApplication(sessionKey, mail);
                     } catch (LoginPhaseEndedException e1) {
                         // Trop tard pour se logguer ...
+                        logger.info("user {} come too late for login", mail, sessionKey);
                         responseWriter.writeResponse(HttpResponseStatus.BAD_REQUEST, ctx, e);
                         return;
                     }
