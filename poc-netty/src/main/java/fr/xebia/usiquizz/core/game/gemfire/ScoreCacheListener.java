@@ -11,13 +11,7 @@ import org.jboss.netty.handler.execution.MemoryAwareThreadPoolExecutor;
 
 import java.util.concurrent.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: slm
- * Date: 31/03/11
- * Time: 22:55
- * To change this template use File | Settings | File Templates.
- */
+
 public class ScoreCacheListener extends CacheListenerAdapter<String, Score> {
 
     private ConcurrentSkipListSet<Joueur> tree;
