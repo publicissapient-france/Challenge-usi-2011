@@ -20,7 +20,7 @@ public class LongPoolingSuiteTest {
     private static final Logger logger = LoggerFactory.getLogger(LongPoolingSuiteTest.class);
 
     private static String host;
-    private static final String DEFAULT_HOST = "127.0.0.1:8080";
+    private static final String DEFAULT_HOST = "127.0.0.1:7000";
     private static int nbClient;
 
     private static final AtomicLong nbRequestSend = new AtomicLong(0);

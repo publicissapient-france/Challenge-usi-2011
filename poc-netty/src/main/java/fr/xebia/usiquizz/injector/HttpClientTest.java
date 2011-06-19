@@ -10,7 +10,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class HttpClientTest {
 
-    private static final int NB_REQ = 1000;
+    private static final int NB_REQ = 100000;
 
     public static void main(String[] args) throws InterruptedException, IOException {
         AsyncHttpClientConfig.Builder configBuilder = new AsyncHttpClientConfig.Builder();
@@ -18,7 +18,6 @@ public class HttpClientTest {
         configBuilder.setMaximumConnectionsTotal(100000);
         AsyncHttpClient client = new AsyncHttpClient(configBuilder.build());
         final CountDownLatch cdl = new CountDownLatch(NB_REQ);
-
 
         // Setup the request 2
 

@@ -30,7 +30,7 @@ public class ResponseWriter {
     }
 
     public void writeResponse(final ChannelBuffer buffer, final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx, final MessageEvent e, final String sessionKey) {
-        boolean keepAlive = isKeepAlive((HttpMessage) e.getMessage());
+        //boolean keepAlive = isKeepAlive((HttpMessage) e.getMessage());
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, httpResponseStatus);
 
         response.setContent(buffer);

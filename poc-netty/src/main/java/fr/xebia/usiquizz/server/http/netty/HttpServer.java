@@ -72,7 +72,7 @@ public class HttpServer implements Daemon {
     @Override
     public void start() throws Exception {
         // Si args[0] present. on considere que c'est le nombre de I/O server worker
-        int nbThread = 4;
+        int nbThread = 2;
         int nbListeningPort = 1;
 
         ThreadFactory bossThreadFactory = new ThreadFactory() {
