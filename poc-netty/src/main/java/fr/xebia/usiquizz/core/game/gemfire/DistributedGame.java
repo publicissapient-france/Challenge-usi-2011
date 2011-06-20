@@ -64,13 +64,16 @@ public class DistributedGame implements Game {
     private String currentQuestionIndex = "1";
     private String currentAnswerIndex = "1";
 
+    // listener
+    PlayerEndingGameListener playerEndingGameListener = new PlayerEndingGameListener(this);
+
     public DistributedGame(GemfireRepository gemfireRepository, Scoring scoring) {
         this.gemfireRepository = gemfireRepository;
         this.scoring = scoring;
         gemfireRepository.initUserRegion();
         gemfireRepository.initQuestionStatusRegion(new QuestionStatusCacheListener(this, eventTaskExector));
         gemfireRepository.initCurrentQuestionRegion(new CurrentQuestionCacheListener(this, eventTaskExector));
-        gemfireRepository.initPlayerEndingGameRegion(new PlayerEndingGameListener(this));
+        gemfireRepository.initPlayerEndingGameRegion(playerEndingGameListener);
         gemfireRepository.initLoginRegion(new LoginCacheListener(this, eventTaskExector));
         this.bTree = new ConcurrentSkipListSet<Joueur>();
         gemfireRepository.initFinalScoreRegion(new ScoreCacheListener(this.bTree));
@@ -92,6 +95,8 @@ public class DistributedGame implements Game {
         gemfireRepository.clearGameCaches();
         // Clean scoring
         scoring.init();
+        // Clean user for twitter
+        playerEndingGameListener.init();
         // Flush user Table when requested
         if (st.getParameters().isFlushusertable()) {
             gemfireRepository.clearUserRegion();

@@ -32,12 +32,16 @@ public class PlayerEndingGameListener extends CacheListenerAdapter<String, Strin
                                 game.tweetResult();
                             }
                         }
-                    }, 60, TimeUnit.SECONDS);
+                    }, 80, TimeUnit.SECONDS);
         }
 
         //if (game.countUserEndingGame() == game.countUserConnected()) {
         //    game.tweetResult();
         //}
 
+    }
+
+    public void init() {
+        noUser.set(true);
     }
 }
