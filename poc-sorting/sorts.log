@@ -1,8 +1,0 @@
-bubbleSort
- - 10°0 - bubbleSort(1) -> 0 ms 
- - 10°1 - bubbleSort(10) -> 0 ms 
- - 10°2 - bubbleSort(100) -> 1 ms 
- - 10°3 - bubbleSort(1000) -> 7 ms 
- - 10°4 - bubbleSort(10000) -> 184 ms 
- - 10°5 - bubbleSort(100000) -> 17508 ms 
- - 10°6 - bubbleSort(1000000) -> 1847369 ms 
