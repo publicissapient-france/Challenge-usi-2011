@@ -146,7 +146,7 @@ public class GemfireRepository {
         AttributesFactory scoreAttribute = new AttributesFactory();
         scoreAttribute.setDataPolicy(DataPolicy.PERSISTENT_REPLICATE);
         scoreAttribute.setDiskStoreName("final-score");
-        scoreAttribute.setDiskSynchronous(true);
+        scoreAttribute.setDiskSynchronous(false);
         scoreAttribute.setScope(Scope.DISTRIBUTED_NO_ACK);
         scoreAttribute.addCacheListener(finalScoreListener);
         RegionFactory rf = cache.createRegionFactory(scoreAttribute.create());
@@ -246,7 +246,7 @@ public class GemfireRepository {
         asyncPlayerWritingOperation.submit(new Runnable() {
             @Override
             public void run() {
-                getPlayerRegion().put(sessionId, email);
+                getPlayerRegion().put(sessionId, "");
             }
         });
 

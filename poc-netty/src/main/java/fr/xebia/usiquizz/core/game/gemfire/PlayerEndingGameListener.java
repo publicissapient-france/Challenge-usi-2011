@@ -31,8 +31,18 @@ public class PlayerEndingGameListener extends CacheListenerAdapter<String, Strin
                             if (game.countUserEndingGame() > (game.countUserConnected() * 0.8)) {
                                 game.tweetResult();
                             }
+                            // Very BAD PRACTICE.... but avoid full gc during game....
+                            Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            System.gc();
+                                        }
+                                    }, 5, TimeUnit.SECONDS);
                         }
                     }, 80, TimeUnit.SECONDS);
+
+
         }
 
         //if (game.countUserEndingGame() == game.countUserConnected()) {

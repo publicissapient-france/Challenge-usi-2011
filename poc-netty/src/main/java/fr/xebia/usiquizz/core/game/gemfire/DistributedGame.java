@@ -333,7 +333,8 @@ public class DistributedGame implements Game {
         // FIXME implements...
 
         // Le joueur ne doit pas déja avoir demandé la question
-        return !gemfireRepository.isPlayerAlreadyAskQuestion(sessionKey);
+        //return !gemfireRepository.isPlayerAlreadyAskQuestion(sessionKey);
+        return true;
 
 
     }

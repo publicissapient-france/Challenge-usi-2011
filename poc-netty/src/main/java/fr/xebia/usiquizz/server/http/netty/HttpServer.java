@@ -121,6 +121,7 @@ public class HttpServer implements Daemon {
 
         // A priori beaucoup de pb de connection reset by peer sous macos sans ces options
         bootstrap.setOption("child.tcpNoDelay", true);
+        //bootstrap.setOption("child.keepAlive", false);
         bootstrap.setOption("backlog", 1000);
         Channel c = bootstrap.bind(new InetSocketAddress(firstPort));
         allChannels.add(c);

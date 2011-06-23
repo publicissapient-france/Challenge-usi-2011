@@ -79,7 +79,8 @@ public class CachedResourcesRequestHandler {
 
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-        response.setContent(ChannelBuffers.copiedBuffer(new String(content), CharsetUtil.UTF_8));
+        //response.setContent(ChannelBuffers.copiedBuffer(new String(content), CharsetUtil.UTF_8));
+        response.setContent(ChannelBuffers.wrappedBuffer(content));
         response.setHeader(CONTENT_TYPE, "text/html; charset=UTF-8");
 
         // Encode the cookie.

@@ -2,22 +2,7 @@
         "-//GemStone Systems, Inc.//GemFire Declarative Caching 6.5//EN"
         "http://www.gemstone.com/dtd/cache6_5.dtd">
 <cache>
-
     <region name="score-region">
-        <region-attributes data-policy="replicate" scope="distributed-ack"/>
-    </region>
-    <region name="inverse-score-region">
-        <region-attributes data-policy="replicate" scope="distributed-ack"/>
-    </region>
-    <region name="ranking-region">
-        <region-attributes data-policy="replicate" scope="distributed-ack"/>
-    </region>
-    <region name="final-ranking-region">
-        <region-attributes data-policy="replicate" scope="distributed-ack"/>
-    </region>
-
-    <!-- Ranking NodeStore -->
-    <region name="score-store-region">
-        <region-attributes data-policy="replicate" scope="distributed-ack"/>
+        <region-attributes data-policy="replicate" scope="distributed-no-ack"/>
     </region>
 </cache>
