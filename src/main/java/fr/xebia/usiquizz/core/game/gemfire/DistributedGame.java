@@ -93,10 +93,15 @@ public class DistributedGame implements Game {
     public void init(Sessiontype st) {
         // Clean all cache
         gemfireRepository.clearGameCaches();
+        // Clean player end game
+        gemfireRepository.clearPlayerEndingGame();
         // Clean scoring
         scoring.init();
         // Clean user for twitter
         playerEndingGameListener.init();
+        // Clean question cache
+        jsonQuestionWriter.cleanCache();
+        // Flush user Table when requested
         // Flush user Table when requested
         if (st.getParameters().isFlushusertable()) {
             gemfireRepository.clearUserRegion();
@@ -445,6 +450,10 @@ public class DistributedGame implements Game {
                 }
             }
             return ChannelBuffers.wrappedBuffer(questionBa, Byte.toString(currentScore).getBytes(), END_BA);
+        }
+
+        public void cleanCache(){
+            questionCache.clear();
         }
 
     }

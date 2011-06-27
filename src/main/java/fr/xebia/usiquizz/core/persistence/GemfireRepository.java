@@ -29,30 +29,30 @@ public class GemfireRepository {
     private final ExecutorService asyncScoreWritingOperation = new ThreadPoolExecutor(2, 2, 1, TimeUnit.MINUTES,
             new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
 
-                private int counter = 0;
+        private int counter = 0;
 
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r);
-                    t.setName("Async score gemfire writing : " + counter++);
-                    return t;
-                }
-            }
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("Async score gemfire writing : " + counter++);
+            return t;
+        }
+    }
 
     );
 
     private final ExecutorService asyncPlayerWritingOperation = new ThreadPoolExecutor(2, 2, 5, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
 
-                private int counter = 0;
+        private int counter = 0;
 
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r);
-                    t.setName("Async player gemfire writing : " + counter++);
-                    return t;
-                }
-            }
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("Async player gemfire writing : " + counter++);
+            return t;
+        }
+    }
 
     );
 
@@ -98,7 +98,7 @@ public class GemfireRepository {
         userStoreFactory.create("user-persistence");
 
         PartitionAttributesFactory<String, byte[]> userPartitionAttributeFactory = new PartitionAttributesFactory<String, byte[]>();
-        userPartitionAttributeFactory.setRedundantCopies(1);
+        userPartitionAttributeFactory.setRedundantCopies(0);
         PartitionAttributes<String, byte[]> userPartitionAttribute = userPartitionAttributeFactory.create();
 
         AttributesFactory userAttribute = new AttributesFactory();
@@ -348,6 +348,10 @@ public class GemfireRepository {
         currentQuestionRegion.clear();
     }
 
+    public void clearPlayerEndingGame() {
+        playerEndingGameRegion.clear();
+    }
+
     public Score getScore(String session_key) {
         return scoreRegion.get(session_key);
     }
@@ -359,4 +363,5 @@ public class GemfireRepository {
     public void shutdown() {
         cache.close();
     }
+
 }

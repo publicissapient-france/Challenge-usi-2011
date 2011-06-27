@@ -20,7 +20,7 @@ public class HttpCreateUser {
     private static String host;
     private static String userFileName="src/test/test-file/1million_users_1.csv";
     private static int nbUserToCreate = 100000;
-    private static final String DEFAULT_HOST = "127.0.0.1:8080";
+    private static final String DEFAULT_HOST = "127.0.0.1:7000";
 
     public static void main(String[] args) throws IOException, FileNotFoundException {
         if (args.length > 0) {

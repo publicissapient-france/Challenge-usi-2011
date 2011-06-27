@@ -6,6 +6,7 @@ import fr.xebia.usiquizz.core.xml.GameParameterParser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
+import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +80,7 @@ public class LongPoolingSuiteTest {
         configBuilder.setMaximumConnectionsTotal(1000000);
         // Timeout 10 minutes
         configBuilder.setRequestTimeoutInMs(60000);
-        configBuilder.setExecutorService(Executors.newCachedThreadPool());
+        configBuilder.setExecutorService(new OrderedMemoryAwareThreadPoolExecutor(10, 400000000, 2000000000, 60, TimeUnit.SECONDS));
         scheduleExecutor = Executors.newScheduledThreadPool(2);
         configBuilder.setAllowPoolingConnection(false);
         // Better perf, but less logging

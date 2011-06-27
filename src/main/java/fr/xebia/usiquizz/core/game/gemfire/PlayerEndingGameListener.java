@@ -2,7 +2,10 @@ package fr.xebia.usiquizz.core.game.gemfire;
 
 import com.gemstone.gemfire.cache.CacheListener;
 import com.gemstone.gemfire.cache.EntryEvent;
+import com.gemstone.gemfire.cache.RegionEvent;
 import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +16,8 @@ public class PlayerEndingGameListener extends CacheListenerAdapter<String, Strin
     private DistributedGame game;
 
     private AtomicBoolean noUser = new AtomicBoolean(true);
+
+    private static Logger logger = LoggerFactory.getLogger(PlayerEndingGameListener.class);
 
     public PlayerEndingGameListener(DistributedGame distributedGame) {
         this.game = distributedGame;
@@ -30,6 +35,8 @@ public class PlayerEndingGameListener extends CacheListenerAdapter<String, Strin
                         public void run() {
                             if (game.countUserEndingGame() > (game.countUserConnected() * 0.8)) {
                                 game.tweetResult();
+                            } else {
+                                logger.warn("No tweet, only {} end the game on {}", game.countUserEndingGame(), game.countUserConnected());
                             }
                             // Very BAD PRACTICE.... but avoid full gc during game....
                             Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
@@ -49,6 +56,11 @@ public class PlayerEndingGameListener extends CacheListenerAdapter<String, Strin
         //    game.tweetResult();
         //}
 
+    }
+
+    @Override
+    public void afterRegionClear(RegionEvent<String, String> event) {
+        noUser.set(true);
     }
 
     public void init() {
